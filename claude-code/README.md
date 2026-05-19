@@ -1,12 +1,23 @@
 # Sprint Loops — Claude Code
 
-> For Anthropic's Claude Code, using the native skills system.
+> **This directory ships a complete, install-ready Claude Code skill: `loop-sprint`.**
+> This README is the *accompanying documentation* — what the skill is, how to
+> install it, and the protocol it runs. The skill itself is everything under
+> `skills/loop-sprint/`; you do not need this README at runtime.
 
-A **self-contained, drop-in `sprint-loops` skill** plus an optional `/sprint`
-slash command. The skill runs the five-phase Sprint Loops workflow — **Research →
-Plan → Build → Test → Loop** — for long-horizon coding tasks. Everything needed to
-deploy and run it on Claude Code is in this directory; no other part of the repo
-is required.
+`loop-sprint` runs the five-phase Sprint Loops workflow — **Research → Plan →
+Build → Test → Loop** — for long-horizon coding tasks, invoked automatically or
+via the `/loop-sprint` slash command. Everything needed to deploy and run it on
+Claude Code is in this directory; no other part of the repo is required.
+
+## The skill, and its accompanying docs
+
+| Path | Role |
+|------|------|
+| `skills/loop-sprint/` | **The skill.** The complete, install-ready bundle — install this. |
+| `commands/loop-sprint.md` | **The skill's slash command.** Optional `/loop-sprint` control surface. |
+| `README.md` (this file) | **Accompanying documentation.** Install guide + protocol reference for humans. |
+| `LICENSE` | MIT. |
 
 ## Why a skill, not a prompt
 
@@ -20,48 +31,42 @@ helpers, which matches the per-phase model exactly:
 - **Bash helpers do the deterministic work** — sprint numbering, phase detection, git commits. LLMs are bad at counting `s0, s1, s2`; shell scripts aren't.
 - **Plan mode is engaged at the right moment** — only during the Plan Phase, not always.
 
-## What's in this directory
+## Skill layout
 
 ```
-claude-code/
-├── README.md                         # this file
-├── LICENSE                           # MIT
-├── skills/
-│   └── sprint-loops/
-│       ├── SKILL.md                  # description + routing
-│       ├── phases/                   # one lazy-loaded file per phase
-│       │   ├── 00-overview.md        # the complete core protocol — read first
-│       │   ├── 01-init-sprint.md     04-build-phase.md
-│       │   ├── 02-research-phase.md  05-test-phase.md
-│       │   └── 03-plan-phase.md      06-loop-phase.md
-│       ├── schemas/                  # output-artifact templates (9 files)
-│       └── scripts/                  # deterministic bash helpers (6 files)
-└── commands/
-    └── sprint.md                     # optional /sprint slash command
+skills/loop-sprint/
+├── SKILL.md                  # description + routing (skill name: loop-sprint)
+├── phases/                   # one lazy-loaded file per phase
+│   ├── 00-overview.md        # the complete core protocol — read first
+│   ├── 01-init-sprint.md     04-build-phase.md
+│   ├── 02-research-phase.md  05-test-phase.md
+│   └── 03-plan-phase.md      06-loop-phase.md
+├── schemas/                  # output-artifact templates (9 files)
+└── scripts/                  # deterministic bash helpers (6 files)
 ```
 
 `phases/00-overview.md` carries the full protocol (directory schema, phase exit
 conditions, failure semantics, confidence throttle), so the agent never needs a
-document outside this bundle.
+document outside the skill bundle.
 
 ## Installation
 
-User-level (available in every project):
+User-level (available in every project — this is the personal install):
 
 ```bash
 mkdir -p ~/.claude/skills ~/.claude/commands
-cp -r claude-code/skills/sprint-loops ~/.claude/skills/
-cp claude-code/commands/sprint.md ~/.claude/commands/
-chmod +x ~/.claude/skills/sprint-loops/scripts/*.sh
+cp -r claude-code/skills/loop-sprint ~/.claude/skills/
+cp claude-code/commands/loop-sprint.md ~/.claude/commands/
+chmod +x ~/.claude/skills/loop-sprint/scripts/*.sh
 ```
 
 Project-scoped (committed alongside one repo):
 
 ```bash
 mkdir -p .claude/skills .claude/commands
-cp -r claude-code/skills/sprint-loops .claude/skills/
-cp claude-code/commands/sprint.md .claude/commands/
-chmod +x .claude/skills/sprint-loops/scripts/*.sh
+cp -r claude-code/skills/loop-sprint .claude/skills/
+cp claude-code/commands/loop-sprint.md .claude/commands/
+chmod +x .claude/skills/loop-sprint/scripts/*.sh
 ```
 
 ## Usage
@@ -70,12 +75,12 @@ The skill is invoked automatically when you express sprint-loop intent — "star
 sprint", "continue the loop", "next sprint", or when the project root already
 contains a `sprints/` directory and you ask to resume.
 
-The optional `/sprint` command gives explicit control:
+The `/loop-sprint` command gives explicit control:
 
-- `/sprint start "add JWT refresh tokens"` — initialize a new sprint with that goal
-- `/sprint continue` — resume from whatever phase the filesystem reports
-- `/sprint loop` — jump to the Loop Phase
-- `/sprint abort` — mark the current sprint aborted and close it out
+- `/loop-sprint start "add JWT refresh tokens"` — initialize a new sprint with that goal
+- `/loop-sprint continue` — resume from whatever phase the filesystem reports
+- `/loop-sprint loop` — jump to the Loop Phase
+- `/loop-sprint abort` — mark the current sprint aborted and close it out
 
 ## How it routes
 
