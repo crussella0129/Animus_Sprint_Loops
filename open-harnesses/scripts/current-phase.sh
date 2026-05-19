@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Inspect the filesystem and print the active phase. The filesystem IS the state machine.
+# Run from the project root. Sibling scripts are resolved relative to this file, so
+# this works whether scripts/ lives in the project or in an installed skill bundle.
 set -euo pipefail
-N=$(./scripts/current-sprint.sh)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+N=$("$SCRIPT_DIR/current-sprint.sh")
 if [ "$N" = "-1" ]; then echo "uninitialized"; exit 0; fi
 D="sprints/s$N"
 if [ ! -s "$D/sprint-research/research-report.md" ]; then echo "research"; exit 0; fi

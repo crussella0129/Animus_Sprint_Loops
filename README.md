@@ -21,8 +21,10 @@ agent runtime — each is self-contained and ready to use:
 
 The core protocol — filesystem layout, phase exit conditions, schemas — is
 identical across all three. What changes is only how the agent discovers and
-routes through the phases. `open-harnesses/` is the canonical reference; the other
-two are thin adapters over it.
+routes through the phases. **Each directory is a complete, self-contained unit:**
+installing one does not require the others, and each carries the full core
+protocol. `open-harnesses/` additionally doubles as the canonical cross-harness
+reference and the Oovra-particle source.
 
 ## Quick start
 
