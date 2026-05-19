@@ -1,0 +1,10 @@
+## Sprint Loops
+
+This project uses the Sprint Loops workflow. Work is organized into numbered sprints under `sprints/sN/`, with a persistent backlog in `agent-tasks/`.
+
+When asked to start, continue, or work on a sprint:
+1. Invoke the `sprint-loops` skill.
+2. Run `bash scripts/current-phase.sh` to determine the active phase.
+3. Follow the phase instructions in `<skill-root>/phases/`.
+
+Do not bypass the workflow. Do not edit `build-plan.md` or `test-plan.md` after they contain the `Finalized - DO NOT EDIT` header. Every Build-Phase task ends in a git commit.
