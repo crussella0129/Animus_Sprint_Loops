@@ -27,3 +27,49 @@
   - The skill ships with a `scripts/selftest.sh` that guards every transition;
     any future change to `current-phase.sh` must be made alongside a selftest
     update if it adds a new phase or transition.
+
+## 2026-05-20 — `commit-task.sh` back-fills commit hashes; opt-in via `PENDING` token (sprint 1)
+- **Context:** The protocol's `completed-tasks.md` schema includes a `Commit:`
+  field for each entry, but the helper that creates the commit did not fill
+  it. Sprint 0 left three manual back-fill edits in its git log as a result.
+- **Decision:** If `agent-tasks/completed-tasks.md` contains a literal
+  `Commit:** PENDING` placeholder when `commit-task.sh` runs, the script
+  captures the new commit's short hash, replaces the FIRST `PENDING`
+  occurrence with the hash, and folds the edit into the same commit via
+  `git commit --amend --no-edit`. No-op when no `PENDING` token exists.
+- **Alternatives considered:** A separate post-commit "back-fill commit"
+  (rejected — violates the one-commit-per-task contract). A pre-commit hook
+  (rejected — adds a new install step and entangles with whatever the user's
+  own hooks do). A declarative "task ledger" outside `completed-tasks.md`
+  (rejected — duplicates state, drifts from filesystem-as-state-machine).
+- **Consequences:**
+  - Agents writing entries with `Commit:** PENDING` get automatic hash fill.
+  - Existing entries (and any future entries the agent fills by hand) are
+    untouched — back-compat is guaranteed by the `grep -q PENDING` guard.
+  - The contract is now "one commit per task, even with amend"; if a future
+    helper also needs to amend a task's commit, it must compose with this one.
+
+## 2026-05-20 — Abort path: `abort-sprint.sh` + hoisted Exit-status check in `current-phase.sh` (sprint 1)
+- **Context:** The `/loop-sprint` command advertised an `abort` subcommand,
+  but no script implemented it and the Loop Phase doc only listed `success`
+  and `failed` as exit statuses. There was no clean way to stop a sprint
+  mid-flight without faking a failure-report.
+- **Decision:** Add `scripts/abort-sprint.sh "<reason>"` that sets `sprint-meta.md`
+  Exit status to `aborted`, records the end timestamp, appends an `## Abort
+  note` section with the reason, and commits `sprint-N: aborted — <reason>`.
+  Hoist the Exit-status check in `current-phase.sh` to the top so a closed
+  sprint (any of `success`/`failed`/`aborted`) short-circuits to
+  `ready-for-next-sprint` regardless of intermediate filesystem state.
+- **Alternatives considered:** Reusing the failure path for aborts (rejected
+  — semantic conflation: a failed sprint feeds the next sprint's research, an
+  aborted sprint does not). Leaving abort undocumented (rejected — the
+  command file already advertised it).
+- **Consequences:**
+  - The skill's three exit statuses (`success`, `failed`, `aborted`) now each
+    have a defined invocation path and a defined effect on the next sprint.
+  - `current-phase.sh` semantics are clearer: a sprint is "closed" iff Exit
+    status is one of the three end states; otherwise derive from artifacts.
+  - The new `aborted` transition is covered by `selftest.sh` step 09.
+  - `abort-sprint.sh` calls `git commit` — projects without a git root will
+    see a non-zero exit. Acceptable: the Build Phase protocol already
+    requires a git root for per-task commits.
