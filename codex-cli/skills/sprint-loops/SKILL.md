@@ -38,3 +38,21 @@ The filesystem IS the state machine. Persistent state lives in `sprints/` and `a
 ## Subagent opportunity
 
 When the Build Phase has multiple independent tasks (no shared dependencies in the build-plan's execution sequence), consider spawning subagents for parallelization. Each subagent handles one task and commits its own diff. The parent agent merges results and proceeds.
+
+## Autonomous operation
+
+When invoked for a multi-turn loop (e.g. via `codex exec` or when the user signals they're stepping away), default to working independently for the entire sprint:
+
+- **Commit, push, and merge your own PRs without asking per step.** The per-task commit boundary already provides rollback; the sprint structure already provides review surfaces (research-report, plans, test-report, decisions ADR). Don't pause for confirmation on routine work.
+- **Defer rather than block.** When a feature has a non-trivial dependency the plan didn't anticipate, ship the scoped piece, note the deferral in `sprint-meta.md` blockages or the PR body, and continue with the next executable task. Use `scripts/abort-sprint.sh` only for truly unrecoverable blockages.
+- **Use `/plan` for the Plan Phase, then drop back to standard mode for Build/Test/Loop.** Plan Mode produces `build-plan.md` and `test-plan.md` without touching source files.
+- **One PR per concept, numbered sequentially** (e.g. `v117`, `v118`) when the sprint is wrapped as a PR.
+
+## Safety floor
+
+Autonomy stops at the safety floor:
+
+- **Don't weaken permission or security controls** to keep the loop moving. If a tool call is denied, surface the decline clearly and continue with what *is* permitted — never invoke `--yolo` or `--dangerously-bypass-approvals-and-sandbox`.
+- **Don't skip pre-flight checks** documented in `phases/04-build-phase.md` even when running unattended. The project's sanity gate blocks the per-task commit — that's the design.
+- **Never `--no-verify` or bypass hooks** unless the user explicitly opted in. Hook failures are signal; investigate, don't suppress.
+- **Hard-to-reverse actions warrant a pause** even in autonomous mode: force-push to a base branch, dropping a DB table, deleting infra. Surface the intent and wait for confirmation.

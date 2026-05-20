@@ -88,4 +88,34 @@ if head -n1 sprints/s2/sprint-plans/build-plan.md | grep -qF "Finalized - DO NOT
 fi
 printf "  PASS  %-34s expected=%-22s got=%s\n" "10 empty-plan rejected" "non-zero exit" "non-zero exit + file unchanged"
 
-echo "selftest: all 10 transitions matched"
+# Step 11 exercises commit-task.sh's back-fill: the line-anchored regex must
+# NOT match a `Commit:** PENDING` substring inside other entries' description
+# text (the real bug that motivated this fix), and a proper anchored field
+# line MUST be filled with a backticked short-hash.
+cat > agent-tasks/completed-tasks.md <<'EOF'
+# Completed Tasks Log (Append-Only)
+
+## T-001 (sprint 0)
+- **Description:** Discussed the placeholder format. Literal mention of `Commit:** PENDING` here — must NOT be touched by back-fill.
+- **Files modified:** none
+- **Commit:** `abcd123`
+
+## T-002 (sprint 0)
+- **Description:** Real task
+- **Files modified:** seed
+- **Commit:** PENDING
+EOF
+echo "trigger" > seed
+bash "$T/scripts/commit-task.sh" T-002 "selftest back-fill" >/dev/null
+PROSE_OK=$(grep -c 'Literal mention of `Commit:\*\* PENDING` here' agent-tasks/completed-tasks.md || true)
+FIELD_FILLED=$(grep -cE '^- \*\*Commit:\*\* `[0-9a-f]+`$' agent-tasks/completed-tasks.md || true)
+PENDING_LEFT=$(grep -cE '^- \*\*Commit:\*\* PENDING$' agent-tasks/completed-tasks.md || true)
+# Original `abcd123` plus the new back-filled hash = 2 filled fields.
+if [ "$PROSE_OK" = "1" ] && [ "$FIELD_FILLED" = "2" ] && [ "$PENDING_LEFT" = "0" ]; then
+  printf "  PASS  %-34s expected=%-22s got=%s\n" "11 back-fill line-anchored" "prose intact, 1 fill" "prose intact, real field filled"
+else
+  printf "  FAIL  %-34s prose_ok=%s fields_filled=%s pending_left=%s\n" "11 back-fill line-anchored" "$PROSE_OK" "$FIELD_FILLED" "$PENDING_LEFT" >&2
+  exit 1
+fi
+
+echo "selftest: all 11 transitions matched"

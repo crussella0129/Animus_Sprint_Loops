@@ -26,4 +26,27 @@ When all tests pass and CI is green, write a summary to
 tests passed, tests failed, coverage observations, and any technical debt
 identified.
 
+## CI verify (GitHub Actions)
+
+If the repo uses GitHub Actions, **always verify conclusion as a separate step
+after `gh run watch`** — the watch command's exit code is unreliable on some
+platforms (Windows in particular), and a green-looking `watch` can hide a red
+conclusion:
+
+```bash
+gh run watch <run-id> --exit-status                              # may lie
+gh run list --branch "$(git branch --show-current)" \
+  --json status,conclusion,databaseId --limit 1                  # source of truth
+```
+
+Treat the `conclusion` field from `gh run list` as authoritative. On `failure`:
+
+```bash
+gh run view <id> --log-failed
+```
+
+Read the log, fix the underlying cause (not the symptom), force-push the
+branch, and re-watch. Don't merge a PR until `gh run list` shows
+`conclusion: success` on the branch's head commit.
+
 **When complete, read `phases/06-loop-phase.md`.**

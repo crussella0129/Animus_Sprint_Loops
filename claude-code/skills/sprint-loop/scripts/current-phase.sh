@@ -15,10 +15,13 @@ if [ ! -s "$D/sprint-research/research-report.md" ]; then echo "research"; exit 
 if ! grep -q "Finalized - DO NOT EDIT" "$D/sprint-plans/build-plan.md" 2>/dev/null; then echo "plan"; exit 0; fi
 if ! grep -q "Finalized - DO NOT EDIT" "$D/sprint-plans/test-plan.md" 2>/dev/null; then echo "plan"; exit 0; fi
 # Plans are finalized. Build is in progress while sprint-N tasks remain queued.
-if grep -q "sprint $N" agent-tasks/agent-tasks.md 2>/dev/null; then echo "build"; exit 0; fi
+# Match `(sprint N)` with literal parens (the schema's task-reference format)
+# so we don't false-positive on prose like "flagged for sprint 3" inside
+# another entry's description.
+if grep -qE "\(sprint $N\)" agent-tasks/agent-tasks.md 2>/dev/null; then echo "build"; exit 0; fi
 # No sprint-N tasks queued. If none have been completed either, the Build Phase
 # has not started yet — the protocol's first Build-Phase action is to append tasks.
-if ! grep -q "sprint $N" agent-tasks/completed-tasks.md 2>/dev/null; then echo "build"; exit 0; fi
+if ! grep -qE "\(sprint $N\)" agent-tasks/completed-tasks.md 2>/dev/null; then echo "build"; exit 0; fi
 # Build is done. Test runs until a report exists.
 if [ ! -s "$D/sprint-tests/test-report.md" ] && [ ! -s "$D/failure-report.md" ]; then echo "test"; exit 0; fi
 # Tests are done; Loop Phase runs until exit status is set (handled by the
