@@ -165,3 +165,16 @@
     specifically (the `gh run watch` exit-code unreliability). Other CI
     providers need analogous patterns; documented as "GitHub Actions
     specifically" so users with other CI know to translate.
+
+## 2026-05-20 — Hard plan-mode primitive + EARS criteria + decisions-reviewed gate (sprint 4)
+- **Context:** Three of sprint 3's flagged candidates, user-prioritized: (a) Plan Mode was a soft instruction ("engage plan mode now") relying on model compliance; (b) success criteria were freeform prose, risking drift from what tests check; (c) `decisions.md` existed but no phase mandated reading it, so a future sprint could violate prior ADRs unnoticed.
+- **Decision:**
+  (a) `phases/03-plan-phase.md` (claude-code) now mandates `EnterPlanMode` at phase entry and `ExitPlanMode` at phase exit. Codex retains `/plan`; open-harnesses keeps generic language (no harness primitive).
+  (b) `schemas/build-plan.md` example shows EARS clauses (`WHEN <trigger> THEN <component> SHALL <response>`). `phases/03-plan-phase.md` mandates at-least-one EARS clause per task's success criterion. `phases/05-test-phase.md` derives one `test_*` per WHEN/THEN/SHALL triple. Particles 04 + 05 carry parallel additions.
+  (c) `phases/02-research-phase.md` (and particle 02) now require reading `decisions.md` first and recording relevant ADRs in `## Decisions Reviewed`. `schemas/research-report.md` documents the section. `finalize-plan.sh` REFUSES to lock plans when `decisions.md` is non-empty AND the research-report lacks the section (skips on empty/absent `decisions.md` for sprint 0 / new projects). Selftest step 12 guards the gate.
+- **Alternatives considered:** Mandating EARS as the only format (rejected — freeform fallback preserves back-compat). New script for the decisions-review check (rejected — `finalize-plan.sh` is already the gate). Hard plan-mode for Codex too (rejected — `/plan` is already wired as a user-driven primitive).
+- **Consequences:**
+  - Plan Mode is now an actual tool call (claude-code), not just an instruction.
+  - Success criteria are mechanically test-scaffoldable; criteria-test drift is reduced.
+  - Cross-sprint architectural drift is now an enforceable gate, not a hope. The first ADR-aware sprint is sprint 4 itself; its research-report's `## 0. Decisions Reviewed` section is the first dogfood instance.
+  - Sprint 5+ research-reports must include the section (or `finalize-plan.sh` rejects).
