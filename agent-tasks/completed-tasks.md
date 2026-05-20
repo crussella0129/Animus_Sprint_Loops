@@ -111,3 +111,9 @@
 - **Completed:** 2026-05-20T20:45:00Z
 - **Files modified:** `open-harnesses/prompts/plan-critic.md` (new), `open-harnesses/prompts/test-critic.md` (new)
 - **Commit:** `2e62a14`
+
+## T-002 (sprint 5)
+- **Description:** Wired the spawn-review-address protocol into `claude-code/skills/sprint-loop/phases/03-plan-phase.md` (new "Critic review (before lock)" section between ExitPlanMode and finalize) and `phases/05-test-phase.md` (new "Critic review (before finalizing test-report)" section between CI verify and finalize). Both instruct: spawn Agent with the matching critic prompt → save critique to `sprint-{plans,tests}/critique.md` → address each concern inline (fix / defer / reject) → only then lock. Fallback documented for harnesses without subagent primitives: self-critique against the same prompt's failure-mode list. Open-harnesses particles 03 and 07 got parallel single-sentence integrations inside their existing quoted blocks pointing to `../prompts/{plan,test}-critic.md`.
+- **Completed:** 2026-05-20T20:55:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/phases/03-plan-phase.md`, `claude-code/skills/sprint-loop/phases/05-test-phase.md`, `open-harnesses/particles/03-plan-phase.md`, `open-harnesses/particles/07-test-phase.md`
+- **Commit:** `24cad86`

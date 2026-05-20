@@ -37,10 +37,37 @@ cause:
   as its primary research input.
 
 Watch for successful completion of any CI/CD pipelines configured for the repo.
-When all tests pass and CI is green, write a summary to
-`sprint-tests/test-report.md` (see `schemas/test-report.md`) covering: tests run,
-tests passed, tests failed, coverage observations, and any technical debt
-identified.
+
+## Critic review (before finalizing test-report)
+
+Before writing the final `test-report.md`, spawn a critic subagent with the
+test-critic prompt:
+
+1. Use the Agent tool with the prompt from `prompts/test-critic.md`. The
+   critic reads `build-plan.md` (locked EARS clauses), `test-plan.md`, and
+   the just-written `unit-tests.md` / `integration-tests.md` /
+   `e2e-tests.md`, then returns a structured critique.
+2. Save the critique to `sprints/sN/sprint-tests/critique.md`.
+3. **Address each concern inline** in `critique.md`:
+   - `add-test`: implement the missing test and update the corresponding
+     `*-tests.md` results.
+   - `tighten-assertion`: rewrite the weak assertion and re-run.
+   - `defer-with-rationale`: note in test-report.md technical debt with a
+     one-sentence rationale.
+   - `reject`: write one sentence explaining why the critique is wrong.
+4. If the critic returned `## Confidence: block` and any concerns are
+   unaddressed, do NOT finalize `test-report.md` — fix and re-critique.
+
+If your harness can't spawn subagents, self-critique against
+`prompts/test-critic.md`'s failure-mode list in a single message before
+proceeding.
+
+## Finalize test-report
+
+When all tests pass, CI is green, and the critic's concerns are recorded
+with responses, write the summary to `sprint-tests/test-report.md`
+(see `schemas/test-report.md`) covering: tests run, tests passed, tests
+failed, coverage observations, and any technical debt identified.
 
 ## CI verify (GitHub Actions)
 

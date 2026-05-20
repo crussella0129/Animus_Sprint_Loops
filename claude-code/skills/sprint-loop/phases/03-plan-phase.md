@@ -60,11 +60,34 @@ E2E is not yet possible, state so explicitly and identify the future sprint that
 unlocks it. Review for local and global correctness. Write to `test-plan.md`
 following `schemas/test-plan.md`.
 
+## Critic review (before lock)
+
+After `ExitPlanMode` returns and you've written both plan files to disk —
+but BEFORE invoking `finalize-plan.sh` — spawn a critic subagent with the
+plan-critic prompt:
+
+1. Use the Agent tool with the prompt from `prompts/plan-critic.md`. The
+   critic reads `build-plan.md`, `test-plan.md`, `research-report.md`, and
+   `decisions.md`, then returns a structured critique.
+2. Save the critique to `sprints/sN/sprint-plans/critique.md`.
+3. **Address each concern inline** in `critique.md`:
+   - `fix-in-plan`: amend `build-plan.md` or `test-plan.md` before lock.
+   - `defer-with-rationale`: add to sprint-meta blockages or a follow-up
+     note for the next sprint, with one-sentence rationale.
+   - `reject`: write one sentence explaining why the critique is wrong.
+4. If the critic returned `## Confidence: block` and any concerns are
+   unaddressed, do NOT proceed to finalize — fix and re-critique.
+
+If your harness can't spawn subagents, self-critique against
+`prompts/plan-critic.md`'s failure-mode list in a single message before
+proceeding. Record the self-critique in `critique.md` the same way.
+
 ## Finalize
 
 Do not begin building. Do not edit any source files outside the plan documents.
-After `ExitPlanMode` returns and you've written both plan files to disk per
-the schemas, lock them:
+After `ExitPlanMode` returns, you've written both plan files to disk per the
+schemas, AND the critic review is recorded in `critique.md` with responses,
+lock the plans:
 
 ```bash
 bash scripts/finalize-plan.sh
