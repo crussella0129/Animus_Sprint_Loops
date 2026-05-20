@@ -2,10 +2,10 @@
 
 - **Sprint number:** 3
 - **Start timestamp:** 2026-05-20T15:16:45Z
-- **End timestamp:** (filled at Loop Phase)
+- **End timestamp:** 2026-05-20T16:20:00Z
 - **Model:** claude-opus-4-7[1m]
-- **Exit status:** in-progress
-- **Token count:** (filled at Loop Phase if observable)
+- **Exit status:** success
+- **Token count:** (not observable in this harness)
 - **Summary:** Fix commit-task.sh back-fill correctness (anchored regex + post-amend hash) + bake autonomy/workflow patterns into SKILL.md and phase files; sync to all 3 bundles.
 - **Routing note / scope expansion (in flight):** Plan→Build routing
   reported `test` instead of `build` because `current-phase.sh`'s

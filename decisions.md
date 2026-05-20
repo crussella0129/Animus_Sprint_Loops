@@ -99,3 +99,69 @@
   - Discovered (not fixed in this sprint): two flaws in sprint 1's back-fill
     — regex too lax + pre-amend hash captured. Sprint 3 will fix; manually
     correcting hashes in the meantime.
+
+## 2026-05-20 — Line-anchored back-fill regex + accept off-by-one amend hash (sprint 3)
+- **Context:** Sprint 1's `commit-task.sh` back-fill regex matched
+  `Commit:** PENDING` as a substring inside other entries' description text,
+  corrupting them on every subsequent commit. The same bug class also
+  affected `current-phase.sh`'s `grep "sprint $N"` (matched prose like
+  "flagged for sprint 3" inside completed-tasks descriptions).
+- **Decision:**
+  (a) Anchor the back-fill regex to a full line: `^- \*\*Commit:\*\* PENDING$`
+      for both detection and substitution.
+  (b) Anchor the current-phase greps to the schema's literal task-reference
+      format: `\(sprint $N\)` (parens included), matching what
+      `agent-tasks.md` and `completed-tasks.md` actually write.
+  (c) Accept the off-by-one-amend hash as an intentional trade-off. The
+      embedded hash is the pre-amend HEAD; the post-amend HEAD differs.
+      Trying to make them match either requires two amends (still off by
+      one — the second amend changes the hash) or a second commit (violates
+      one-commit-per-task). Document that agents can find the actual commit
+      via `git log --grep "sprint-N: T-XXX"`.
+- **Alternatives considered:**
+  - Two-amend back-fill aiming for hash equality. Rejected: still off by
+    one because the second amend itself changes the hash.
+  - A separate post-commit "back-fill commit" to embed the post-amend hash.
+    Rejected: violates the one-commit-per-task contract.
+  - A different placeholder token (e.g. `__COMMIT_HASH__`). Rejected as
+    insufficient on its own — line anchoring is the right fix.
+- **Consequences:**
+  - Description text containing the literal substring `Commit:** PENDING`
+    is now safe to write (documenting the bug, citing the placeholder, etc.).
+  - `current-phase.sh` correctly distinguishes sprint references from prose
+    that happens to mention a sprint number.
+  - Selftest step 11 guards the back-fill regression. Any future change to
+    the back-fill must keep step 11 green.
+
+## 2026-05-20 — Bake autonomy + workflow patterns into the skill (sprint 3)
+- **Context:** User shared a set of autonomy/workflow patterns from another
+  long-running session that worked well in practice: commit/push/merge
+  without per-step confirmation, pre-flight rebase, project-sanity-gate
+  before commit, defer-over-block, CI verify via separate `gh run list`
+  after `gh run watch`, PR-body-via-heredoc, safety floor on
+  permission/security controls. These are operational defaults, not new
+  protocol mechanics.
+- **Decision:** Bake them into `SKILL.md` body (two new sections:
+  "Autonomous operation" + "Safety floor"), the skill's phase files
+  (04-build: Pre-flight + defer-over-block; 05-test: CI verify; 06-loop:
+  optional PR-merge step with heredoc body), and the open-harnesses
+  particles (single-sentence integrations to preserve embedding density).
+  Apply to both skill bundles' SKILL.md (Claude + Codex) so they share the
+  same operational stance even though they have different routing details.
+- **Alternatives considered:**
+  - Add a `preflight.sh` helper script. Rejected — every project's gate is
+    different; the protocol documents the expectation but doesn't ship a
+    one-size-fits-all script.
+  - Mandate the autonomy mode by default. Rejected — autonomy is the right
+    default *only* when the user opts in (via `/loop`, `codex exec`, or an
+    explicit "step away" signal). Default mode stays interactive.
+- **Consequences:**
+  - Future `/sprint-loop` runs invoked in autonomous mode pick up the same
+    defaults that worked in the user's other session.
+  - The safety floor is explicit: autonomy never includes weakening
+    permissions, skipping pre-flight, bypassing hooks, or unattended
+    hard-to-reverse actions.
+  - The skill is opinionated about CI semantics for GitHub Actions
+    specifically (the `gh run watch` exit-code unreliability). Other CI
+    providers need analogous patterns; documented as "GitHub Actions
+    specifically" so users with other CI know to translate.
