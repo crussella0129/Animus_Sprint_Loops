@@ -99,3 +99,9 @@
 - **Completed:** 2026-05-20T19:45:00Z
 - **Files modified:** `open-harnesses/scripts/finalize-plan.sh`, `open-harnesses/schemas/research-report.md`, `open-harnesses/particles/02-research-phase.md`, `claude-code/skills/sprint-loop/phases/02-research-phase.md`
 - **Commit:** `fcdf7e1`
+
+## T-004 (sprint 4)
+- **Description:** Selftest step 12 added (exercises the Decisions-Reviewed gate via temp project with non-empty `decisions.md` + research-report missing the section → finalize-plan must refuse). Synced `finalize-plan.sh` and `selftest.sh` to both bundles (md5 identical across all 3). Synced `schemas/{build-plan.md,research-report.md}` to both bundles (diff-clean). Synced `phases/02-research-phase.md` and `phases/05-test-phase.md` verbatim to codex bundle. Adapted codex `phases/03-plan-phase.md` to keep `/plan` opening while inheriting EARS guidance and the Decisions-reviewed gate documentation (claude retains the `EnterPlanMode`/`ExitPlanMode` opening from T-001). Both bundles' selftests report `all 12 transitions matched`.
+- **Completed:** 2026-05-20T20:00:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/scripts/{finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{finalize-plan.sh,selftest.sh}`, `claude-code/skills/sprint-loop/schemas/{build-plan.md,research-report.md}`, `codex-cli/skills/sprint-loops/schemas/{build-plan.md,research-report.md}`, `codex-cli/skills/sprint-loops/phases/{02-research-phase.md,03-plan-phase.md,05-test-phase.md}`, `open-harnesses/scripts/selftest.sh`
+- **Commit:** `69fa7f9`

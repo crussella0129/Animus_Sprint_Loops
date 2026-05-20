@@ -4,8 +4,9 @@
 produces two planning artifacts and touches no source files.
 
 Read the current sprint's `sprint-research/research-report.md` as authoritative
-input. Produce two artifacts in sequence: `build-plan.md` first, then
-`test-plan.md`, both in `sprint-plans/`.
+input. Also read `decisions.md` at the project root and cross-check with the
+report's `## Decisions Reviewed` section. Produce two artifacts in sequence:
+`build-plan.md` first, then `test-plan.md`, both in `sprint-plans/`.
 
 ## Build plan
 
@@ -19,7 +20,14 @@ decompose below this granularity.
 Linearize the tree into an execution sequence honoring dependencies — a task may
 only follow tasks it depends on. For each task, record: a stable task ID (e.g.
 `T-001`), a one-sentence description, the files it touches, its dependencies (by
-task ID), its success criterion, and execution notes. Review for local
+task ID), its **success criterion (EARS-format, see below)**, and execution notes.
+
+**Success criterion uses EARS** (Easy Approach to Requirements Syntax):
+`WHEN <trigger> THEN <component> SHALL <response>`. Each elementary task gets
+at least one EARS clause; multiple when the task has distinct behavioral
+surfaces (happy path, error path, edge case). This format lets the Test Phase
+scaffold one `test_*` per WHEN/THEN/SHALL triple mechanically; freeform notes
+are allowed alongside but tests are derived from the EARS clauses. Review for local
 correctness (each task well-formed) and global correctness (the sequence
 accomplishes the goal). Write to `build-plan.md` following `schemas/build-plan.md`.
 
@@ -38,14 +46,23 @@ following `schemas/test-plan.md`.
 ## Finalize
 
 Do not begin building. Do not edit any source files outside the plan documents.
-When both plans are complete and reviewed for local and global correctness, lock
-them:
+After `ExitPlanMode` returns and you've written both plan files to disk per
+the schemas, lock them:
 
 ```bash
 bash scripts/finalize-plan.sh
 ```
 
-This prepends `Finalized - DO NOT EDIT` to both files. Then update `sprint-meta.md`
-with a one-line sprint summary.
+This prepends `Finalized - DO NOT EDIT` to both files. It also enforces two
+gates that block the lock if violated:
+
+- **No-empty-plan gate**: `build-plan.md` must contain at least one
+  `### T-XXX:` execution entry.
+- **Decisions-reviewed gate**: when `decisions.md` is non-empty, the
+  current sprint's `research-report.md` must contain a heading matching
+  `^## Decisions Reviewed`. See `phases/02-research-phase.md`.
+
+If `finalize-plan.sh` rejects, fix the violation and re-run; then update
+`sprint-meta.md` with a one-line sprint summary.
 
 **When both plans are finalized, read `phases/04-build-phase.md`.**

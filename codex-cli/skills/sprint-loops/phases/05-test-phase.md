@@ -2,6 +2,22 @@
 
 Read the current sprint's `test-plan.md` as authoritative input.
 
+## Deriving tests from EARS success criteria
+
+The Build Phase's `build-plan.md` records each task's success criterion in
+EARS form (`WHEN <trigger> THEN <component> SHALL <response>`). The Test
+Phase mechanically scaffolds one unit test per EARS clause:
+
+- `WHEN foo() called with input X THEN it SHALL return Y` →
+  `test_foo_returns_Y_for_X` — arrange X, act `foo(X)`, assert returns `Y`.
+- `WHEN foo() called with empty input THEN it SHALL return error E` →
+  `test_foo_returns_E_for_empty` — arrange empty, act, assert `Err(E)`.
+
+Each WHEN/THEN/SHALL triple maps to exactly one named test; the trigger
+becomes the arrangement, the response becomes the assertion. If a task's
+success criterion has no EARS clauses (freeform criteria still parse), fall
+back to freeform test design and note the gap in `unit-tests.md`.
+
 1. Implement and run all unit tests defined for tasks completed in this sprint's
    Build Phase; record results in `sprint-tests/unit-tests.md`.
 2. Implement and run all integration tests defined for components touched in this

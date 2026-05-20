@@ -118,4 +118,24 @@ else
   exit 1
 fi
 
-echo "selftest: all 11 transitions matched"
+# Step 12 exercises finalize-plan.sh's Decisions-Reviewed gate: when
+# decisions.md is non-empty AND the current sprint's research-report.md lacks
+# a `## Decisions Reviewed` heading, finalize-plan.sh must refuse.
+SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
+NEW_S=$(bash "$T/scripts/current-sprint.sh")
+printf '## 2026-05-20 — selftest ADR (sprint 0)\n- decision\n' > decisions.md
+echo "research body without the gate section" > "sprints/s$NEW_S/sprint-research/research-report.md"
+printf '# build\n\n### T-001: demo\n' > "sprints/s$NEW_S/sprint-plans/build-plan.md"
+echo "tp" > "sprints/s$NEW_S/sprint-plans/test-plan.md"
+if bash "$T/scripts/finalize-plan.sh" >/dev/null 2>&1; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "12 decisions-reviewed gate" "non-zero exit" "exit 0 (accepted)" >&2
+  exit 1
+fi
+LOCKED=$(head -n1 "sprints/s$NEW_S/sprint-plans/build-plan.md" | grep -cF "Finalized - DO NOT EDIT" || true)
+if [ "$LOCKED" != "0" ]; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "12 plans not locked on rejection" "no lock" "locked anyway" >&2
+  exit 1
+fi
+printf "  PASS  %-34s expected=%-22s got=%s\n" "12 decisions-reviewed gate" "non-zero + no lock" "rejected + file unchanged"
+
+echo "selftest: all 12 transitions matched"
