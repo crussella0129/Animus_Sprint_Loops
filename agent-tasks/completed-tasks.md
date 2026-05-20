@@ -19,7 +19,7 @@
 - **Commit:** `8083b84`
 
 ## T-001 (sprint 1)
-- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** `ddca675`` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
+- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** `7320fd8`` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
 - **Completed:** 2026-05-20T04:00:00Z
 - **Files modified:** `open-harnesses/scripts/commit-task.sh`
 - **Commit:** `3ba16e4`
@@ -55,4 +55,10 @@
 - **Description:** Added three idempotent installer scripts: `claude-code/install.sh` (target: `~/.claude/skills/sprint-loop/` + `~/.claude/commands/sprint-loop.md`, with `--project` flag for cwd-local install), `codex-cli/install.sh` (target: `~/.codex/skills/sprint-loops/` with AGENTS.md fragment reminder), `open-harnesses/install.sh [target]` (copies `scripts/` to a project root, default cwd). Each wipes the prior install at the target before copying — running twice is a no-op (verified by md5 tree-hash). Integration-tested: `install.sh` → `selftest.sh` end-to-end.
 - **Completed:** 2026-05-20T15:10:00Z
 - **Files modified:** `claude-code/install.sh` (new), `codex-cli/install.sh` (new), `open-harnesses/install.sh` (new)
+- **Commit:** `2d53e35` (manual — sprint 1 back-fill bug fired again on the sprint-1 T-001 description text and missed this entry's actual Commit field)
+
+## T-003 (sprint 2)
+- **Description:** Synced the updated `finalize-plan.sh` (empty-plan rejection) and `selftest.sh` (10-step version with new step 10 for empty-plan rejection) into both skill bundles. Verified md5 identity across all 3 bundles. Both bundles' selftests now report `all 10 transitions matched`.
+- **Completed:** 2026-05-20T15:15:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/scripts/{finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{finalize-plan.sh,selftest.sh}`
 - **Commit:** PENDING

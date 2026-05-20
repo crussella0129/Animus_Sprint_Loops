@@ -11,6 +11,13 @@ HEADER="Finalized - DO NOT EDIT"
 for f in build-plan.md test-plan.md; do
   P="$D/$f"
   if [ ! -s "$P" ]; then echo "missing or empty: $P" >&2; exit 1; fi
+  # An empty build-plan (no `### T-XXX:` execution entries) would route the
+  # next phase to `build` and then never queue a task — infinite build loop.
+  # Refuse to lock it; the planner must add at least one elementary task.
+  if [ "$f" = "build-plan.md" ] && ! grep -qE '^### T-[0-9]+:' "$P"; then
+    echo "refusing to finalize build-plan.md: no \`### T-XXX:\` execution entries found" >&2
+    exit 1
+  fi
   if head -n1 "$P" | grep -qF "$HEADER"; then
     echo "$f already finalized"
   else

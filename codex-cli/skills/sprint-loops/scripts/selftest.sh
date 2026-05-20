@@ -33,7 +33,8 @@ assert_phase research               "02 after init-sprint"
 echo "research body" > sprints/s0/sprint-research/research-report.md
 assert_phase plan                   "03 research written, plan not finalized"
 
-echo "build content" > sprints/s0/sprint-plans/build-plan.md
+# build-plan must contain at least one `### T-XXX:` entry or finalize-plan.sh refuses.
+printf '# build\n\n### T-001: demo\n' > sprints/s0/sprint-plans/build-plan.md
 echo "test content"  > sprints/s0/sprint-plans/test-plan.md
 bash "$T/scripts/finalize-plan.sh" >/dev/null
 assert_phase build                  "04 plan finalized, build not started"
@@ -71,4 +72,20 @@ git -c commit.gpgsign=false commit -q -m "selftest: init sprint 1" >/dev/null
 bash "$T/scripts/abort-sprint.sh" "selftest abort" >/dev/null
 assert_phase ready-for-next-sprint  "09 sprint aborted via abort-sprint.sh"
 
-echo "selftest: all 9 transitions matched"
+# Step 10 exercises the empty-build-plan rejection: a fresh sprint whose
+# build-plan.md has no `### T-XXX:` entries must NOT be lockable.
+SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
+echo "research body" > sprints/s2/sprint-research/research-report.md
+printf '# build\n\nno tasks here, just prose\n' > sprints/s2/sprint-plans/build-plan.md
+echo "test content" > sprints/s2/sprint-plans/test-plan.md
+if bash "$T/scripts/finalize-plan.sh" >/dev/null 2>&1; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "10 empty-plan rejected" "non-zero exit" "exit 0 (accepted)" >&2
+  exit 1
+fi
+if head -n1 sprints/s2/sprint-plans/build-plan.md | grep -qF "Finalized - DO NOT EDIT"; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "10 empty-plan unchanged" "no lock header" "lock header present" >&2
+  exit 1
+fi
+printf "  PASS  %-34s expected=%-22s got=%s\n" "10 empty-plan rejected" "non-zero exit" "non-zero exit + file unchanged"
+
+echo "selftest: all 10 transitions matched"
