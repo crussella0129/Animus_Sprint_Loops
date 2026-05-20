@@ -1,0 +1,33 @@
+Reproduction of the current-phase.sh phase-detection bug
+========================================================
+
+Setup: a fresh project, init-sprint run, research-report written,
+both plans written and finalized via finalize-plan.sh, NO tasks yet
+appended to agent-tasks/agent-tasks.md (Build Phase has not started).
+
+Expected current-phase.sh output: "build"  (Build Phase about to start)
+Actual   current-phase.sh output: "test"   (skips Build entirely)
+
+Why: the script's discrimination logic, lines 13-14:
+
+    if grep -q "sprint $N" agent-tasks/agent-tasks.md 2>/dev/null; then echo "build"; exit 0; fi
+    if [ ! -s "$D/sprint-tests/test-report.md" ] && [ ! -s "$D/failure-report.md" ]; then echo "test"; exit 0; fi
+
+The first check (build) is true ONLY while sprint-N tasks are queued.
+Before the Build Phase's first action (appending tasks) and after the
+last task is consumed, agent-tasks.md has no sprint-N entries.
+Both states fall through to the second check (test), which is true
+whenever test-report.md is empty (always, until tests are run).
+
+The "build not started" and "build done" states are not distinguished —
+the script reports "test" for both. The agent following routing
+would therefore skip the Build Phase entirely on first invocation
+after Plan finalization.
+
+Disambiguator: completed-tasks.md. If sprint-N tasks were ever
+completed, they appear there (the Build Phase appends them on
+completion). So:
+
+  - agent-tasks has sprint-N         → build (in progress)
+  - completed-tasks has no sprint-N  → build (not started)
+  - else                             → test (build is done, tests pending)
