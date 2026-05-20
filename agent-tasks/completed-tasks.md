@@ -19,7 +19,7 @@
 - **Commit:** `8083b84`
 
 ## T-001 (sprint 1)
-- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** PENDING` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
+- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** `1cdd538`` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
 - **Completed:** 2026-05-20T04:00:00Z
 - **Files modified:** `open-harnesses/scripts/commit-task.sh`
 - **Commit:** `3ba16e4`
@@ -36,3 +36,9 @@
 - **Completed:** 2026-05-20T05:18:00Z
 - **Files modified:** `claude-code/skills/loop-sprint/scripts/{commit-task.sh,abort-sprint.sh,current-phase.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{commit-task.sh,abort-sprint.sh,current-phase.sh,selftest.sh}`, `open-harnesses/scripts/selftest.sh`, `claude-code/skills/loop-sprint/phases/{04-build-phase.md,06-loop-phase.md}`, `codex-cli/skills/sprint-loops/phases/{04-build-phase.md,06-loop-phase.md}`
 - **Commit:** `83e0edf`
+
+## T-001 (sprint 2)
+- **Description:** `finalize-plan.sh` now refuses to lock a `build-plan.md` with zero `^### T-[0-9]+:` execution entries (would otherwise route to `build` and loop forever). Updated `selftest.sh` step 04 to write a real `### T-001: demo` entry, and added step 10 exercising the rejection path — finalize on an empty plan must exit non-zero AND leave the file unmodified. 10/10 selftest transitions pass.
+- **Completed:** 2026-05-20T15:00:00Z
+- **Files modified:** `open-harnesses/scripts/finalize-plan.sh`, `open-harnesses/scripts/selftest.sh`
+- **Commit:** PENDING
