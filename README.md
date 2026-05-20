@@ -16,7 +16,7 @@ agent runtime — each is self-contained and ready to use:
 | Directory | Target | What it is |
 |-----------|--------|------------|
 | [`open-harnesses/`](open-harnesses/) | OpenClaw, OpenCode, local LLMs, custom runners, GECK | The **canonical, runtime-agnostic spec**: the core protocol, prompt particles, artifact schemas, and reference shell scripts. |
-| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`loop-sprint`** skill (`~/.claude/skills/loop-sprint/`) plus the `/loop-sprint` slash command. |
+| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`sprint-loop`** skill (`~/.claude/skills/sprint-loop/`) plus the `/sprint-loop` slash command. |
 | [`codex-cli/`](codex-cli/) | OpenAI Codex CLI | A drop-in `~/.codex/skills/sprint-loops/` skill bundle plus an `AGENTS.md` fragment. |
 
 The core protocol — filesystem layout, phase exit conditions, schemas — is
@@ -31,12 +31,12 @@ reference and the Oovra-particle source.
 **Claude Code:**
 
 ```bash
-cp -r claude-code/skills/loop-sprint ~/.claude/skills/
-cp claude-code/commands/loop-sprint.md ~/.claude/commands/
-chmod +x ~/.claude/skills/loop-sprint/scripts/*.sh
+cp -r claude-code/skills/sprint-loop ~/.claude/skills/
+cp claude-code/commands/sprint-loop.md ~/.claude/commands/
+chmod +x ~/.claude/skills/sprint-loop/scripts/*.sh
 ```
 
-Then say "start a sprint" or run `/loop-sprint start "<goal>"`. See
+Then say "start a sprint" or run `/sprint-loop start "<goal>"`. See
 [`claude-code/README.md`](claude-code/README.md).
 
 **Codex CLI:**
@@ -66,7 +66,7 @@ sprint-loops/
 ├── README.md            # this file
 ├── LICENSE              # MIT
 ├── open-harnesses/      # Section 1 — canonical spec: protocol, particles, schemas, scripts
-├── claude-code/         # Section 2 — the loop-sprint Claude Code skill + /loop-sprint command
+├── claude-code/         # Section 2 — the sprint-loop Claude Code skill + /sprint-loop command
 └── codex-cli/           # Section 3 — drop-in Codex CLI skill + AGENTS.md fragment
 ```
 
@@ -89,7 +89,7 @@ state translation. The project itself is the protocol.
 Each adapter directory can ship as a separate release targeted at its harness:
 
 - `sprint-loops-protocol` — the spec, schemas, and reference shell scripts (`open-harnesses/`).
-- `sprint-loops-claude-code` — drop-in `~/.claude/skills/loop-sprint/` bundle.
+- `sprint-loops-claude-code` — drop-in `~/.claude/skills/sprint-loop/` bundle.
 - `sprint-loops-codex` — drop-in `~/.codex/skills/sprint-loops/` bundle.
 - `sprint-loops-particles` — Oovra-ready individual `.md` particles (`open-harnesses/particles/`).
 

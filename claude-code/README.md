@@ -1,21 +1,21 @@
 # Sprint Loops — Claude Code
 
-> **This directory ships a complete, install-ready Claude Code skill: `loop-sprint`.**
+> **This directory ships a complete, install-ready Claude Code skill: `sprint-loop`.**
 > This README is the *accompanying documentation* — what the skill is, how to
 > install it, and the protocol it runs. The skill itself is everything under
-> `skills/loop-sprint/`; you do not need this README at runtime.
+> `skills/sprint-loop/`; you do not need this README at runtime.
 
-`loop-sprint` runs the five-phase Sprint Loops workflow — **Research → Plan →
+`sprint-loop` runs the five-phase Sprint Loops workflow — **Research → Plan →
 Build → Test → Loop** — for long-horizon coding tasks, invoked automatically or
-via the `/loop-sprint` slash command. Everything needed to deploy and run it on
+via the `/sprint-loop` slash command. Everything needed to deploy and run it on
 Claude Code is in this directory; no other part of the repo is required.
 
 ## The skill, and its accompanying docs
 
 | Path | Role |
 |------|------|
-| `skills/loop-sprint/` | **The skill.** The complete, install-ready bundle — install this. |
-| `commands/loop-sprint.md` | **The skill's slash command.** Optional `/loop-sprint` control surface. |
+| `skills/sprint-loop/` | **The skill.** The complete, install-ready bundle — install this. |
+| `commands/sprint-loop.md` | **The skill's slash command.** Optional `/sprint-loop` control surface. |
 | `README.md` (this file) | **Accompanying documentation.** Install guide + protocol reference for humans. |
 | `LICENSE` | MIT. |
 
@@ -34,8 +34,8 @@ helpers, which matches the per-phase model exactly:
 ## Skill layout
 
 ```
-skills/loop-sprint/
-├── SKILL.md                  # description + routing (skill name: loop-sprint)
+skills/sprint-loop/
+├── SKILL.md                  # description + routing (skill name: sprint-loop)
 ├── phases/                   # one lazy-loaded file per phase
 │   ├── 00-overview.md        # the complete core protocol — read first
 │   ├── 01-init-sprint.md     04-build-phase.md
@@ -55,18 +55,18 @@ User-level (available in every project — this is the personal install):
 
 ```bash
 mkdir -p ~/.claude/skills ~/.claude/commands
-cp -r claude-code/skills/loop-sprint ~/.claude/skills/
-cp claude-code/commands/loop-sprint.md ~/.claude/commands/
-chmod +x ~/.claude/skills/loop-sprint/scripts/*.sh
+cp -r claude-code/skills/sprint-loop ~/.claude/skills/
+cp claude-code/commands/sprint-loop.md ~/.claude/commands/
+chmod +x ~/.claude/skills/sprint-loop/scripts/*.sh
 ```
 
 Project-scoped (committed alongside one repo):
 
 ```bash
 mkdir -p .claude/skills .claude/commands
-cp -r claude-code/skills/loop-sprint .claude/skills/
-cp claude-code/commands/loop-sprint.md .claude/commands/
-chmod +x .claude/skills/loop-sprint/scripts/*.sh
+cp -r claude-code/skills/sprint-loop .claude/skills/
+cp claude-code/commands/sprint-loop.md .claude/commands/
+chmod +x .claude/skills/sprint-loop/scripts/*.sh
 ```
 
 ## Usage
@@ -75,12 +75,12 @@ The skill is invoked automatically when you express sprint-loop intent — "star
 sprint", "continue the loop", "next sprint", or when the project root already
 contains a `sprints/` directory and you ask to resume.
 
-The `/loop-sprint` command gives explicit control:
+The `/sprint-loop` command gives explicit control:
 
-- `/loop-sprint start "add JWT refresh tokens"` — initialize a new sprint with that goal
-- `/loop-sprint continue` — resume from whatever phase the filesystem reports
-- `/loop-sprint loop` — jump to the Loop Phase
-- `/loop-sprint abort` — mark the current sprint aborted and close it out
+- `/sprint-loop start "add JWT refresh tokens"` — initialize a new sprint with that goal
+- `/sprint-loop continue` — resume from whatever phase the filesystem reports
+- `/sprint-loop loop` — jump to the Loop Phase
+- `/sprint-loop abort` — mark the current sprint aborted and close it out
 
 ## How it routes
 
