@@ -10,4 +10,10 @@
 - **Description:** Add `scripts/selftest.sh` that drives every phase transition and asserts `current-phase.sh` output at each step. First run caught a bug in the test's own `sed` pattern (line failed to match the `**Exit status:**` markdown formatting); fixed in the same task.
 - **Completed:** 2026-05-19T21:57:00Z
 - **Files modified:** `open-harnesses/scripts/selftest.sh` (new)
+- **Commit:** `453cd40`
+
+## T-003 (sprint 0)
+- **Description:** Sync the fixed `current-phase.sh` and the new `selftest.sh` into the claude-code/loop-sprint and codex-cli/sprint-loops bundles. Verified md5 identity across all three copies and ran both bundles' selftests (8/8 transitions pass each).
+- **Completed:** 2026-05-19T21:59:00Z
+- **Files modified:** `claude-code/skills/loop-sprint/scripts/{current-phase.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{current-phase.sh,selftest.sh}`
 - **Commit:** (set by commit-task.sh below)
