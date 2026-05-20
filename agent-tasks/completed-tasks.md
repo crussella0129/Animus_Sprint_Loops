@@ -42,9 +42,9 @@
 - **Completed:** 2026-05-20T15:00:00Z
 - **Files modified:** `open-harnesses/scripts/finalize-plan.sh`, `open-harnesses/scripts/selftest.sh`
 - **Discovered flaws in sprint 1's back-fill (flagged for sprint 3):**
-  1. The `Commit:** `08f4074`` regex isn't line-anchored, so it matched a literal
+  1. The Commit-line regex isn't line-anchored, so it matched a literal
      substring inside this very `## T-001 (sprint 1)` description block. Must
-     anchor with `^- \*\*Commit:\*\* PENDING`.
+     anchor with `^- \*\*Commit:\*\* <token>`.
   2. `git rev-parse --short HEAD` is captured BEFORE the amend, so the embedded
      hash is the pre-amend HEAD, not the final post-amend HEAD. The two differ.
      Fix: capture hash AFTER amend (or reverse the order — sed-write a marker,
@@ -68,4 +68,10 @@
 - **Scope expansion:** Tightening `current-phase.sh` was added mid-Build when the same bug-class corrupted routing in this sprint (matched "flagged for sprint 3"). Documented in `sprints/s3/sprint-meta.md`.
 - **Completed:** 2026-05-20T15:50:00Z
 - **Files modified:** `open-harnesses/scripts/{commit-task.sh,current-phase.sh,selftest.sh}`
-- **Commit:** PENDING
+- **Commit:** `89173b7` (manual — OLD personal-install back-fill fired one last time; mid-sprint sync of new commit-task.sh follows so the rest of sprint 3 uses the fixed version)
+
+## T-002 (sprint 3)
+- **Description:** Baked autonomy + workflow patterns into the skill: SKILL.md gained "Autonomous operation" (work independently in multi-turn loops, commit/push/merge without per-step confirmation, defer-over-block, one-PR-per-concept) and "Safety floor" (don't weaken permissions/security, don't `--no-verify` hooks, hard-to-reverse actions pause for confirmation even in autonomous mode); `phases/04-build-phase.md` gained a Pre-flight section (rebase against base + project sanity gate before each `commit-task.sh`) and a strengthened defer-over-block paragraph; `phases/05-test-phase.md` gained the CI verify pattern (separate `gh run list` after `gh run watch` because watch exit code is unreliable on Windows); `phases/06-loop-phase.md` gained an optional PR-merge step on CI green with `gh pr merge --merge --delete-branch` and a PR-body-via-heredoc snippet. Parallel single-sentence integrations added to open-harnesses particles 06/07/08 inside their existing quoted blocks (preserves embedding density for retrieval-based harnesses).
+- **Completed:** 2026-05-20T16:00:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`, `claude-code/skills/sprint-loop/phases/{04-build-phase.md,05-test-phase.md,06-loop-phase.md}`, `open-harnesses/particles/{06-build-phase.md,07-test-phase.md,08-loop-phase.md}`
+- **Commit:** `0520555`

@@ -17,6 +17,29 @@
    changes remain, commit them with a `sprint-N: cleanup` message.
 5. *(Optional)* If you track the confidence throttle, update it now:
    `bash scripts/update-confidence.sh <pass|patched|failed>`.
+6. *(Optional — PR-wrapped sprints)* If this sprint was developed on a feature
+   branch and a PR was opened:
+   - **On CI green** (verified per `phases/05-test-phase.md`'s CI verify
+     pattern): `gh pr merge <n> --merge --delete-branch`, then sync local
+     base:
+     ```bash
+     git checkout <base> && git pull
+     ```
+   - **On CI red**: `gh run view <id> --log-failed`, fix on the same branch,
+     force-push, re-verify before merging.
+   - **PR body via heredoc** (avoids escaping pain on multi-line bodies with
+     code fences):
+     ```bash
+     gh pr create --title "..." --body "$(cat <<'EOF'
+     ## Summary
+     ...
+     ## Test plan
+     ...
+     ## What's deferred
+     ...
+     EOF
+     )"
+     ```
 
 Finally, return to the Initialize Sprint phase and begin sprint N+1: re-run
 `scripts/current-phase.sh` (it will report `ready-for-next-sprint`) and read
