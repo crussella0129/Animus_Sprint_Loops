@@ -117,3 +117,9 @@
 - **Completed:** 2026-05-20T20:55:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/phases/03-plan-phase.md`, `claude-code/skills/sprint-loop/phases/05-test-phase.md`, `open-harnesses/particles/03-plan-phase.md`, `open-harnesses/particles/07-test-phase.md`
 - **Commit:** `24cad86`
+
+## T-003 (sprint 5)
+- **Description:** Copied both critic prompt templates into `claude-code/skills/sprint-loop/prompts/` and `codex-cli/skills/sprint-loops/prompts/` — md5-identical across all 3 locations. Synced `phases/05-test-phase.md` claude→codex (verbatim, byte-identical). For `phases/03-plan-phase.md`, claude's EnterPlanMode opening was kept; codex's `/plan` opening was restored, with the same "Critic review (before lock)" section preserved in both. Added a paragraph to codex's `SKILL.md` "Subagent opportunity" section cross-referencing both critic prompts and the protocol. Both bundles' selftests stay at 12/12 (no selftest extension this sprint — the critic step is LLM-execution-level, exercised by next manual sprint).
+- **Completed:** 2026-05-20T21:05:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/prompts/{plan-critic.md,test-critic.md}` (new), `codex-cli/skills/sprint-loops/prompts/{plan-critic.md,test-critic.md}` (new), `codex-cli/skills/sprint-loops/phases/{03-plan-phase.md,05-test-phase.md}`, `codex-cli/skills/sprint-loops/SKILL.md`
+- **Commit:** `001d701`

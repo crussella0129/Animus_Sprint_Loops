@@ -39,6 +39,13 @@ The filesystem IS the state machine. Persistent state lives in `sprints/` and `a
 
 When the Build Phase has multiple independent tasks (no shared dependencies in the build-plan's execution sequence), consider spawning subagents for parallelization. Each subagent handles one task and commits its own diff. The parent agent merges results and proceeds.
 
+**Adversarial critics for Plan and Test phases**: Plan Phase (after writing both plans) and Test Phase (after writing test artifacts) spawn a critic subagent with the matching prompt from `prompts/`:
+
+- `prompts/plan-critic.md` — screens the build/test plans for vague EARS clauses, plan-test mismatch, missing risk coverage, hidden deps, ignored ADRs, granularity violations, E2E drift.
+- `prompts/test-critic.md` — screens the test artifacts for EARS-clause coverage gaps, weak assertions, stub leakage, integration scope drift, E2E cop-out, missing negative-paths, flake risk.
+
+The critic returns a structured critique (`## Concerns` + `## Confidence`); the primary agent records it in `critique.md` and addresses each concern before locking. See `phases/03-plan-phase.md` and `phases/05-test-phase.md` for the full protocol.
+
 ## Autonomous operation
 
 When invoked for a multi-turn loop (e.g. via `codex exec` or when the user signals they're stepping away), default to working independently for the entire sprint:
