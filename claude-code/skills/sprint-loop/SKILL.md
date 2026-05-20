@@ -28,7 +28,7 @@ You are working in a Sprint Loop. Each sprint is a five-phase sequence with pers
 
 ## Plan mode
 
-During the Plan Phase, engage plan mode and use maximum effort. The Plan Phase produces two artifacts (`build-plan.md` and `test-plan.md`); do not touch source files.
+The Plan Phase uses Claude Code's plan-mode primitive as a hard constraint, not a soft instruction. On entering Plan Phase, the agent invokes `EnterPlanMode` (which blocks Edit/Write/Bash side effects), reasons through the plan synthesis while only reading the filesystem, then invokes `ExitPlanMode` with a two-section summary (Build plan / Test plan) for user approval before dropping back to normal mode to write the two artifacts (`build-plan.md` and `test-plan.md`) to disk. See `phases/03-plan-phase.md` for the exact protocol.
 
 ## Git discipline
 

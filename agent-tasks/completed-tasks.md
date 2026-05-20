@@ -81,3 +81,9 @@
 - **Completed:** 2026-05-20T16:05:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/scripts/{commit-task.sh,current-phase.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{commit-task.sh,current-phase.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/phases/{04-build-phase.md,05-test-phase.md,06-loop-phase.md}`, `codex-cli/skills/sprint-loops/SKILL.md`
 - **Commit:** `1266b0f`
+
+## T-001 (sprint 4)
+- **Description:** Replaced the soft "Engage plan mode now" instruction in `phases/03-plan-phase.md` with a hard tool-call protocol — `EnterPlanMode` at phase entry, plan synthesis with filesystem reads only, `ExitPlanMode` with a two-section summary for user approval, then drop to normal mode to write `build-plan.md` and `test-plan.md` and run `finalize-plan.sh`. SKILL.md "Plan mode" section rewritten to describe the tool-call protocol explicitly. Codex retains `/plan`; open-harnesses keeps generic language.
+- **Completed:** 2026-05-20T19:10:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/phases/03-plan-phase.md`, `claude-code/skills/sprint-loop/SKILL.md`
+- **Commit:** `44d82b8`
