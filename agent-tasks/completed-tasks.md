@@ -17,3 +17,9 @@
 - **Completed:** 2026-05-19T21:59:00Z
 - **Files modified:** `claude-code/skills/loop-sprint/scripts/{current-phase.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{current-phase.sh,selftest.sh}`
 - **Commit:** `8083b84`
+
+## T-001 (sprint 1)
+- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** PENDING` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
+- **Completed:** 2026-05-20T04:00:00Z
+- **Files modified:** `open-harnesses/scripts/commit-task.sh`
+- **Commit:** PENDING
