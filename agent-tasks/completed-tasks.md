@@ -19,7 +19,7 @@
 - **Commit:** `8083b84`
 
 ## T-001 (sprint 1)
-- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** `1cdd538`` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
+- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** `ddca675`` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
 - **Completed:** 2026-05-20T04:00:00Z
 - **Files modified:** `open-harnesses/scripts/commit-task.sh`
 - **Commit:** `3ba16e4`
@@ -41,4 +41,18 @@
 - **Description:** `finalize-plan.sh` now refuses to lock a `build-plan.md` with zero `^### T-[0-9]+:` execution entries (would otherwise route to `build` and loop forever). Updated `selftest.sh` step 04 to write a real `### T-001: demo` entry, and added step 10 exercising the rejection path — finalize on an empty plan must exit non-zero AND leave the file unmodified. 10/10 selftest transitions pass.
 - **Completed:** 2026-05-20T15:00:00Z
 - **Files modified:** `open-harnesses/scripts/finalize-plan.sh`, `open-harnesses/scripts/selftest.sh`
+- **Discovered flaws in sprint 1's back-fill (flagged for sprint 3):**
+  1. The `Commit:** PENDING` regex isn't line-anchored, so it matched a literal
+     substring inside this very `## T-001 (sprint 1)` description block. Must
+     anchor with `^- \*\*Commit:\*\* PENDING`.
+  2. `git rev-parse --short HEAD` is captured BEFORE the amend, so the embedded
+     hash is the pre-amend HEAD, not the final post-amend HEAD. The two differ.
+     Fix: capture hash AFTER amend (or reverse the order — sed-write a marker,
+     amend, then capture the amended HEAD into the file).
+- **Commit:** `0fa8972` (manually corrected post-amend — sprint 1's back-fill embedded the pre-amend hash `1cdd538`)
+
+## T-002 (sprint 2)
+- **Description:** Added three idempotent installer scripts: `claude-code/install.sh` (target: `~/.claude/skills/sprint-loop/` + `~/.claude/commands/sprint-loop.md`, with `--project` flag for cwd-local install), `codex-cli/install.sh` (target: `~/.codex/skills/sprint-loops/` with AGENTS.md fragment reminder), `open-harnesses/install.sh [target]` (copies `scripts/` to a project root, default cwd). Each wipes the prior install at the target before copying — running twice is a no-op (verified by md5 tree-hash). Integration-tested: `install.sh` → `selftest.sh` end-to-end.
+- **Completed:** 2026-05-20T15:10:00Z
+- **Files modified:** `claude-code/install.sh` (new), `codex-cli/install.sh` (new), `open-harnesses/install.sh` (new)
 - **Commit:** PENDING
