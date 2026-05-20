@@ -178,3 +178,16 @@
   - Success criteria are mechanically test-scaffoldable; criteria-test drift is reduced.
   - Cross-sprint architectural drift is now an enforceable gate, not a hope. The first ADR-aware sprint is sprint 4 itself; its research-report's `## 0. Decisions Reviewed` section is the first dogfood instance.
   - Sprint 5+ research-reports must include the section (or `finalize-plan.sh` rejects).
+
+## 2026-05-20 — Subagent fan-out: adversarial critic review at Plan + Test phases (sprint 5)
+- **Context:** User priority #1 from sprint 3's flagged candidates. Today, the only "adversary" preventing a bad sprint is `finalize-plan.sh`'s structural checks (no empty plan, decisions-reviewed). That catches malformed plans, not BAD plans. Pedro Santanna's setup and OpenAI's adversarial-critic patterns spawn specialized critics for substantive review.
+- **Decision:** Plan Phase (after `ExitPlanMode` returns + plans written, before `finalize-plan.sh`) and Test Phase (after tests run + CI green, before `test-report.md` finalize) each spawn a critic subagent with a templated prompt — `prompts/plan-critic.md` and `prompts/test-critic.md`. The critic returns a structured `## Concerns` list with a `## Confidence` verdict (clean / proceed-with-caveats / block). The primary agent saves the critique to `critique.md` alongside the artifact under review, addresses each concern inline (fix / defer-with-rationale / reject), and proceeds to lock-down only after the critique is recorded with responses. Harnesses without subagent primitives self-critique against the prompt's failure-mode list in a single message.
+- **Alternatives considered:**
+  - Synchronous in-line critic (no subagent). Rejected — conflates author and reviewer.
+  - Critic with write access. Rejected — adversary becomes author; primary loses ownership of plan structure.
+  - Hard gate via `finalize-plan.sh` requiring `critique.md`. Deferred to sprint 6+ once the pattern has been exercised manually.
+- **Consequences:**
+  - Every Plan and Test phase now produces a `critique.md` artifact (alongside the plans/tests), recording what the critic flagged and how the primary agent responded.
+  - The protocol now has 2 review surfaces (structural via `finalize-plan.sh`, substantive via critic) rather than 1.
+  - The first sprint to actually USE the protocol is sprint 6+; sprint 5 itself only added the protocol, didn't run under it.
+  - Selftest cannot exercise the critic step (LLM execution required); the next manual sprint is the in-vivo test.
