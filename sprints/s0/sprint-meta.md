@@ -2,10 +2,10 @@
 
 - **Sprint number:** 0
 - **Start timestamp:** 2026-05-19T21:52:50Z
-- **End timestamp:** (filled at Loop Phase)
+- **End timestamp:** 2026-05-19T22:05:00Z
 - **Model:** claude-opus-4-7[1m]
-- **Exit status:** in-progress
-- **Token count:** (filled at Loop Phase if observable)
+- **Exit status:** success
+- **Token count:** (not observable in this harness)
 - **Summary:** Harden `current-phase.sh` build/test discrimination + add `selftest.sh` regression coverage; sync across all three bundles.
 - **Routing note:** The very bug this sprint fixes (Plan → Test misdetection
   before build tasks are queued) manifests in this sprint's own routing —
