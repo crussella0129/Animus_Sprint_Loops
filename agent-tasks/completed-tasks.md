@@ -105,3 +105,9 @@
 - **Completed:** 2026-05-20T20:00:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/scripts/{finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{finalize-plan.sh,selftest.sh}`, `claude-code/skills/sprint-loop/schemas/{build-plan.md,research-report.md}`, `codex-cli/skills/sprint-loops/schemas/{build-plan.md,research-report.md}`, `codex-cli/skills/sprint-loops/phases/{02-research-phase.md,03-plan-phase.md,05-test-phase.md}`, `open-harnesses/scripts/selftest.sh`
 - **Commit:** `69fa7f9`
+
+## T-001 (sprint 5)
+- **Description:** Added two critic prompt templates as canonical files in `open-harnesses/prompts/`. `plan-critic.md` instructs the critic subagent to screen for 7 failure modes (vague EARS, plan-test mismatch, missing risk coverage, hidden deps, ignored ADRs, granularity violations, E2E drift) and return a structured `## Concerns` + `## Confidence` (clean / proceed-with-caveats / block) critique. `test-critic.md` mirrors for the Test Phase, screening for EARS-clause coverage gaps, weak assertions, stub leakage, integration scope drift, E2E cop-out, missing negative-paths, flake risk. Both prompts are read-only — the critic identifies; the primary agent decides.
+- **Completed:** 2026-05-20T20:45:00Z
+- **Files modified:** `open-harnesses/prompts/plan-critic.md` (new), `open-harnesses/prompts/test-critic.md` (new)
+- **Commit:** `2e62a14`
