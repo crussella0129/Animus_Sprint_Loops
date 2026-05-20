@@ -6,7 +6,20 @@ set -euo pipefail
 LAST=$(ls sprints/ 2>/dev/null | grep -E '^s[0-9]+$' | sed 's/^s//' | sort -n | tail -1 || true)
 if [ -z "${LAST:-}" ]; then echo "no sprints found" >&2; exit 1; fi
 D="sprints/s$LAST/sprint-plans"
+RESEARCH="sprints/s$LAST/sprint-research/research-report.md"
 HEADER="Finalized - DO NOT EDIT"
+
+# Architectural-drift gate: if decisions.md has any entries (i.e. is non-empty
+# beyond a possible title), the sprint's research-report must explicitly
+# acknowledge them in a `## Decisions Reviewed` section. The check skips on
+# new projects (no decisions.md) and sprint 0 (no ADRs yet).
+if [ -s decisions.md ] && grep -qE '^## ' decisions.md 2>/dev/null; then
+  if [ ! -s "$RESEARCH" ] || ! grep -qE '^## ([0-9]+\. *)?Decisions Reviewed' "$RESEARCH" 2>/dev/null; then
+    echo "refusing to finalize: $RESEARCH lacks a \`## Decisions Reviewed\` section, but decisions.md has entries" >&2
+    echo "  add the section to the research report listing which ADRs from decisions.md bear on this sprint" >&2
+    exit 1
+  fi
+fi
 
 for f in build-plan.md test-plan.md; do
   P="$D/$f"

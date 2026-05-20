@@ -93,3 +93,9 @@
 - **Completed:** 2026-05-20T19:25:00Z
 - **Files modified:** `open-harnesses/schemas/build-plan.md`, `open-harnesses/particles/04-build-plan-schema.md`, `open-harnesses/particles/05-test-plan-schema.md`, `claude-code/skills/sprint-loop/phases/03-plan-phase.md`, `claude-code/skills/sprint-loop/phases/05-test-phase.md`
 - **Commit:** `66f6ad7`
+
+## T-003 (sprint 4)
+- **Description:** Mandatory `decisions.md` read enforced at plan-lock time. `phases/02-research-phase.md` now instructs reading `decisions.md` first and recording relevant ADRs in a `## Decisions Reviewed` section (with explicit acknowledgment of any proposed revisions). `schemas/research-report.md` documents the section. `open-harnesses/particles/02-research-phase.md` got a matching single-sentence integration. `finalize-plan.sh` gained a pre-lock gate: when `decisions.md` is non-empty and has any `## ` entries, the current sprint's research-report MUST contain a `## Decisions Reviewed` (or `## N. Decisions Reviewed`) heading. The grep pattern is permissive over numeric prefixes (line-anchored discipline from sprint 3). Skips on empty/absent decisions.md so sprint 0 / new projects work unchanged. Sanity-tested all four cases: empty-decisions-skips-check, non-empty-without-section-refuses, non-empty-with-section-accepts, numbered-heading-accepts.
+- **Completed:** 2026-05-20T19:45:00Z
+- **Files modified:** `open-harnesses/scripts/finalize-plan.sh`, `open-harnesses/schemas/research-report.md`, `open-harnesses/particles/02-research-phase.md`, `claude-code/skills/sprint-loop/phases/02-research-phase.md`
+- **Commit:** `fcdf7e1`

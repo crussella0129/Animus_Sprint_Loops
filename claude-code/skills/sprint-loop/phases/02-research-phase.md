@@ -3,6 +3,13 @@
 Your goal is to produce a comprehensive `research-report.md` in the current
 sprint's `sprint-research/` directory.
 
+**First action: read `decisions.md` at the project root.** Identify which prior
+architectural decisions (ADRs) bear on this sprint's proposed work. These
+become the report's `## Decisions Reviewed` section (required when
+`decisions.md` has entries — `finalize-plan.sh` enforces this gate before
+plans can be locked). If you intend to revise or violate a prior decision,
+say so explicitly with the rationale.
+
 Operate within a budget: review at most **20 files** from the existing codebase
 (prioritize files most relevant to the sprint goal), read at most **5 external
 sources** (official documentation, Stack Overflow, GitHub issues, vendor docs),
@@ -11,6 +18,8 @@ any budget limit, stop gathering and write the report.
 
 The report must contain:
 
+0. **`## Decisions Reviewed`** — required when `decisions.md` has entries;
+   lists the relevant ADRs and explicitly acknowledges any proposed revisions.
 1. A summary of the sprint goal in your own words.
 2. A survey of relevant existing code with file paths and brief descriptions.
 3. Findings from external sources with URLs.
