@@ -42,7 +42,7 @@
 - **Completed:** 2026-05-20T15:00:00Z
 - **Files modified:** `open-harnesses/scripts/finalize-plan.sh`, `open-harnesses/scripts/selftest.sh`
 - **Discovered flaws in sprint 1's back-fill (flagged for sprint 3):**
-  1. The `Commit:** PENDING` regex isn't line-anchored, so it matched a literal
+  1. The `Commit:** `08f4074`` regex isn't line-anchored, so it matched a literal
      substring inside this very `## T-001 (sprint 1)` description block. Must
      anchor with `^- \*\*Commit:\*\* PENDING`.
   2. `git rev-parse --short HEAD` is captured BEFORE the amend, so the embedded
@@ -62,3 +62,10 @@
 - **Completed:** 2026-05-20T15:15:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/scripts/{finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{finalize-plan.sh,selftest.sh}`
 - **Commit:** `c6c06b9` (manual — same back-fill bug; reworded the sprint-1 T-001 description so the literal substring no longer appears verbatim, breaking the recurrence cycle)
+
+## T-001 (sprint 3)
+- **Description:** Line-anchored the back-fill regex in `commit-task.sh` (`^- \*\*Commit:\*\* PENDING$`) so it no longer matches substrings inside other entries' description text. Tightened the corresponding greps in `current-phase.sh` to require `\(sprint $N\)` (literal parens, matching the schema's task-reference format) so prose mentions like "flagged for sprint 3" don't false-positive. Documented the off-by-one-amend hash as an intentional trade-off (single amend keeps it simple; agents can find the actual commit via `git log --grep "sprint-N: T-XXX"`). `selftest.sh` gains step 11 exercising line-anchored back-fill with a description containing the literal `Commit:** PENDING` substring AND a real anchored field — asserts the prose is untouched and the real field gets filled.
+- **Scope expansion:** Tightening `current-phase.sh` was added mid-Build when the same bug-class corrupted routing in this sprint (matched "flagged for sprint 3"). Documented in `sprints/s3/sprint-meta.md`.
+- **Completed:** 2026-05-20T15:50:00Z
+- **Files modified:** `open-harnesses/scripts/{commit-task.sh,current-phase.sh,selftest.sh}`
+- **Commit:** PENDING
