@@ -87,3 +87,9 @@
 - **Completed:** 2026-05-20T19:10:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/phases/03-plan-phase.md`, `claude-code/skills/sprint-loop/SKILL.md`
 - **Commit:** `44d82b8`
+
+## T-002 (sprint 4)
+- **Description:** EARS-format (`WHEN <trigger> THEN <component> SHALL <response>`) success criteria adopted across the schema and the Plan/Test phase docs. `schemas/build-plan.md` example updated; `phases/03-plan-phase.md` mandates EARS for each task's success criterion; `phases/05-test-phase.md` documents one-`test_*`-per-WHEN/THEN/SHALL-triple derivation. Open-harnesses particles 04 (Build Plan Schema) and 05 (Test Plan Schema) gained single-sentence EARS integrations inside their quoted blocks. Freeform criteria still parse as fallback.
+- **Completed:** 2026-05-20T19:25:00Z
+- **Files modified:** `open-harnesses/schemas/build-plan.md`, `open-harnesses/particles/04-build-plan-schema.md`, `open-harnesses/particles/05-test-plan-schema.md`, `claude-code/skills/sprint-loop/phases/03-plan-phase.md`, `claude-code/skills/sprint-loop/phases/05-test-phase.md`
+- **Commit:** `66f6ad7`

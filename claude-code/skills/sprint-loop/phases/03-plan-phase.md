@@ -37,7 +37,14 @@ decompose below this granularity.
 Linearize the tree into an execution sequence honoring dependencies — a task may
 only follow tasks it depends on. For each task, record: a stable task ID (e.g.
 `T-001`), a one-sentence description, the files it touches, its dependencies (by
-task ID), its success criterion, and execution notes. Review for local
+task ID), its **success criterion (EARS-format, see below)**, and execution notes.
+
+**Success criterion uses EARS** (Easy Approach to Requirements Syntax):
+`WHEN <trigger> THEN <component> SHALL <response>`. Each elementary task gets
+at least one EARS clause; multiple when the task has distinct behavioral
+surfaces (happy path, error path, edge case). This format lets the Test Phase
+scaffold one `test_*` per WHEN/THEN/SHALL triple mechanically; freeform notes
+are allowed alongside but tests are derived from the EARS clauses. Review for local
 correctness (each task well-formed) and global correctness (the sequence
 accomplishes the goal). Write to `build-plan.md` following `schemas/build-plan.md`.
 
