@@ -22,4 +22,11 @@
 - **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** PENDING` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
 - **Completed:** 2026-05-20T04:00:00Z
 - **Files modified:** `open-harnesses/scripts/commit-task.sh`
+- **Commit:** `3ba16e4`
+
+## T-002 (sprint 1)
+- **Description:** Added `scripts/abort-sprint.sh` taking a one-line reason: sets `sprint-meta.md` Exit status to `aborted`, records the end timestamp, appends an `## Abort note` section, and commits `sprint-N: aborted — <reason>`. Updated open-harnesses particles `06-build-phase.md` and `08-loop-phase.md` to document the abort path and the `aborted` exit status.
+- **Scope expansion:** Surfaced during Build that `current-phase.sh` only checked Exit status at the bottom (to distinguish `loop` from `ready-for-next-sprint`), so an `aborted` status set mid-sprint was masked by upstream filesystem checks (research-report empty → returned `research` instead of `ready-for-next-sprint`). Hoisted the exit-status check to the top of `current-phase.sh`; all 8 sprint-0 selftest transitions still pass (regression-clean), and abort now routes correctly. Files modified beyond the plan: `open-harnesses/scripts/current-phase.sh`.
+- **Completed:** 2026-05-20T05:16:00Z
+- **Files modified:** `open-harnesses/scripts/abort-sprint.sh` (new), `open-harnesses/scripts/current-phase.sh`, `open-harnesses/particles/06-build-phase.md`, `open-harnesses/particles/08-loop-phase.md`
 - **Commit:** PENDING
