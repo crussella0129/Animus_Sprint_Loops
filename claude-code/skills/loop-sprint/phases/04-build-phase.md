@@ -13,6 +13,18 @@ dependency the plan did not anticipate; in that case, leave the blocking task in
 place, skip to the next executable task, and note the blockage in `sprint-meta.md`
 under a `blockages` section.
 
+If a blockage proves unrecoverable mid-sprint (an external dependency disappears,
+scope is invalidated, the user changes their mind), run:
+
+```bash
+bash scripts/abort-sprint.sh "<one-line reason>"
+```
+
+It sets `sprint-meta.md` Exit status to `aborted`, records the end timestamp,
+appends an `## Abort note` section, and commits the close-out. The next sprint
+begins fresh — an aborted sprint, unlike a failed one, does **not** become the
+next sprint's primary research input.
+
 For every task you complete:
 
 1. Verify the success criterion is met.

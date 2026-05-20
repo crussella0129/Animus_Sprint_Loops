@@ -57,4 +57,18 @@ assert_phase loop                   "07 test-report written"
 sed -i '/Exit status/s/in-progress/success/' sprints/s0/sprint-meta.md
 assert_phase ready-for-next-sprint  "08 sprint closed"
 
-echo "selftest: all 8 transitions matched"
+# Step 09 exercises abort-sprint.sh: init a fresh sprint, abort it, and assert
+# routing short-circuits to ready-for-next-sprint regardless of whether any
+# research/plan/build work happened. Requires a git repo for the abort commit.
+git init -q . >/dev/null
+git config user.email selftest@example.invalid
+git config user.name selftest
+git add -A
+git -c commit.gpgsign=false commit -q -m "selftest: pre-sprint-1 baseline" >/dev/null
+SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
+git add -A
+git -c commit.gpgsign=false commit -q -m "selftest: init sprint 1" >/dev/null
+bash "$T/scripts/abort-sprint.sh" "selftest abort" >/dev/null
+assert_phase ready-for-next-sprint  "09 sprint aborted via abort-sprint.sh"
+
+echo "selftest: all 9 transitions matched"

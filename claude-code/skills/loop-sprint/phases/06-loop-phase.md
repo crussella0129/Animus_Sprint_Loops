@@ -2,7 +2,10 @@
 
 1. **Finalize `sprint-meta.md`** for the current sprint: set the end timestamp
    (ISO 8601), record the token count if observable, and set the exit status to
-   `success` if all tests passed or `failed` if a failure-report was written.
+   `success` if all tests passed, `failed` if a failure-report was written, or
+   `aborted` if the sprint was already closed mid-flight via
+   `scripts/abort-sprint.sh` (in that case Exit status and end timestamp are
+   already set — verify and move on).
 2. **Compact context.** Do NOT re-inject prior sprint research, plans, or
    completed-task logs into your working context unless they are explicitly needed
    for the next sprint's research. The persistent state lives on disk; trust it.
