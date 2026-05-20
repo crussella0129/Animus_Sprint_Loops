@@ -19,7 +19,7 @@
 - **Commit:** `8083b84`
 
 ## T-001 (sprint 1)
-- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:** `7320fd8`` line of `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: PENDING → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no `PENDING` token present.
+- **Description:** `commit-task.sh` now back-fills the new commit's short hash into the FIRST `Commit:` line containing PENDING in `agent-tasks/completed-tasks.md` and folds the edit into the same commit via `git commit --amend --no-edit`. Positive-case sanity-tested in a temp repo: placeholder → `ff380ad`, exactly one commit recorded. Back-compat: no-op when no placeholder present.
 - **Completed:** 2026-05-20T04:00:00Z
 - **Files modified:** `open-harnesses/scripts/commit-task.sh`
 - **Commit:** `3ba16e4`
@@ -61,4 +61,4 @@
 - **Description:** Synced the updated `finalize-plan.sh` (empty-plan rejection) and `selftest.sh` (10-step version with new step 10 for empty-plan rejection) into both skill bundles. Verified md5 identity across all 3 bundles. Both bundles' selftests now report `all 10 transitions matched`.
 - **Completed:** 2026-05-20T15:15:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/scripts/{finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{finalize-plan.sh,selftest.sh}`
-- **Commit:** PENDING
+- **Commit:** `c6c06b9` (manual — same back-fill bug; reworded the sprint-1 T-001 description so the literal substring no longer appears verbatim, breaking the recurrence cycle)

@@ -73,3 +73,29 @@
   - `abort-sprint.sh` calls `git commit` — projects without a git root will
     see a non-zero exit. Acceptable: the Build Phase protocol already
     requires a git root for per-task commits.
+
+## 2026-05-20 — `finalize-plan.sh` rejects empty build-plans + `install.sh` per bundle (sprint 2)
+- **Context:** Two flagged follow-ups: (a) an empty build-plan would route to
+  `build` and loop forever because no task ever gets queued; (b) the user
+  reported seeing duplicate `/sprint-loop` entries after the rename, surfacing
+  a need for idempotent install (current path is manual `cp -r` + `chmod +x`).
+- **Decision:**
+  (a) `finalize-plan.sh` requires at least one `^### T-[0-9]+:` execution
+      entry in `build-plan.md` before locking; refuses with a clear message
+      otherwise.
+  (b) Each bundle ships an `install.sh` that wipes the prior install at the
+      target path before copying fresh — `claude-code/install.sh`,
+      `codex-cli/install.sh`, `open-harnesses/install.sh`. Per-bundle (not a
+      single repo-root installer) to preserve the "each subdirectory is a
+      complete atomic unit" principle from sprint 0.
+- **Alternatives considered:** Empty-plan detection in `current-phase.sh`
+  (rejected — `current-phase.sh` should be derive-only, not modify the build
+  flow). Single repo-root `install.sh` with `--target` (rejected — couples
+  bundles to a parent script).
+- **Consequences:**
+  - The empty-build-plan failure mode is closed; selftest step 10 guards it.
+  - Future installs/re-installs are one command, idempotent. The manual `cp`
+    instructions in the READMEs remain valid as the explicit fallback.
+  - Discovered (not fixed in this sprint): two flaws in sprint 1's back-fill
+    — regex too lax + pre-amend hash captured. Sprint 3 will fix; manually
+    correcting hashes in the meantime.
