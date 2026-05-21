@@ -82,6 +82,19 @@ The `/sprint-loop` command gives explicit control:
 - `/sprint-loop loop` — jump to the Loop Phase
 - `/sprint-loop abort` — mark the current sprint aborted and close it out
 
+### Unattended / auto mode (Claude-specific)
+
+Run sprints hands-off by combining two Claude Code primitives:
+
+- **Auto mode:** select **auto-accept** at the Plan Phase's `ExitPlanMode`
+  approval — that carries Build/Test/Loop without per-step prompts.
+- **Recurrence:** launch under `/loop` — `/loop 3 /sprint-loop continue` —
+  so each sprint re-fires automatically (bound it; don't run open-ended).
+
+Auto mode does not auto-merge PRs to a base branch (that stays human-gated).
+This is **Claude-specific** — Codex's equivalent unattended path is
+`codex exec` (see `../codex-cli/`).
+
 ## How it routes
 
 1. `scripts/current-phase.sh` inspects the filesystem and prints the active phase.

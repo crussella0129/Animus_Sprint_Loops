@@ -153,3 +153,9 @@
 - **Completed:** 2026-05-21T01:40:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`, `claude-code/skills/sprint-loop/phases/06-loop-phase.md`
 - **Commit:** `f7cc3cb`
+
+## T-003 (sprint 7)
+- **Description:** Documented the unattended launch in `commands/sprint-loop.md` (`/loop 3 /sprint-loop continue` + auto-accept selection + bounding + no-auto-merge). Propagated the PR-merge gate to `codex-cli/skills/sprint-loops/phases/06-loop-phase.md` (unattended `codex exec` leaves PR open) and to `open-harnesses/particles/08-loop-phase.md` (human-gated merge + a note that a recurring-invocation primitive like `/loop` can drive recurrence). Added an "Unattended / auto mode (Claude-specific)" section to `claude-code/README.md` noting Codex's equivalent is `codex exec`.
+- **Completed:** 2026-05-21T01:50:00Z
+- **Files modified:** `claude-code/commands/sprint-loop.md`, `codex-cli/skills/sprint-loops/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`, `claude-code/README.md`
+- **Commit:** `3729291`

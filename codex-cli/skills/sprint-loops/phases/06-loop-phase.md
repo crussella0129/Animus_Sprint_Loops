@@ -20,11 +20,16 @@
 6. *(Optional — PR-wrapped sprints)* If this sprint was developed on a feature
    branch and a PR was opened:
    - **On CI green** (verified per `phases/05-test-phase.md`'s CI verify
-     pattern): `gh pr merge <n> --merge --delete-branch`, then sync local
-     base:
-     ```bash
-     git checkout <base> && git pull
-     ```
+     pattern): the merge is **gated on how you're running**:
+     - *Interactive run, or explicit auto-merge opt-in:*
+       `gh pr merge <n> --merge --delete-branch`, then sync local base:
+       ```bash
+       git checkout <base> && git pull
+       ```
+     - *Unattended run (e.g. `codex exec`):* **do NOT merge** — merging to a
+       base branch + deleting the branch is hard-to-reverse and stays
+       human-gated (see SKILL.md "Safety floor"). Leave the PR open at
+       "ready for review" and proceed.
    - **On CI red**: `gh run view <id> --log-failed`, fix on the same branch,
      force-push, re-verify before merging.
    - **PR body via heredoc** (avoids escaping pain on multi-line bodies with
