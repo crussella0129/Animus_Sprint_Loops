@@ -191,3 +191,16 @@
   - The protocol now has 2 review surfaces (structural via `finalize-plan.sh`, substantive via critic) rather than 1.
   - The first sprint to actually USE the protocol is sprint 6+; sprint 5 itself only added the protocol, didn't run under it.
   - Selftest cannot exercise the critic step (LLM execution required); the next manual sprint is the in-vivo test.
+
+## 2026-05-21 — Enforced research budget via research-budget.sh + finalize-plan gate (sprint 6)
+- **Context:** User priority #4 (last of the 3→2→5→1→4 list). The 20-file / 5-source research caps were honor-system; agents could blow past them silently.
+- **Decision:** Added `scripts/research-budget.sh` (counts Existing-Code-Survey data rows + External-Sources URLs; exits non-zero over 20/5). `finalize-plan.sh` runs it as a THIRD pre-lock gate (after empty-plan + decisions-reviewed): over budget refuses to lock UNLESS the research-report has a `## Budget Override` heading with a non-whitespace body line. 30-min wall-clock cap stays honor-system (unmeasurable from a script across sessions).
+- **Alternatives considered:** wall-clock enforcement (rejected — sprints span sessions); soft warn-only (rejected — reproduces the honor-system problem); per-sprint configurable budgets (rejected — config surface for marginal benefit).
+- **Consequences:**
+  - Research breadth is now bounded by default with an explicit, justified escape hatch.
+  - `finalize-plan.sh` now has THREE composable gates; all three must pass to lock plans.
+  - selftest step 13 guards the budget gate (refuse-over-budget + accept-with-override).
+  - This sprint was the first to run sprint 5's critic protocol: the plan critic caught the counter-overcounting bug pre-build; the test critic BLOCKED on two real EARS-coverage gaps (sources branch + empty-override-body), both fixed before the test-report was finalized. The critic protocol earned its keep on its first live run.
+
+## 2026-05-21 — All five sprint-3 critique priorities delivered (sprint 6 milestone note)
+- The user's prioritized list from sprint 3 (3: hard plan-mode, 2: EARS criteria, 5: decisions-drift gate, 1: subagent fan-out, 4: research budget) is complete as of sprint 6. Sprints 4–6 delivered them in the instructed order. Remaining backlog is older carry-forward (CI workflow, critique.md hard-gate, abort no-git fallback) — none from the user's prioritized list.
