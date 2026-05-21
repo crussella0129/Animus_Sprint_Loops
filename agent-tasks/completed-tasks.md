@@ -147,3 +147,9 @@
 - **Completed:** 2026-05-21T01:30:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/phases/03-plan-phase.md`
 - **Commit:** `5d79d89`
+
+## T-002 (sprint 7)
+- **Description:** SKILL.md "Plan mode" now states the ExitPlanMode prompt is where auto-accept ("auto mode") is selected for unattended runs. "Autonomous operation" rewritten as two mechanisms (auto-accept selection + `/loop /sprint-loop continue` recurrence with re-fire → re-run current-phase.sh → resume), fixed the old "merge your own PRs" line, and added a bounding recommendation (unbounded loop runs until interrupt). "Safety floor" gained an explicit "auto-accept ≠ auto-merge" clause. Crucially, `phases/06-loop-phase.md` step 6 PR-merge is now GATED: interactive/opt-in merges; unattended auto mode leaves the PR open for human review — resolving the live SKILL.md-vs-loop-phase auto-merge contradiction the plan critic caught (C-004).
+- **Completed:** 2026-05-21T01:40:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`, `claude-code/skills/sprint-loop/phases/06-loop-phase.md`
+- **Commit:** `f7cc3cb`

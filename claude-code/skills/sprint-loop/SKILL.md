@@ -28,7 +28,9 @@ You are working in a Sprint Loop. Each sprint is a five-phase sequence with pers
 
 ## Plan mode
 
-The Plan Phase uses Claude Code's plan-mode primitive as a hard constraint, not a soft instruction. On entering Plan Phase, the agent invokes `EnterPlanMode` (which blocks Edit/Write/Bash side effects), reasons through the plan synthesis while only reading the filesystem, then invokes `ExitPlanMode` with a two-section summary (Build plan / Test plan) for user approval before dropping back to normal mode to write the two artifacts (`build-plan.md` and `test-plan.md`) to disk. See `phases/03-plan-phase.md` for the exact protocol.
+The Plan Phase uses Claude Code's plan-mode primitive as a hard constraint, not a soft instruction. On entering Plan Phase, the agent invokes `EnterPlanMode` (the mandatory first action — it blocks Edit/Write/Bash side effects), reasons through the plan synthesis while only reading the filesystem, then invokes `ExitPlanMode` with a two-section summary (Build plan / Test plan).
+
+**The `ExitPlanMode` approval prompt is where "auto mode" is selected.** For an unattended run, choose the **auto-accept ("auto mode")** option at that prompt — that selection is the mechanism that carries Build/Test/Loop without per-step confirmation (it's what makes "leave it running" work). For an interactive run, approve normally. See `phases/03-plan-phase.md` for the exact protocol.
 
 ## Git discipline
 
@@ -36,12 +38,17 @@ Every completed task in the Build Phase ends with a git commit via `scripts/comm
 
 ## Autonomous operation
 
-When invoked for a multi-turn loop (e.g. via `/loop /sprint-loop continue` or when the user signals they're stepping away), default to working independently for the entire sprint:
+Unattended operation is **two mechanisms working together**, both Claude-Code-specific:
 
-- **Commit, push, and merge your own PRs without asking per step.** The per-task commit boundary already provides rollback; the sprint structure already provides review surfaces (research-report, plans, test-report, decisions ADR). Don't pause for confirmation on routine work.
-- **Defer rather than block.** When a feature has a non-trivial dependency the plan didn't anticipate, ship the scoped piece, note the deferral in `sprint-meta.md` blockages or the PR body, and continue with the next executable task. Use `scripts/abort-sprint.sh` only for truly unrecoverable blockages.
-- **Use Plan Mode for the Plan Phase, then drop back to standard mode for Build/Test/Loop.** Plan Mode produces `build-plan.md` and `test-plan.md` without touching source files.
-- **One PR per concept, numbered sequentially** (e.g. `v117`, `v118`) when the sprint is wrapped as a PR. Lets earlier work be referenced in later commit messages.
+1. **Auto mode (no per-step confirmation):** engaged by selecting **auto-accept** at the Plan Phase's `ExitPlanMode` prompt (see "Plan mode" above). This is what lets the Build/Test/Loop phases run without stopping for each edit/command.
+2. **Recurrence (no per-sprint check-in):** launch the whole thing under the harness `/loop` skill — `/loop /sprint-loop continue`. Each time `/loop` re-fires, the agent re-runs `scripts/current-phase.sh` and resumes whatever phase the filesystem reports; when a sprint closes, the next re-fire begins the next sprint. The user starts and stops `/loop`.
+
+Within that, work independently for the whole sprint:
+
+- **Commit and push your own work without asking per step.** The per-task commit boundary provides rollback; the sprint structure (research-report, plans, critic `critique.md`, test-report, decisions ADR) provides the review surfaces. Don't pause on routine edits/commits/pushes.
+- **Defer rather than block.** When a task's full scope hits an unanticipated dependency, ship the scoped piece, note the deferral, and continue. Use `scripts/abort-sprint.sh` only for truly unrecoverable blockages.
+- **One PR per concept, numbered sequentially** (e.g. `v117`, `v118`) when the sprint is wrapped as a PR.
+- **Bound long unattended runs.** An unbounded `/loop /sprint-loop continue` keeps opening new sprints — burning tokens and producing commits — until you interrupt it. For unattended runs prefer a bounded launch (e.g. `/loop 3 /sprint-loop continue`) and check the result, rather than letting it run open-ended.
 
 ## Safety floor
 
@@ -51,3 +58,4 @@ Autonomy stops at the safety floor:
 - **Don't skip pre-flight checks** documented in `phases/04-build-phase.md` even when running unattended. The four-check gate (or whatever the project's sanity gate is) blocks the per-task commit — that's the design.
 - **Never `--no-verify` or bypass hooks** unless the user explicitly opted in. Hook failures are signal; investigate, don't suppress.
 - **Hard-to-reverse actions warrant a pause** even in autonomous mode: force-push to a base branch, dropping a DB table, deleting infra. Surface the intent and wait for confirmation.
+- **Auto-accept ≠ auto-merge.** Selecting auto-accept removes per-edit/per-command friction, NOT the gate on irreversible git operations. Under unattended auto mode the agent does **not** merge a PR to a base branch, force-push, or delete branches — it pushes the working branch, opens the PR, and stops at "ready for review" for a human. Auto-merge happens only in an interactive run or with an explicit auto-merge opt-in at launch. (The Loop Phase's PR-merge step is gated accordingly — see `phases/06-loop-phase.md`.)
