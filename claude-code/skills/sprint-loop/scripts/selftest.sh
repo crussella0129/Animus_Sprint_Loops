@@ -65,10 +65,12 @@ git init -q . >/dev/null
 git config user.email selftest@example.invalid
 git config user.name selftest
 git add -A
-git -c commit.gpgsign=false commit -q -m "selftest: pre-sprint-1 baseline" >/dev/null
+# --allow-empty: init-sprint.sh gitignores sprints/, so these scaffolding
+# commits may stage nothing new; the test only cares about routing, not commits.
+git -c commit.gpgsign=false commit -q --allow-empty -m "selftest: pre-sprint-1 baseline" >/dev/null
 SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
 git add -A
-git -c commit.gpgsign=false commit -q -m "selftest: init sprint 1" >/dev/null
+git -c commit.gpgsign=false commit -q --allow-empty -m "selftest: init sprint 1" >/dev/null
 bash "$T/scripts/abort-sprint.sh" "selftest abort" >/dev/null
 assert_phase ready-for-next-sprint  "09 sprint aborted via abort-sprint.sh"
 
@@ -168,4 +170,30 @@ if ! head -n1 "sprints/s$BN/sprint-plans/build-plan.md" | grep -qF "Finalized - 
 fi
 printf "  PASS  %-34s expected=%-22s got=%s\n" "13 research-budget gate" "refuse then override" "refused over-budget, locked w/ override"
 
-echo "selftest: all 13 transitions matched"
+# Step 14 exercises init-sprint.sh's .gitignore drop: the marker block must be
+# present exactly once (idempotent across the many init calls above), must
+# ignore sprints/, and must preserve a pre-existing .gitignore's contents.
+MARKERS=$(grep -c '# >>> sprint-loops >>>' .gitignore 2>/dev/null || true)
+if [ "${MARKERS:-0}" != "1" ]; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "14 gitignore idempotent" "exactly 1 block" "${MARKERS:-0} marker(s)" >&2
+  exit 1
+fi
+if ! grep -qx 'sprints/' .gitignore; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "14 gitignore content" "sprints/ ignored" "missing" >&2
+  exit 1
+fi
+# Pre-existing .gitignore: contents preserved + block appended exactly once.
+PT=$(mktemp -d)
+printf 'node_modules/\n' > "$PT/.gitignore"
+( cd "$PT" && SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null )
+PRE_OK=$(grep -cx 'node_modules/' "$PT/.gitignore" || true)
+BLK_OK=$(grep -c '# >>> sprint-loops >>>' "$PT/.gitignore" || true)
+rm -rf "$PT"
+if [ "${PRE_OK:-0}" = "1" ] && [ "${BLK_OK:-0}" = "1" ]; then
+  printf "  PASS  %-34s expected=%-22s got=%s\n" "14 gitignore drop" "1 block, pre-existing kept" "block once + node_modules kept"
+else
+  printf "  FAIL  %-34s pre_ok=%s blk_ok=%s\n" "14 gitignore drop" "${PRE_OK:-0}" "${BLK_OK:-0}" >&2
+  exit 1
+fi
+
+echo "selftest: all 14 transitions matched"

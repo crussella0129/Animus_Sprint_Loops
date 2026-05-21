@@ -15,7 +15,13 @@ the next sprint number (highest existing `sN` + 1, or 0 if none exist); create
 `test-report.md`; create and populate `sprint-meta.md` (sprint number, ISO 8601
 start timestamp, model identifier, exit status `in-progress`); create the
 persistent `agent-tasks/` directory with `agent-tasks.md` and `completed-tasks.md`
-if missing; and create `decisions.md` at the project root if missing.
+if missing; create `decisions.md` at the project root if missing; and drop an
+idempotent `.gitignore` block that excludes the **ephemeral** sprint working
+memory (`sprints/`, `*.tmp`) while keeping the **long-term** memory tracked
+(`decisions.md`, `agent-tasks/`, `confidence.txt` — the architectural-drift
+gate and task ledger depend on these living in the repo). The block is
+marker-guarded, so re-running init never duplicates it and any existing
+`.gitignore` is preserved.
 
 If you cannot run the script, perform every step above by hand. See
 `schemas/sprint-meta.md` for the `sprint-meta.md` format. The `agent-tasks/`

@@ -39,4 +39,21 @@ mkdir -p agent-tasks
 [ -f agent-tasks/completed-tasks.md ] || printf '# Completed Tasks Log (Append-Only)\n' > agent-tasks/completed-tasks.md
 [ -f decisions.md ]                  || printf '# Architectural Decisions\n' > decisions.md
 
+# Drop a .gitignore for the ephemeral sprint working memory (idempotent —
+# guarded by the marker so re-running init never duplicates it, and an
+# existing .gitignore is preserved with the block appended once). Long-term
+# memory (decisions.md, agent-tasks/, confidence.txt) stays TRACKED.
+if ! grep -q '# >>> sprint-loops >>>' .gitignore 2>/dev/null; then
+  cat >> .gitignore <<'GI'
+
+# >>> sprint-loops >>>
+# Ephemeral sprint working memory — regenerable; the real outcome lives in the
+# per-task git commits + decisions.md. KEEP tracked (long-term memory the
+# protocol depends on): decisions.md, agent-tasks/, confidence.txt.
+sprints/
+*.tmp
+# <<< sprint-loops <<<
+GI
+fi
+
 echo "Initialized sprint $N at $D"

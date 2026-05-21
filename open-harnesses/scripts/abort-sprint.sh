@@ -42,5 +42,13 @@ $REASON
 EOF
 
 git add -A
-git commit -m "sprint-$N: aborted — $REASON"
-echo "Sprint $N marked aborted."
+# The abort's record (Exit status: aborted) lives in sprint-meta.md, which is
+# gitignored in projects that adopt the default .gitignore. If nothing tracked
+# changed, there's nothing to commit — the abort still took effect on disk and
+# current-phase.sh reads it. Only commit when there IS a tracked change.
+if git diff --cached --quiet; then
+  echo "Sprint $N marked aborted (sprint state is gitignored; no tracked change to commit)."
+else
+  git commit -m "sprint-$N: aborted — $REASON"
+  echo "Sprint $N marked aborted."
+fi
