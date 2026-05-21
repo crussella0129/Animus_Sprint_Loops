@@ -171,3 +171,9 @@
 - **Completed:** 2026-05-21T03:15:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/phases/06-loop-phase.md`, `codex-cli/skills/sprint-loops/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`, `tools/check-merge-policy.sh` (new)
 - **Commit:** `1882ed1`
+
+## T-003 (sprint 8)
+- **Description:** Reframed `commands/sprint-loop.md` and `claude-code/README.md` auto-mode sections to lead with "runs unattended; stops only at human-verification checkpoints," listing the categories and stating AI-verifiable work (incl. known-reversible merges) proceeds. Demoted bounding to an optional cap (`/loop N`), no longer the headline. Kept the Claude-specific note. Launch example simplified to `/loop /sprint-loop continue`.
+- **Completed:** 2026-05-21T03:25:00Z
+- **Files modified:** `claude-code/commands/sprint-loop.md`, `claude-code/README.md`
+- **Commit:** `2d6c6b2`

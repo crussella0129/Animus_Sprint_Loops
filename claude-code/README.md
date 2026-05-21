@@ -88,12 +88,17 @@ Run sprints hands-off by combining two Claude Code primitives:
 
 - **Auto mode:** select **auto-accept** at the Plan Phase's `ExitPlanMode`
   approval — that carries Build/Test/Loop without per-step prompts.
-- **Recurrence:** launch under `/loop` — `/loop 3 /sprint-loop continue` —
-  so each sprint re-fires automatically (bound it; don't run open-ended).
+- **Recurrence:** launch under `/loop` — `/loop /sprint-loop continue` — so
+  each sprint re-fires automatically.
 
-Auto mode does not auto-merge PRs to a base branch (that stays human-gated).
-This is **Claude-specific** — Codex's equivalent unattended path is
-`codex exec` (see `../codex-cli/`).
+The loop runs unattended and **stops only at human-verification checkpoints** —
+things AI can't verify: visual/UX inspection, an irreversible or
+unknown-consequence action, genuine product ambiguity, or an unrecoverable
+failure. Everything AI *can* verify (green CI, reversible changes, known-
+reversible merges) proceeds. A count cap (`/loop N …`) is optional, not the
+recommended posture — the checkpoints are the intended stops. This is
+**Claude-specific** — Codex's equivalent unattended path is `codex exec`
+(see `../codex-cli/`).
 
 ## How it routes
 
