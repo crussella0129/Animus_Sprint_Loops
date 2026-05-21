@@ -15,7 +15,7 @@
 | `test_loop_unknown_or_unverifiable_stops` | **PASS** |
 | `test_loop_visual_review_checkpoint` | **PASS** |
 | `test_check_merge_policy_passes` | **PASS** |
-| `test_check_merge_policy_catches_drift` | **PASS** (injected blanket "do NOT merge" → script exits non-zero; reverted) |
+| `test_check_merge_policy_catches_drift` | **PASS** — now a COMMITTED fixture test (`tools/check-merge-policy.test.sh`, 4/4 bad states caught on temp copies) after the test critic showed the first guard false-passed |
 
 ## T-003 (command + README)
 | Test | Result |

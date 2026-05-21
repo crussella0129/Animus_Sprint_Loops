@@ -11,3 +11,7 @@
   stops is indistinguishable from broken checkpoint logic unless the stop
   path is positively exercised, so this run must trigger at least one
   checkpoint.
+
+> NOTE: This is a NOT-YET-EXECUTED launch-time manual checklist — auto mode is
+> a harness behavior unobservable from the bash test layer, so neither path has
+> been mechanically verified here. Run it the first time auto mode is launched.
