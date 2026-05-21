@@ -39,4 +39,11 @@ Rationale: ...
 ## Artifacts
 - `snippet-01.rs` — sample implementation
 - `error-trace.txt` — observed failure mode
+
+## Budget Override
+(OPTIONAL — include only when the Existing Code Survey exceeds 20 file rows or
+External Sources exceeds 5 URLs. `finalize-plan.sh` refuses to lock plans when
+over budget unless this section is present with a non-empty justification.
+Explain why the scope genuinely required the extra breadth — e.g. a
+cross-cutting refactor touching many files. Do not use as a default escape.)
 ```

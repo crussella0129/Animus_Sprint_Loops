@@ -129,3 +129,9 @@
 - **Completed:** 2026-05-21T00:05:00Z
 - **Files modified:** `open-harnesses/scripts/research-budget.sh` (new), `open-harnesses/scripts/finalize-plan.sh`
 - **Commit:** `e8c08d1`
+
+## T-002 (sprint 6)
+- **Description:** Documented the budget gate + override. `phases/02-research-phase.md` now states the 20/5 caps are enforced, names `research-budget.sh`, and explains the `## Budget Override` escape (non-empty justification, sparing use; 30-min cap stays honor-system). `schemas/research-report.md` gained an optional `## Budget Override` section in the template. `open-harnesses/particles/02-research-phase.md` got a parallel single-sentence integration inside its quoted block.
+- **Completed:** 2026-05-21T00:12:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/phases/02-research-phase.md`, `open-harnesses/schemas/research-report.md`, `open-harnesses/particles/02-research-phase.md`
+- **Commit:** `de77822`

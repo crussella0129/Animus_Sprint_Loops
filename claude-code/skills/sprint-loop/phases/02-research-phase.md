@@ -16,6 +16,16 @@ sources** (official documentation, Stack Overflow, GitHub issues, vendor docs),
 and spend at most **30 minutes** of wall-clock equivalent effort. After hitting
 any budget limit, stop gathering and write the report.
 
+**The 20-file / 5-source caps are enforced.** `finalize-plan.sh` runs
+`research-budget.sh`, which counts the data rows of your `## Existing Code
+Survey` table and the URL bullets under `## External Sources`. If either
+exceeds its cap, the plans cannot be locked **unless** the report includes a
+`## Budget Override` section with a non-empty justification (one paragraph
+explaining why the scope genuinely required more — e.g. a cross-cutting
+refactor). Use the override sparingly; it is an escape hatch for real
+breadth, not a default. The 30-minute cap remains honor-system (a script
+can't measure wall-clock across sessions).
+
 The report must contain:
 
 0. **`## Decisions Reviewed`** — required when `decisions.md` has entries;
