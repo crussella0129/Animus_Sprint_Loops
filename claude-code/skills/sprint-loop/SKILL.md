@@ -45,17 +45,47 @@ Unattended operation is **two mechanisms working together**, both Claude-Code-sp
 
 Within that, work independently for the whole sprint:
 
-- **Commit and push your own work without asking per step.** The per-task commit boundary provides rollback; the sprint structure (research-report, plans, critic `critique.md`, test-report, decisions ADR) provides the review surfaces. Don't pause on routine edits/commits/pushes.
+- **Commit, push, and merge AI-verifiable work without asking per step.** The per-task commit boundary provides rollback; the sprint structure (research-report, plans, critic `critique.md`, test-report, decisions ADR) provides the review surfaces. Don't pause on routine edits/commits/pushes — or on merging a green-CI PR whose effect is known-and-reversible.
 - **Defer rather than block.** When a task's full scope hits an unanticipated dependency, ship the scoped piece, note the deferral, and continue. Use `scripts/abort-sprint.sh` only for truly unrecoverable blockages.
 - **One PR per concept, numbered sequentially** (e.g. `v117`, `v118`) when the sprint is wrapped as a PR.
-- **Bound long unattended runs.** An unbounded `/loop /sprint-loop continue` keeps opening new sprints — burning tokens and producing commits — until you interrupt it. For unattended runs prefer a bounded launch (e.g. `/loop 3 /sprint-loop continue`) and check the result, rather than letting it run open-ended.
 
-## Safety floor
+## The stop criterion: halt only for what AI cannot verify
 
-Autonomy stops at the safety floor:
+The point of running unattended is to keep going. The loop runs to completion
+and halts **only at a human-verification checkpoint** — something whose
+correctness or safety the AI cannot itself confirm. It is NOT bounded by an
+arbitrary sprint count. Runaway control is the per-task commit rollback, the
+checkpoints below, and your ability to interrupt `/loop`; a count cap
+(`/loop N /sprint-loop continue`) is an *optional* extra cap, not the
+recommended posture.
 
-- **Don't weaken permission or security controls** to keep the loop moving. If a tool call is denied, surface the decline clearly and continue with what *is* permitted — don't request the human auto-accept dangerous shell patterns, secrets, or escalations.
-- **Don't skip pre-flight checks** documented in `phases/04-build-phase.md` even when running unattended. The four-check gate (or whatever the project's sanity gate is) blocks the per-task commit — that's the design.
-- **Never `--no-verify` or bypass hooks** unless the user explicitly opted in. Hook failures are signal; investigate, don't suppress.
-- **Hard-to-reverse actions warrant a pause** even in autonomous mode: force-push to a base branch, dropping a DB table, deleting infra. Surface the intent and wait for confirmation.
-- **Auto-accept ≠ auto-merge.** Selecting auto-accept removes per-edit/per-command friction, NOT the gate on irreversible git operations. Under unattended auto mode the agent does **not** merge a PR to a base branch, force-push, or delete branches — it pushes the working branch, opens the PR, and stops at "ready for review" for a human. Auto-merge happens only in an interactive run or with an explicit auto-merge opt-in at launch. (The Loop Phase's PR-merge step is gated accordingly — see `phases/06-loop-phase.md`.)
+**Stop and surface to the human at these four checkpoints:**
+
+1. **Visual / UX / aesthetic inspection** — anything where "does this look/feel
+   right" is the test: UI, layout, rendered output, copy tone. Launch the app
+   or attach the artifact and stop for the human to look (see
+   `phases/06-loop-phase.md`).
+2. **Irreversible action whose safety tests/CI cannot verify — *or whose
+   consequence the agent cannot determine*.** Force-push to a shared branch,
+   dropping a DB table, deleting infra, a public release/deploy. **If you
+   cannot tell whether an action is reversible or what its blast radius is,
+   that uncertainty is itself the checkpoint — default to stop, not proceed.**
+   ("Can't verify" includes "can't determine the consequence.")
+3. **Genuine product / scope ambiguity** — two valid interpretations and you'd
+   be guessing the intent. Ask, don't pick.
+4. **Unrecoverable failure** — a failure needing human diagnosis (failure-report
+   territory).
+
+**Everything the AI *can* verify proceeds autonomously** — green tests/CI,
+reversible diffs, and merging a green PR whose consequence is known and
+reversible. The pre-flight sanity gate (`phases/04-build-phase.md`) and the
+Plan/Test critics still run; those are AI-verifiable steps, not human stops.
+
+## Safety floor (the non-negotiable subset of the stop criterion)
+
+These hold even when the user has waved you on:
+
+- **Don't weaken permission or security controls** to keep the loop moving. If a tool call is denied, surface the decline and continue with what *is* permitted — don't ask the human to auto-accept dangerous shell patterns, secrets, or escalations.
+- **Don't skip the pre-flight sanity gate** (`phases/04-build-phase.md`) even unattended — it blocks the per-task commit by design.
+- **Never `--no-verify` or bypass hooks** unless the user explicitly opted in.
+- The category-2 checkpoints above (irreversible/unknown-consequence actions) are exactly the "human must approve what AI can't verify" cases — they stay human-gated regardless of auto-accept.

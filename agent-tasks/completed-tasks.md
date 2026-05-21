@@ -159,3 +159,9 @@
 - **Completed:** 2026-05-21T01:50:00Z
 - **Files modified:** `claude-code/commands/sprint-loop.md`, `codex-cli/skills/sprint-loops/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`, `claude-code/README.md`
 - **Commit:** `3729291`
+
+## T-001 (sprint 8)
+- **Description:** Reframed SKILL.md autonomy around the human-verification stop criterion. "Autonomous operation" now allows committing/pushing/merging AI-verifiable work without per-step pauses. New "The stop criterion: halt only for what AI cannot verify" section enumerates the four checkpoint categories — (a) visual/UX, (b) irreversible OR unknown-blast-radius (default-to-stop on uncertainty), (c) product ambiguity, (d) unrecoverable failure — and states AI-verifiable work (green CI, reversible, known-reversible merges) proceeds. Bounding demoted to optional; runaway control = commit-rollback + checkpoints + interrupt. "Safety floor" reframed as the non-negotiable subset (the category-2 items).
+- **Completed:** 2026-05-21T03:00:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`
+- **Commit:** `65eb24c`
