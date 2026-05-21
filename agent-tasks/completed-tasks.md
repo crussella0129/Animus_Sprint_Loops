@@ -123,3 +123,9 @@
 - **Completed:** 2026-05-20T21:05:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/prompts/{plan-critic.md,test-critic.md}` (new), `codex-cli/skills/sprint-loops/prompts/{plan-critic.md,test-critic.md}` (new), `codex-cli/skills/sprint-loops/phases/{03-plan-phase.md,05-test-phase.md}`, `codex-cli/skills/sprint-loops/SKILL.md`
 - **Commit:** `001d701`
+
+## T-001 (sprint 6)
+- **Description:** Added `scripts/research-budget.sh` — counts data rows under `## (N. )? Existing Code Survey` (awk-slices the section, counts `^\|` lines, subtracts 2 for header+separator) and URL bullets under `## (N. )? External Sources`; prints `files=N sources=M`, exits non-zero if N>20 or M>5. Wired into `finalize-plan.sh` as a third gate: when over budget, requires a `## Budget Override` heading with a non-whitespace body line, else refuses to lock. Two real bugs caught during Build by running: (1) the plan critic's C-001 overcounting (separator `|---|` doesn't match `^\| ` with a space — switched to `^\|` and subtract 2); (2) `finalize-plan.sh` referenced `$SCRIPT_DIR` without defining it (crash under `set -u`) — added the standard `SCRIPT_DIR` resolution. Cosmetic awk `\.`→`[.]` cleanup.
+- **Completed:** 2026-05-21T00:05:00Z
+- **Files modified:** `open-harnesses/scripts/research-budget.sh` (new), `open-harnesses/scripts/finalize-plan.sh`
+- **Commit:** `e8c08d1`
