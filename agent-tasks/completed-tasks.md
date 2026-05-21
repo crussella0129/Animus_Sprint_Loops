@@ -135,3 +135,9 @@
 - **Completed:** 2026-05-21T00:12:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/phases/02-research-phase.md`, `open-harnesses/schemas/research-report.md`, `open-harnesses/particles/02-research-phase.md`
 - **Commit:** `de77822`
+
+## T-003 (sprint 6)
+- **Description:** Added selftest step 13 (over-budget research-report with no override → finalize refuses + not locked; add `## Budget Override` → locks). Synced `research-budget.sh` (new), `finalize-plan.sh`, `selftest.sh` to both bundles (md5-identical across all 3). Synced `schemas/research-report.md` and `phases/02-research-phase.md` to codex (diff-clean vs claude). Both bundles' selftests report `all 13 transitions matched`.
+- **Completed:** 2026-05-21T00:20:00Z
+- **Files modified:** `open-harnesses/scripts/selftest.sh`, `claude-code/skills/sprint-loop/scripts/{research-budget.sh,finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{research-budget.sh,finalize-plan.sh,selftest.sh}`, `claude-code/skills/sprint-loop/schemas/research-report.md`, `codex-cli/skills/sprint-loops/{schemas/research-report.md,phases/02-research-phase.md}`
+- **Commit:** `accba20`

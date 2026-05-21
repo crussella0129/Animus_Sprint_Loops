@@ -138,4 +138,34 @@ if [ "$LOCKED" != "0" ]; then
 fi
 printf "  PASS  %-34s expected=%-22s got=%s\n" "12 decisions-reviewed gate" "non-zero + no lock" "rejected + file unchanged"
 
-echo "selftest: all 12 transitions matched"
+# Step 13 exercises finalize-plan.sh's research-budget gate: an over-budget
+# research-report (>20 file rows) with no `## Budget Override` must be refused;
+# adding the override section then allows the lock.
+SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
+BN=$(bash "$T/scripts/current-sprint.sh")
+{
+  printf '# r\n## Decisions Reviewed\n- selftest ADR\n## Existing Code Survey\n| File | Relevance | Notes |\n|------|-----------|-------|\n'
+  for i in $(seq 1 25); do printf '| f%s.rs | low | n |\n' "$i"; done
+} > "sprints/s$BN/sprint-research/research-report.md"
+printf '# build\n\n### T-001: demo\n' > "sprints/s$BN/sprint-plans/build-plan.md"
+echo "tp" > "sprints/s$BN/sprint-plans/test-plan.md"
+if bash "$T/scripts/finalize-plan.sh" >/dev/null 2>&1; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "13 research-budget gate" "non-zero exit" "exit 0 (accepted over budget)" >&2
+  exit 1
+fi
+if head -n1 "sprints/s$BN/sprint-plans/build-plan.md" | grep -qF "Finalized - DO NOT EDIT"; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "13 plans not locked over budget" "no lock" "locked anyway" >&2
+  exit 1
+fi
+printf '\n## Budget Override\nSelftest cross-cutting audit of 25 files; justified.\n' >> "sprints/s$BN/sprint-research/research-report.md"
+if ! bash "$T/scripts/finalize-plan.sh" >/dev/null 2>&1; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "13 override accepted" "exit 0" "still refused with override" >&2
+  exit 1
+fi
+if ! head -n1 "sprints/s$BN/sprint-plans/build-plan.md" | grep -qF "Finalized - DO NOT EDIT"; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "13 locked after override" "lock header" "no lock" >&2
+  exit 1
+fi
+printf "  PASS  %-34s expected=%-22s got=%s\n" "13 research-budget gate" "refuse then override" "refused over-budget, locked w/ override"
+
+echo "selftest: all 13 transitions matched"
