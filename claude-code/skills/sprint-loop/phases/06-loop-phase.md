@@ -20,19 +20,23 @@
 6. *(Optional — PR-wrapped sprints)* If this sprint was developed on a feature
    branch and a PR was opened:
    - **On CI green** (verified per `phases/05-test-phase.md`'s CI verify
-     pattern): the merge is **gated on how you're running**:
-     - *Interactive run, or explicit auto-merge opt-in at launch:*
-       `gh pr merge <n> --merge --delete-branch`, then sync local base:
-       ```bash
-       git checkout <base> && git pull
-       ```
-     - *Unattended auto mode (running under `/loop` with auto-accept):* **do
-       NOT merge.** Merging to a base branch + deleting the branch is a
-       hard-to-reverse action that stays human-gated (see SKILL.md "Safety
-       floor"). Leave the PR open at "ready for review", note it in the
-       status, and proceed — a human merges it.
+     pattern): merging is **AI-verifiable, so it proceeds autonomously** when
+     the consequence is known and reversible — `gh pr merge <n> --merge
+     --delete-branch`, then `git checkout <base> && git pull`. **Exception —
+     stop and surface (don't merge) when the merge's effect is unverifiable or
+     undeterminable:** it triggers a production deploy or public release, or
+     you cannot tell what merging actually sets in motion (opaque webhook,
+     branch-protection auto-deploy, unknown blast radius). Per SKILL.md's stop
+     criterion, "can't verify" includes "can't determine the consequence" —
+     default to leaving the PR open at "ready for review."
    - **On CI red**: `gh run view <id> --log-failed`, fix on the same branch,
      force-push, re-verify before merging.
+   - **Visual-review checkpoint:** if the sprint produced a visually-
+     inspectable artifact (UI, layout, rendered output — anything where "does
+     it look right" is the real test), this is a human-verification
+     checkpoint: launch the app / attach the artifact and stop for the human
+     to look, rather than silently continuing. (See SKILL.md stop criterion
+     category 1.)
    - **PR body via heredoc** (avoids escaping pain on multi-line bodies with
      code fences):
      ```bash

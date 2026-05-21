@@ -165,3 +165,9 @@
 - **Completed:** 2026-05-21T03:00:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`
 - **Commit:** `65eb24c`
+
+## T-002 (sprint 8)
+- **Description:** Re-scoped the Loop-Phase PR-merge step in all three copies (claude 06, codex 06, particle 08): merge AI-verifiable green-CI work autonomously when the consequence is known-and-reversible; STOP and surface when the effect is unverifiable OR undeterminable (deploy/release/unknown blast radius — "can't verify" includes "can't determine the consequence"). Added a visual-review checkpoint (surface UI/rendered artifacts for human inspection). Added committed `tools/check-merge-policy.sh` — a durable, re-runnable consistency guard (CI hook) that asserts all merge-policy docs pair merge guidance with a checkpoint qualifier, retain no blanket "do NOT merge", and that SKILL.md agrees. Proven to catch injected drift (exits non-zero), then revert clean.
+- **Completed:** 2026-05-21T03:15:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/phases/06-loop-phase.md`, `codex-cli/skills/sprint-loops/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`, `tools/check-merge-policy.sh` (new)
+- **Commit:** `1882ed1`
