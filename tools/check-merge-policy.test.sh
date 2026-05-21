@@ -9,6 +9,12 @@ pass=0; total=0
 LOOP="claude-code/skills/sprint-loop/phases/06-loop-phase.md"
 SK="claude-code/skills/sprint-loop/SKILL.md"
 
+# Track every fixture temp dir and remove ALL of them on exit (even on error).
+# Without this, each mkfix leaked a temp dir containing a sprint-loop skill copy.
+TMPDIRS=()
+cleanup() { for d in "${TMPDIRS[@]:-}"; do [ -n "$d" ] && rm -rf "$d"; done; }
+trap cleanup EXIT
+
 run_case() {  # $1 desc ; mutates $T then expects non-zero
   local desc="$1"; total=$((total+1))
   if "$GUARD_T" >/dev/null 2>&1; then
@@ -20,6 +26,7 @@ run_case() {  # $1 desc ; mutates $T then expects non-zero
 
 mkfix() { # copy the real tree subset into a temp ROOT and point the guard at it
   T=$(mktemp -d)
+  TMPDIRS+=("$T")
   mkdir -p "$T/claude-code/skills/sprint-loop/phases" "$T/codex-cli/skills/sprint-loops/phases" "$T/open-harnesses/particles"
   cp "$ROOT/$LOOP" "$T/$LOOP"
   cp "$ROOT/codex-cli/skills/sprint-loops/phases/06-loop-phase.md" "$T/codex-cli/skills/sprint-loops/phases/06-loop-phase.md"
