@@ -141,3 +141,9 @@
 - **Completed:** 2026-05-21T00:20:00Z
 - **Files modified:** `open-harnesses/scripts/selftest.sh`, `claude-code/skills/sprint-loop/scripts/{research-budget.sh,finalize-plan.sh,selftest.sh}`, `codex-cli/skills/sprint-loops/scripts/{research-budget.sh,finalize-plan.sh,selftest.sh}`, `claude-code/skills/sprint-loop/schemas/research-report.md`, `codex-cli/skills/sprint-loops/{schemas/research-report.md,phases/02-research-phase.md}`
 - **Commit:** `accba20`
+
+## T-001 (sprint 7)
+- **Description:** Made `EnterPlanMode` the explicit mandatory first action in claude-code `phases/03-plan-phase.md` (not prose). Added a "The plan-approval prompt is where you choose auto mode" section: interactive → review/approve normally; unattended → select auto-accept ("auto mode") at the ExitPlanMode prompt — that selection is what carries Build/Test/Loop without per-step confirmation. Resolves the earlier ExitPlanMode-hang misconception (auto-accept IS the answer to that prompt).
+- **Completed:** 2026-05-21T01:30:00Z
+- **Files modified:** `claude-code/skills/sprint-loop/phases/03-plan-phase.md`
+- **Commit:** `5d79d89`

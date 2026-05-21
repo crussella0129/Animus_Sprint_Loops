@@ -1,10 +1,13 @@
 # Phase 03 — Plan
 
-## Enter plan mode (hard primitive)
+## Enter plan mode (hard primitive — mandatory first action)
 
-**First action this phase:** invoke the `EnterPlanMode` tool. Claude Code's
-plan mode blocks Edit/Write/Bash side effects, which is exactly what the Plan
-Phase needs — reasoning and decomposition only, no source files touched.
+**The first action of this phase is to invoke the `EnterPlanMode` tool — not
+"engage plan mode" as prose, the actual tool call, before anything else.**
+Claude Code's plan mode blocks Edit/Write/Bash side effects, which is exactly
+what the Plan Phase needs — reasoning and decomposition only, no source files
+touched. Engaging it reliably also matters because the plan-approval prompt
+(below) is where **auto mode** gets selected for unattended runs.
 
 While in plan mode:
 
@@ -18,12 +21,24 @@ While in plan mode:
    write them to disk yet.
 5. When both plans are complete and reviewed for local + global
    correctness, invoke the `ExitPlanMode` tool with a concise two-section
-   plan summary (Build plan / Test plan), one paragraph per section. The
-   user reviews the plan summary in the harness before approving exit.
+   plan summary (Build plan / Test plan), one paragraph per section.
 
-After `ExitPlanMode` returns (plan approved), drop back to normal mode and
-write the two plan artifacts to disk per the schemas below, then run
-`finalize-plan.sh`.
+## The plan-approval prompt is where you choose auto mode
+
+When you invoke `ExitPlanMode`, the harness presents the plan for approval:
+
+- **Interactive run:** review and approve normally; the agent proceeds with
+  per-action confirmation as usual.
+- **Unattended / autonomous run:** select the **auto-accept ("auto mode")**
+  option at this prompt. *That selection is the mechanism that lets the
+  Build/Test/Loop phases proceed without stopping for per-step confirmation*
+  — it is the thing that makes "leave it running for hours" work. (See
+  SKILL.md "Autonomous operation" for launching the whole loop under
+  `/loop`.) Auto mode does not lower the safety floor — see SKILL.md.
+
+After `ExitPlanMode` returns (plan approved, with or without auto-accept), drop
+back to normal mode and write the two plan artifacts to disk per the schemas
+below, then run `finalize-plan.sh`.
 
 ## Build plan
 
