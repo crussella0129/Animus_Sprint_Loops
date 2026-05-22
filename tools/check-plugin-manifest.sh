@@ -41,6 +41,14 @@ SRCDIR="$ROOT/${SRC#./}"
 [ -d "$SRCDIR" ] || fail "plugin source dir does not exist: $SRCDIR"
 [ -f "$SRCDIR/skills/sprint-loop/SKILL.md" ] || fail "plugin source missing skills/sprint-loop/SKILL.md under $SRCDIR"
 
+# Regression guard (sprint 10): the skill IS /sprint-loop via its argument-hint.
+# A same-named commands/sprint-loop.md would be a DUPLICATE definition of the
+# slash command (a command and a same-named skill load identically), reviving
+# the picker-duplication this packaging fixed. Refuse it.
+[ -f "$SRCDIR/commands/sprint-loop.md" ] && fail "duplicate-command regression: $SRCDIR/commands/sprint-loop.md exists — the skill already provides /sprint-loop; remove the command file"
+[ -d "$SRCDIR/commands" ] && fail "skill-only plugin must not ship a commands/ dir ($SRCDIR/commands) — the skill provides /sprint-loop; remove the (possibly empty) directory"
+grep -q '^argument-hint:' "$SRCDIR/skills/sprint-loop/SKILL.md" || fail "skills/sprint-loop/SKILL.md lacks an 'argument-hint:' line — it must carry it to be the /sprint-loop slash command without a separate command file"
+
 PJ="$SRCDIR/.claude-plugin/plugin.json"
 [ -f "$PJ" ] || fail "plugin.json missing at $PJ"
 PJ="$PJ" python3 - <<'PY' || exit 1
