@@ -51,7 +51,37 @@ document outside the skill bundle.
 
 ## Installation
 
-User-level (available in every project — this is the personal install):
+### Recommended — install as a plugin
+
+This repo is a Claude Code plugin marketplace. Installing this way loads the
+skill **once via the plugin mechanism**, regardless of which directory you launch
+Claude Code from:
+
+```
+/plugin marketplace add crussella0129/sprint-loops
+/plugin install sprint-loop@sprint-loops
+```
+
+**Why this is recommended (and how it avoids duplicate picker entries):** a bare
+"personal" install (copying into `~/.claude/skills` + `~/.claude/commands`, below)
+is scanned by *both* the user root (`~/.claude`) and the project root
+(`<cwd>/.claude`). When you launch Claude Code **from your home directory** those
+two roots are the *same* directory, so the skill and its command each get
+enumerated twice — you see up to four identical `/sprint-loop` entries. Plugins
+live in the plugin tree, not in either of those roots, so they load exactly once
+no matter where you start Claude. Every other skill in your picker is delivered
+this way; this makes `sprint-loop` behave the same.
+
+> **Migrating from a bare install?** Remove it so it stops double-loading:
+> ```bash
+> rm -rf ~/.claude/skills/sprint-loop ~/.claude/commands/sprint-loop.md
+> ```
+> Then install the plugin as above.
+
+### Fallback — manual copy (no plugin system)
+
+User-level (available in every project). Note the home-dir caveat above — prefer
+the plugin install if you launch Claude Code from `~`:
 
 ```bash
 mkdir -p ~/.claude/skills ~/.claude/commands

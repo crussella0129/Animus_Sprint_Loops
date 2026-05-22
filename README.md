@@ -16,7 +16,7 @@ agent runtime — each is self-contained and ready to use:
 | Directory | Target | What it is |
 |-----------|--------|------------|
 | [`open-harnesses/`](open-harnesses/) | OpenClaw, OpenCode, local LLMs, custom runners, GECK | The **canonical, runtime-agnostic spec**: the core protocol, prompt particles, artifact schemas, and reference shell scripts. |
-| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`sprint-loop`** skill (`~/.claude/skills/sprint-loop/`) plus the `/sprint-loop` slash command. |
+| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`sprint-loop`** skill plus the `/sprint-loop` slash command. Installable as a **plugin** — this repo is a Claude Code marketplace (`/plugin marketplace add crussella0129/sprint-loops`), which loads the skill once regardless of launch directory. See [`claude-code/README.md`](claude-code/README.md#installation). |
 | [`codex-cli/`](codex-cli/) | OpenAI Codex CLI | A drop-in `~/.codex/skills/sprint-loops/` skill bundle plus an `AGENTS.md` fragment. |
 
 The core protocol — filesystem layout, phase exit conditions, schemas — is
