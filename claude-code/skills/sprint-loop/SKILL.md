@@ -1,11 +1,29 @@
 ---
 name: sprint-loop
 description: Structured five-phase workflow (Research → Plan → Build → Test → Loop) for long-horizon coding tasks. Use when the user runs /sprint-loop, asks to start a sprint, continue a sprint loop, run an iteration, work in numbered sprints, or invokes phrases like "sprint loop", "start a sprint", "continue the loop", or "next sprint". Also use when a project root contains a `sprints/` directory and the user asks to resume work.
+argument-hint: "[ continue | start <goal> | loop | abort ]"
 ---
 
 # Sprint Loops
 
 You are working in a Sprint Loop. Each sprint is a five-phase sequence with persistent state on disk.
+
+This skill is both **model-invoked** (the `description` above triggers it on
+sprint-loop intent) and **user-invoked** as the `/sprint-loop` slash command —
+there is no separate command file; this skill *is* `/sprint-loop`.
+
+## Invocation (`/sprint-loop` arguments)
+
+The user invoked this with: `$ARGUMENTS`. Route on it:
+
+- **(no argument)** → run `scripts/current-phase.sh` and continue from whatever
+  phase the filesystem reports (the default — same as `continue`).
+- **`continue`** → same as no argument: resume the current phase.
+- **`start <goal>`** → initialize a new sprint with the goal taken from
+  `$ARGUMENTS` (the text after `start`), then proceed from the Init phase.
+- **`loop`** → jump to the Loop Phase (`phases/06-loop-phase.md`).
+- **`abort`** → run `scripts/abort-sprint.sh` to mark the current sprint
+  `aborted` in `sprint-meta.md` and close it out.
 
 ## Routing
 
