@@ -14,8 +14,7 @@ Claude Code is in this directory; no other part of the repo is required.
 
 | Path | Role |
 |------|------|
-| `skills/sprint-loop/` | **The skill.** The complete, install-ready bundle — install this. |
-| `commands/sprint-loop.md` | **The skill's slash command.** Optional `/sprint-loop` control surface. |
+| `skills/sprint-loop/` | **The skill.** The complete, install-ready bundle — install this. Its frontmatter `argument-hint` makes it the `/sprint-loop` slash command directly; there is no separate command file. |
 | `README.md` (this file) | **Accompanying documentation.** Install guide + protocol reference for humans. |
 | `LICENSE` | MIT. |
 
@@ -63,14 +62,17 @@ Claude Code from:
 ```
 
 **Why this is recommended (and how it avoids duplicate picker entries):** a bare
-"personal" install (copying into `~/.claude/skills` + `~/.claude/commands`, below)
-is scanned by *both* the user root (`~/.claude`) and the project root
-(`<cwd>/.claude`). When you launch Claude Code **from your home directory** those
-two roots are the *same* directory, so the skill and its command each get
-enumerated twice — you see up to four identical `/sprint-loop` entries. Plugins
-live in the plugin tree, not in either of those roots, so they load exactly once
-no matter where you start Claude. Every other skill in your picker is delivered
-this way; this makes `sprint-loop` behave the same.
+"personal" install (copying into `~/.claude/skills`, below) is scanned by *both*
+the user root (`~/.claude`) and the project root (`<cwd>/.claude`). When you
+launch Claude Code **from your home directory** those two roots are the *same*
+directory, so the skill gets enumerated twice. Older installs also shipped a
+separate `commands/sprint-loop.md`, which is a duplicate definition of
+`/sprint-loop` (a command and a same-named skill load identically) — together
+that produced up to four identical `/sprint-loop` entries. This skill now *is*
+the `/sprint-loop` command (via `argument-hint`), so there is no command file,
+and plugins live in the plugin tree, not in either colliding root — so they load
+exactly once no matter where you start Claude. Every other skill in your picker
+is delivered this way; this makes `sprint-loop` behave the same.
 
 > **Migrating from a bare install?** Remove it so it stops double-loading:
 > ```bash
@@ -80,22 +82,23 @@ this way; this makes `sprint-loop` behave the same.
 
 ### Fallback — manual copy (no plugin system)
 
-User-level (available in every project). Note the home-dir caveat above — prefer
-the plugin install if you launch Claude Code from `~`:
+Skill-only (the skill *is* the `/sprint-loop` command — nothing to copy into
+`commands/`). Note the home-dir caveat above — prefer the plugin install if you
+launch Claude Code from `~`. Or just run `bash claude-code/install.sh`.
+
+User-level (available in every project):
 
 ```bash
-mkdir -p ~/.claude/skills ~/.claude/commands
+mkdir -p ~/.claude/skills
 cp -r claude-code/skills/sprint-loop ~/.claude/skills/
-cp claude-code/commands/sprint-loop.md ~/.claude/commands/
 chmod +x ~/.claude/skills/sprint-loop/scripts/*.sh
 ```
 
 Project-scoped (committed alongside one repo):
 
 ```bash
-mkdir -p .claude/skills .claude/commands
+mkdir -p .claude/skills
 cp -r claude-code/skills/sprint-loop .claude/skills/
-cp claude-code/commands/sprint-loop.md .claude/commands/
 chmod +x .claude/skills/sprint-loop/scripts/*.sh
 ```
 
@@ -105,7 +108,8 @@ The skill is invoked automatically when you express sprint-loop intent — "star
 sprint", "continue the loop", "next sprint", or when the project root already
 contains a `sprints/` directory and you ask to resume.
 
-The `/sprint-loop` command gives explicit control:
+The skill *is* the `/sprint-loop` slash command (its `argument-hint` frontmatter),
+so you can invoke it explicitly with arguments:
 
 - `/sprint-loop start "add JWT refresh tokens"` — initialize a new sprint with that goal
 - `/sprint-loop continue` — resume from whatever phase the filesystem reports

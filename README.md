@@ -16,7 +16,7 @@ agent runtime — each is self-contained and ready to use:
 | Directory | Target | What it is |
 |-----------|--------|------------|
 | [`open-harnesses/`](open-harnesses/) | OpenClaw, OpenCode, local LLMs, custom runners, GECK | The **canonical, runtime-agnostic spec**: the core protocol, prompt particles, artifact schemas, and reference shell scripts. |
-| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`sprint-loop`** skill plus the `/sprint-loop` slash command. Installable as a **plugin** — this repo is a Claude Code marketplace (`/plugin marketplace add crussella0129/sprint-loops`), which loads the skill once regardless of launch directory. See [`claude-code/README.md`](claude-code/README.md#installation). |
+| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`sprint-loop`** skill, which *is* the `/sprint-loop` slash command (no separate command file). Installable as a **plugin** — this repo is a Claude Code marketplace (`/plugin marketplace add crussella0129/sprint-loops`), which loads the skill once regardless of launch directory. See [`claude-code/README.md`](claude-code/README.md#installation). |
 | [`codex-cli/`](codex-cli/) | OpenAI Codex CLI | A drop-in `~/.codex/skills/sprint-loops/` skill bundle plus an `AGENTS.md` fragment. |
 
 The core protocol — filesystem layout, phase exit conditions, schemas — is
@@ -28,11 +28,17 @@ reference and the Oovra-particle source.
 
 ## Quick start
 
-**Claude Code:**
+**Claude Code** (recommended — install as a plugin; this repo is a marketplace):
+
+```
+/plugin marketplace add crussella0129/sprint-loops
+/plugin install sprint-loop@sprint-loops
+```
+
+Or manual (skill-only — the skill *is* the `/sprint-loop` command):
 
 ```bash
 cp -r claude-code/skills/sprint-loop ~/.claude/skills/
-cp claude-code/commands/sprint-loop.md ~/.claude/commands/
 chmod +x ~/.claude/skills/sprint-loop/scripts/*.sh
 ```
 
@@ -66,7 +72,7 @@ sprint-loops/
 ├── README.md            # this file
 ├── LICENSE              # MIT
 ├── open-harnesses/      # Section 1 — canonical spec: protocol, particles, schemas, scripts
-├── claude-code/         # Section 2 — the sprint-loop Claude Code skill + /sprint-loop command
+├── claude-code/         # Section 2 — the sprint-loop Claude Code skill (is the /sprint-loop command) + plugin manifest
 └── codex-cli/           # Section 3 — drop-in Codex CLI skill + AGENTS.md fragment
 ```
 
