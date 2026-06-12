@@ -16,16 +16,44 @@ This means you get the best of both worlds: Antigravity's fluid native experienc
 
 Antigravity IDE defines custom skills via "global workflows." To install this skill:
 
-1. Copy `global_workflows/sprint-loops.md` into your Antigravity global workflows directory:
-   - On Windows: `~\.gemini\config\global_workflows\sprint-loops.md`
-   - On Mac/Linux: `~/.gemini/config/global_workflows/sprint-loops.md`
+**On Windows:**
+Run the provided PowerShell script to copy the global workflow definition to your Antigravity configuration directory:
+```powershell
+.\antigravity-ide\install.ps1
+```
 
-2. To do this automatically on Windows, run the provided script from the repository root (not implemented yet, just copy it manually for now, or use the provided powershell script if created).
+**On Mac/Linux:**
+Manually copy the workflow file into your Antigravity global workflows directory:
+```bash
+mkdir -p ~/.gemini/config/global_workflows
+cp antigravity-ide/global_workflows/sprint-loops.md ~/.gemini/config/global_workflows/
+```
 
-## Usage
+## Usage: Step-by-Step
 
-In any project running Sprint Loops (or a new project), just tell Antigravity:
+In any project running Sprint Loops (or a new project), follow these steps to execute a sprint natively in Antigravity:
 
+### Step 1: Start the Sprint
+Invoke the workflow with the slash command and your goal for the sprint.
 > `/sprint-loops start working on feature X`
 
-The agent will automatically map its actions to the five phases and keep the `sprints/` directory up to date!
+*Antigravity will inspect the filesystem, initialize `sprints/s0/` if needed, and enter the **Research** phase. It will conclude by creating a `research-report.md`.*
+
+### Step 2: Approve the Plan
+Once Research is complete, Antigravity enters the **Plan** phase and will present you with its native `implementation_plan.md` artifact.
+1. Review the plan in the Antigravity UI.
+2. Provide feedback or approve the plan.
+*Upon approval, Antigravity will automatically **sync** this plan into `sprints/sN/sprint-plans/build-plan.md` and `test-plan.md` to ensure cross-harness compatibility.*
+
+### Step 3: Let it Build
+Antigravity will enter the **Build** phase and create a native `task.md` checklist.
+*As it works through the tasks, it will commit the code per-task and sync the completed tasks into `agent-tasks/completed-tasks.md`.*
+
+### Step 4: Testing & Wrap-up
+Antigravity automatically moves into the **Test** phase to verify its work and write `test-report.md`. It will then conclude the sprint in the **Loop** phase by presenting a native `walkthrough.md` of what was accomplished and marking the `sprint-meta.md` as completed.
+
+### Resuming Work
+If you pause or close the IDE during a sprint, simply run:
+> `/sprint-loops continue`
+
+The agent will read the filesystem state, figure out exactly which phase it was in, and pick up right where it left off.
