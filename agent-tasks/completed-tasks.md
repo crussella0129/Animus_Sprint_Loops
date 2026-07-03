@@ -219,3 +219,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `{4 bundles}/schemas/agent-tasks.md`, `{claude,codex}/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`
 - **Commit:** `347fab8`
+
+## T-008 (sprint 11)
+- **Description:** Added ROADMAP.md — the improvement trajectory: 8 prioritized future-sprint candidates with rationale (1 array-test engine integration gated on its T1–T5, incl. the explicit Merkle/memoization deferral rationale; 2 macOS/BSD portability + CI matrix leg; 3 critique.md hard-gate; 4 plugin version + documented /plugin update reload; 5 abort no-git fallback; 6 antigravity parity decision; 7 launch-time E2E harness; 8 confidence surfacing in sprint-meta). Seeded agent-tasks.md with T-101..T-108 (backlog) entries — 8/8 match the documented form; routing unaffected (current-phase still correct).
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `ROADMAP.md` (new), `agent-tasks/agent-tasks.md`
+- **Commit:** `b11aea0`
