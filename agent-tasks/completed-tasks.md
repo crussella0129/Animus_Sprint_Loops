@@ -195,3 +195,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/update-confidence.sh`
 - **Commit:** `fb1ec77`
+
+## T-004 (sprint 11)
+- **Description:** Added tools/run-guards.sh — canonical suite runner (single suite definition for local Test phase + CI; array-test-derived). Emits one ndjson confirmation per suite {suite, script_hash, status, evidence_hash, duration_s, ts} with normalized output hashing (CR/temp-path/ISO-timestamp stripped); --determinism runs each suite twice and fails on hash/rc mismatch; RUN_GUARDS_EXTRA_SUITES injects stub suites for testing; fails fast (exit 2) if the confirmations file is unwritable — a runner that can't record must not report success. Verified: 7/7 green with well-formed records; failing stub -> status FAIL + exit 1 with later suites still recorded; $RANDOM stub under --determinism -> named on stderr, "determinism":"mismatch", exit 1; all 7 real suites determinism-ok. guards-report.ndjson added to .gitignore.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `tools/run-guards.sh` (new), `.gitignore`
+- **Commit:** `d035d04`
