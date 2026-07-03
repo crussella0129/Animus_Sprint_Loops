@@ -1,0 +1,41 @@
+name: guards
+
+# The testing phase lives in GitHub (sprint 11): every push and PR runs the
+# canonical guard suite via tools/run-guards.sh — the same entry point the
+# local Test phase uses, so local and CI runs cannot drift. --determinism
+# runs each suite twice and fails on normalized-evidence-hash mismatch
+# (array-test's determinism meta-check). The ndjson confirmations are
+# uploaded as an artifact; the CI conclusion on the head SHA is the
+# authoritative confirmation recorded in each sprint's test-report.md.
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run guard suite (with determinism meta-check)
+        run: bash tools/run-guards.sh --determinism --out guards-report.ndjson
+
+      - name: Publish confirmations to step summary
+        if: always()
+        run: |
+          {
+            echo '## Guard confirmations'
+            echo '```json'
+            cat guards-report.ndjson 2>/dev/null || echo '(no confirmations recorded)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload confirmations artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guards-report
+          path: guards-report.ndjson
+          if-no-files-found: warn

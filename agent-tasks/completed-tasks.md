@@ -201,3 +201,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `tools/run-guards.sh` (new), `.gitignore`
 - **Commit:** `d035d04`
+
+## T-005 (sprint 11)
+- **Description:** Added .github/workflows/ci.yml — first CI for the repo (closes the sprint-8 ADR's "top backlog item"). Push (all branches) + PR-to-main triggers; single ubuntu-latest job runs `tools/run-guards.sh --determinism`, publishes the ndjson confirmations to the step summary and uploads them as an artifact (both `if: always()`). YAML validated: triggers, run-guards invocation, step-summary write, artifact upload all asserted (test_yaml_parses PASS). Live green-path conclusion is the Test phase's E2E check after branch push.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `.github/workflows/ci.yml` (new)
+- **Commit:** `6c9e29b`
