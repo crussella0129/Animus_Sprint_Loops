@@ -183,3 +183,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `tools/check-bundle-sync.sh` (new), `tools/check-bundle-sync.test.sh` (new)
 - **Commit:** `3f0a626`
+
+## T-002 (sprint 11)
+- **Description:** Behavior-preserving refactor: current-sprint.sh now derives the sprint number with a glob/case loop (no `ls | grep`, SC2010 gone) and is the single source for init-sprint.sh / finalize-plan.sh / research-budget.sh (each calls it via SCRIPT_DIR; `-1` maps to their existing empty-case paths). Propagated byte-identically to codex-cli, antigravity-ide, open-harnesses (bundle-sync green). Fixed check-merge-policy.test.sh: SC2034's unused GUARD was the smell for a REAL bug — `"$GUARD_T"` invoked a quoted "bash /path" string (exit 127), so all three drift cases passed vacuously since sprint 8; now invoked as `bash "$GUARD_T"`. Making the test real exposed a second latent false-pass: case 3's phrase-level sed spanned the hard-wrapped SKILL.md line 98 and silently no-opped; mutation now deletes permit lines wholesale. Fixture 4/4 genuinely caught; selftest 14/14; shellcheck -S warning clean; current-sprint.sh prints 11 here, -1 on bare/empty trees.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop,open-harnesses}/scripts/{current-sprint.sh,init-sprint.sh,finalize-plan.sh,research-budget.sh}`, `tools/check-merge-policy.test.sh`
+- **Commit:** `83066af`
