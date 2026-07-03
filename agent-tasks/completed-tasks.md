@@ -189,3 +189,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `{claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop,open-harnesses}/scripts/{current-sprint.sh,init-sprint.sh,finalize-plan.sh,research-budget.sh}`, `tools/check-merge-policy.test.sh`
 - **Commit:** `83066af`
+
+## T-003 (sprint 11)
+- **Description:** update-confidence.sh now clamps at a 0.0 floor for `patched`/`failed` (mirroring the existing 1.0 cap for `pass`); a negative confidence is meaningless for the <0.5 task-count throttle. Verified: 0.2 + failed -> 0.0; 0.9 + pass -> 1.0. Propagated ×4 bundles; bundle-sync green; lint clean.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/update-confidence.sh`
+- **Commit:** `fb1ec77`

@@ -1,6 +1,5 @@
 # Agent Tasks (Persistent Backlog)
 
-- [ ] T-003 (sprint 11): confidence floor at 0.0 — touches: {4 bundles}/scripts/update-confidence.sh
 - [ ] T-004 (sprint 11): canonical guard runner with ndjson confirmations + --determinism — touches: tools/run-guards.sh
 - [ ] T-005 (sprint 11): GitHub Actions CI wired to run-guards — touches: .github/workflows/ci.yml
 - [ ] T-006 (sprint 11): Test-phase CI confirmations in test-report schema + phase docs — touches: {4 bundles}/schemas/test-report.md, phases/05 (claude+codex), oh particle 07, antigravity workflow
