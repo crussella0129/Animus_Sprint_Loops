@@ -177,3 +177,9 @@
 - **Completed:** 2026-05-21T03:25:00Z
 - **Files modified:** `claude-code/commands/sprint-loop.md`, `claude-code/README.md`
 - **Commit:** `2d6c6b2`
+
+## T-001 (sprint 11)
+- **Description:** Added tools/check-bundle-sync.sh — cross-bundle parity guard enforcing the measured map (scripts+schemas ×4 bundles, prompts ×3, phases 00/01/02/04/05 claude↔codex; intentional divergences documented in header; BUNDLE_SYNC_ROOT override for fixtures). Fixture test proves real catches: content drift, deleted mirror file, extra mirror file, drifted shared phase — 5/5, plus clean-baseline pass. Guard green on the real tree.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `tools/check-bundle-sync.sh` (new), `tools/check-bundle-sync.test.sh` (new)
+- **Commit:** `3f0a626`
