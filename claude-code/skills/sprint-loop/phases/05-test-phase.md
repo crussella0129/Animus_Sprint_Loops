@@ -69,6 +69,20 @@ with responses, write the summary to `sprint-tests/test-report.md`
 (see `schemas/test-report.md`) covering: tests run, tests passed, tests
 failed, coverage observations, and any technical debt identified.
 
+## Canonical runner & confirmations
+
+If the project defines a canonical suite runner — a single script that runs
+every guard/test suite and records a confirmation per suite (e.g. an ndjson
+line with status and an evidence hash) — the Test Phase invokes **that
+runner**, not ad-hoc per-suite commands: one suite definition shared with CI
+means local and CI runs cannot drift. Save the runner's confirmation records
+with the sprint's test artifacts. Where CI runs the same runner, the CI
+conclusion on the branch's head commit is the **authoritative** confirmation:
+record head SHA, run URL, and conclusion in `test-report.md`'s
+`## CI Confirmation` block (see `schemas/test-report.md`). If the repo has no
+CI, record "CI not configured — local confirmations only" plus the local
+runner's records.
+
 ## CI verify (GitHub Actions)
 
 If the repo uses GitHub Actions, **always verify conclusion as a separate step

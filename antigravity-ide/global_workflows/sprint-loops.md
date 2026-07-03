@@ -37,6 +37,7 @@ Determine the current phase by inspecting the filesystem (or running `sh antigra
 ### Phase 5: Test
 - Design and execute tests based on what was built.
 - Emphasize the Sprint Loops testing schema: expanding from localized mocks and stubs gradually to E2E testing as much as possible.
+- If the project defines a canonical suite runner (e.g. a `tools/run-guards.sh`), invoke that runner rather than ad-hoc commands and record its confirmations plus the CI conclusion (head SHA, run URL) in the test-report's `CI Confirmation` block — or "CI not configured — local confirmations only".
 - **SYNC STEP:** Document everything in `sprints/sN/sprint-tests/test-report.md` (or `failure-report.md` if blocked).
 
 ### Phase 6: Loop

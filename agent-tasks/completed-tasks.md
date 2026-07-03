@@ -207,3 +207,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `.github/workflows/ci.yml` (new)
 - **Commit:** `6c9e29b`
+
+## T-006 (sprint 11)
+- **Description:** Test-phase protocol now records CI confirmations: schemas/test-report.md (×4 bundles) gains a `## CI Confirmation` block (head SHA, run ID/URL, authoritative conclusion via gh run list, confirmations reference, and the "CI not configured — local confirmations only" fallback); phases/05-test-phase.md (claude+codex identical) gains a "Canonical runner & confirmations" section directing the Test Phase at the project's canonical runner with CI-conclusion-on-head-SHA as authoritative; one-sentence integrations in open-harnesses particle 07 and antigravity global_workflows Phase 5. All presence greps pass; bundle-sync + merge-policy green.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{4 bundles}/schemas/test-report.md`, `{claude,codex}/phases/05-test-phase.md`, `open-harnesses/particles/07-test-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`
+- **Commit:** `3b8eba4`
