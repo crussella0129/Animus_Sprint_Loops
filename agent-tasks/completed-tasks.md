@@ -213,3 +213,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `{4 bundles}/schemas/test-report.md`, `{claude,codex}/phases/05-test-phase.md`, `open-harnesses/particles/07-test-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`
 - **Commit:** `3b8eba4`
+
+## T-007 (sprint 11)
+- **Description:** Documented the `(backlog)` carry-forward entry form: schemas/agent-tasks.md (×4 bundles) now defines both entry forms — `(sprint N)` (routing-relevant) and `(backlog)` (sprint-unassigned, T-1xx IDs, promoted by a future Build phase, never affects routing). Loop docs (claude 06, codex 06, oh particle 08) instruct appending deferred follow-ups as `(backlog)` entries so carry-forwards live as actionable backlog, not decisions.md prose. Routing safety verified with a real fixture (2 `(backlog)` entries present at plan/build/test states — phase output identical to empty backlog; earlier attempt was caught appending nothing due to a printf option-parse and redone). bundle-sync + merge-policy green.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{4 bundles}/schemas/agent-tasks.md`, `{claude,codex}/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`
+- **Commit:** `347fab8`

@@ -12,7 +12,10 @@
 3. **Record decisions.** If any architectural decisions were made during this
    sprint that future sprints will need to understand, append a brief entry to
    `decisions.md` at the project root following the ADR-lite schema
-   (`schemas/decisions.md`).
+   (`schemas/decisions.md`). Append any follow-up work the sprint surfaced but
+   deferred to `agent-tasks/agent-tasks.md` as `(backlog)` entries (see
+   `schemas/agent-tasks.md`) — carry-forwards live as actionable backlog, not
+   as prose in decisions.md.
 4. **Verify a clean tree.** Check the git working tree — if any uncommitted
    changes remain, commit them with a `sprint-N: cleanup` message.
 5. *(Optional)* If you track the confidence throttle, update it now:
