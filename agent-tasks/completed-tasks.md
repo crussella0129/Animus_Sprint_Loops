@@ -231,3 +231,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{abort-sprint.sh,commit-task.sh,selftest.sh}`, `tools/check-merge-policy.test.sh`
 - **Commit:** `d4166c7`
+
+## T-004 (sprint 12)
+- **Description:** selftest step 15: double-PENDING fixture asserting the back-fill's first-match-only contract — first anchored placeholder filled with backticked hash, second placeholder AND prose token mention untouched. Negative arm verified: a throwaway commit-task.sh with the awk done-guard stripped makes step 15 FAIL (fill-all regression genuinely caught). Selftest now reports "all 15 transitions matched". Propagated ×4; lint + bundle-sync green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/selftest.sh`
+- **Commit:** `a365317`
