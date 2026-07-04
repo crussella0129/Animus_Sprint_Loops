@@ -255,3 +255,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{finalize-plan.sh,selftest.sh}`
 - **Commit:** `ecae152`
+
+## T-002 (sprint 13)
+- **Description:** current-phase.sh test→loop pass path now requires sprint-tests/critique.md alongside test-report.md (existence-only; content validation stays at lock time). Failure path (failure-report.md) is exempt and still routes loop, and the sprint-1 abort short-circuit at the top of the file is untouched (precedes the edited line). selftest step 07 split into 07a (report, no critique → test) + 07b (report + critique → loop). Verified all three routing edges + negative arm (reverting the routing change makes 07a FAIL). Propagated ×4; bundle-sync green; selftest 17/17.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{current-phase.sh,selftest.sh}`
+- **Commit:** `2a0b8fb`

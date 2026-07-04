@@ -59,8 +59,12 @@ cat >> agent-tasks/completed-tasks.md <<'EOF'
 EOF
 assert_phase test                   "06 task done, test pending"
 
+# Pass path (sprint 13): a test-report WITHOUT the test critique stays in `test`;
+# adding sprint-tests/critique.md advances to `loop`.
 echo "tests passed" > sprints/s0/sprint-tests/test-report.md
-assert_phase loop                   "07 test-report written"
+assert_phase test                   "07a report written, critique pending"
+printf '# Test Critique\n\n## Concerns\n(none)\n\n## Confidence\nclean\n' > sprints/s0/sprint-tests/critique.md
+assert_phase loop                   "07b report + critique written"
 
 sed '/Exit status/s/in-progress/success/' sprints/s0/sprint-meta.md > sprints/s0/sprint-meta.md.tmp && mv sprints/s0/sprint-meta.md.tmp sprints/s0/sprint-meta.md
 assert_phase ready-for-next-sprint  "08 sprint closed"
