@@ -44,7 +44,7 @@ assert_phase build                  "05 task queued, build in progress"
 
 # Simulate the Build Phase completing the task: consume from agent-tasks,
 # append to completed-tasks.
-sed -i '/T-001 (sprint 0)/d' agent-tasks/agent-tasks.md
+sed '/T-001 (sprint 0)/d' agent-tasks/agent-tasks.md > agent-tasks/agent-tasks.md.tmp && mv agent-tasks/agent-tasks.md.tmp agent-tasks/agent-tasks.md
 cat >> agent-tasks/completed-tasks.md <<'EOF'
 
 ## T-001 (sprint 0)
@@ -55,7 +55,7 @@ assert_phase test                   "06 task done, test pending"
 echo "tests passed" > sprints/s0/sprint-tests/test-report.md
 assert_phase loop                   "07 test-report written"
 
-sed -i '/Exit status/s/in-progress/success/' sprints/s0/sprint-meta.md
+sed '/Exit status/s/in-progress/success/' sprints/s0/sprint-meta.md > sprints/s0/sprint-meta.md.tmp && mv sprints/s0/sprint-meta.md.tmp sprints/s0/sprint-meta.md
 assert_phase ready-for-next-sprint  "08 sprint closed"
 
 # Step 09 exercises abort-sprint.sh: init a fresh sprint, abort it, and assert

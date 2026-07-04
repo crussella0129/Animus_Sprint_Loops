@@ -1,0 +1,9 @@
+# Sprint 12 Meta
+
+- **Sprint number:** 12
+- **Start timestamp:** 2026-07-04T03:28:46Z
+- **End timestamp:** (filled at Loop Phase)
+- **Model:** claude-fable-5
+- **Exit status:** in-progress
+- **Token count:** (filled at Loop Phase if observable)
+- **Summary:** Backlog T-102: macOS/BSD portability (drop GNU sed -i / 0,/ range / I flag; portable hashing + broadened normalization) + macos-latest CI matrix leg as the permanent regression net. One PR, merged on green CI (both legs).

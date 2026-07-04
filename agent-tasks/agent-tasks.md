@@ -1,7 +1,6 @@
 # Agent Tasks (Persistent Backlog)
 
 - [ ] T-101 (backlog): array-test engine integration — guards as content-addressed cells, memoized frontier runs, Merkle-root Loop gate; GATED on array-test T1–T5 shipping (see ROADMAP.md §1) — touches: tools/run-guards.sh, phases/05+06, schemas/test-report.md
-- [ ] T-102 (backlog): macOS/BSD portability (GNU sed -i, 0,/ ranges) + macos-latest CI matrix leg; ALSO broaden run-guards.sh normalize() temp-path pattern (TMPDIR / /var/folders) so the macos leg doesn't false-fail on determinism (test-critique s11 C-004) — touches: {4 bundles}/scripts/{abort-sprint.sh,commit-task.sh,selftest.sh}, tools/run-guards.sh, .github/workflows/ci.yml
 - [ ] T-103 (backlog): critique.md hard-gate in finalize-plan.sh (+ test-phase analogue) — touches: {4 bundles}/scripts/finalize-plan.sh, selftest.sh, phases/03+05
 - [ ] T-104 (backlog): plugin version field + per-sprint bump + documented /plugin update reload; skill prints bundle version at Init — touches: claude-code/.claude-plugin/plugin.json, READMEs, claude-code SKILL.md, scripts/init-sprint.sh
 - [ ] T-105 (backlog): abort-sprint.sh no-git graceful fallback — touches: {4 bundles}/scripts/abort-sprint.sh, selftest.sh
@@ -9,3 +8,6 @@
 - [ ] T-107 (backlog): launch-time E2E harness for picker count + auto-trigger survival — touches: tools/, .github/workflows/ci.yml
 - [ ] T-108 (backlog): record confidence before→after in sprint-meta at Loop close — touches: {4 bundles}/scripts/update-confidence.sh, phases/06, schemas/sprint-meta.md
 - [ ] T-109 (backlog): dev-branch working model — at Init (sprint 0), establish/verify a long-lived work branch ("dev" or user-named) alongside main; sprints develop on it and each sprint's PR targets main; at launch, elicit approve-merge vs auto-merge unless the initial prompt already specified it (user request, s11) — touches: {4 bundles}/scripts/init-sprint.sh, phases/01+06, claude-code SKILL.md, schemas/sprint-meta.md
+- [ ] T-004 (sprint 12): selftest step 15 — double-PENDING first-match-only guard — touches: {4 bundles}/scripts/selftest.sh
+- [ ] T-002 (sprint 12): hash_stdin() w/ RUN_GUARDS_HASH_TOOL seam + /var/folders normalization — touches: tools/run-guards.sh
+- [ ] T-003 (sprint 12): CI os-matrix ubuntu+macos, per-OS artifacts, shellcheck-if-missing — touches: .github/workflows/ci.yml

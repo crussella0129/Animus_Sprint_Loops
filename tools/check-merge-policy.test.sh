@@ -53,7 +53,9 @@ mkfix; printf 'Always do  NOT  merge any PR in auto mode.\n' > "$T/$LOOP"; run_c
 # the doc is hard-wrapped, so a phrase-level substitution can span lines and
 # silently no-op, leaving the permit intact (observed once this test stopped
 # being vacuous — see run_case NOTE).
-mkfix; sed -i '/green/Id' "$T/$SK"; run_case "SKILL reworded to revoke merge permission"
+# (grep -iv replaces GNU sed's `-i` + `I` flag — BSD-safe case-insensitive
+# line deletion; `|| true` because grep -v exits 1 if nothing survives.)
+mkfix; { grep -iv 'green' "$T/$SK" || true; } > "$T/skill.tmp" && mv "$T/skill.tmp" "$T/$SK"; run_case "SKILL reworded to revoke merge permission"
 
 echo "fixture drift-test: $pass/$total caught"
 [ "$pass" = "$total" ] && exit 0 || exit 1

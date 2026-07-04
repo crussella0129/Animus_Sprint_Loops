@@ -225,3 +225,9 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `ROADMAP.md` (new), `agent-tasks/agent-tasks.md`
 - **Commit:** `b11aea0`
+
+## T-001 (sprint 12)
+- **Description:** All GNU-only in-place edits removed (promoted from backlog T-102): abort-sprint.sh's two `sed -i` calls merged into one two-expression sed via tmp+mv; commit-task.sh's GNU `0,/…/` range replaced by awk whole-line-equality first-match-only back-fill (exactly equivalent match set, per plan-critique C-004); selftest.sh's two `sed -i` fixture edits → tmp+mv; check-merge-policy.test.sh's GNU `I` flag → `grep -iv` with the exit-1 nuance guarded. Propagated ×4 bundles. Verified: zero `sed -i` matches, shellcheck clean, selftest 14/14 (abort step 09 + back-fill step 11 exercised the rewrites), merge-policy fixture 4/4, bundle-sync parity green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{abort-sprint.sh,commit-task.sh,selftest.sh}`, `tools/check-merge-policy.test.sh`
+- **Commit:** `d4166c7`
