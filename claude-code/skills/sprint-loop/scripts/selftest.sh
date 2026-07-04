@@ -72,6 +72,17 @@ SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
 git add -A
 git -c commit.gpgsign=false commit -q --allow-empty -m "selftest: init sprint 1" >/dev/null
 bash "$T/scripts/abort-sprint.sh" "selftest abort" >/dev/null
+# Routing flips on the Exit-status edit alone, so assert the OTHER two abort
+# effects explicitly — a silently no-op'ing timestamp substitution or a lost
+# abort-note append must fail here, not pass vacuously (sprint-12 critique C-001).
+if ! grep -qE '^- \*\*End timestamp:\*\* 20[0-9]{2}-' sprints/s1/sprint-meta.md; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "09 abort end-timestamp filled" "real timestamp" "placeholder/missing" >&2
+  exit 1
+fi
+if ! grep -q '^## Abort note' sprints/s1/sprint-meta.md; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "09 abort note appended" "## Abort note section" "missing" >&2
+  exit 1
+fi
 assert_phase ready-for-next-sprint  "09 sprint aborted via abort-sprint.sh"
 
 # Step 10 exercises the empty-build-plan rejection: a fresh sprint whose

@@ -5,7 +5,7 @@ Bash-executed checks mapped 1:1 to build-plan EARS clauses. Every test below PAS
 ## T-001 (portable in-place edits)
 - `test_no_gnu_sed_i` — `grep -rn "sed -i"` over canonical scripts + tools → ZERO MATCHES. PASS
 - `test_selftest_14` — "all 14 transitions matched" immediately post-T-001 (steps 09/11 exercised the rewritten abort + back-fill). PASS
-- `test_abort_portable` — covered by selftest step 09 (temp git project: Exit status `aborted`, timestamp filled, routing short-circuits). PASS
+- `test_abort_portable` — selftest step 09 (temp git project): routing short-circuits on the Exit-status flip, AND (added per test-critique C-001) explicit greps assert the real end-timestamp fill and the `## Abort note` append — negative arm verified (timestamp expression deleted in a throwaway copy → step 09 FAILS). PASS
 - `test_backfill_contract` — live-fire: T-001's own commit back-filled its PENDING placeholder via the new awk path (`d4166c7`, backticked, amended into the same commit). PASS
 - `test_merge_policy_4of4` — fixture 4/4 caught with the `grep -iv` mutation (case-insensitive deletion preserved). PASS
 
