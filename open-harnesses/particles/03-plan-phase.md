@@ -9,7 +9,7 @@ Compose the two plans using the next two particles:
 - [`04-build-plan-schema.md`](04-build-plan-schema.md) → produces `sprint-plans/build-plan.md`
 - [`05-test-plan-schema.md`](05-test-plan-schema.md) → produces `sprint-plans/test-plan.md`
 
-Helper script: [`../scripts/finalize-plan.sh`](../scripts/finalize-plan.sh) prepends the lock header to both plans.
+Helper script: [`../scripts/finalize-plan.sh`](../scripts/finalize-plan.sh) prepends the lock header to both plans — and REFUSES to lock unless `sprint-plans/critique.md` exists with a `## Concerns` heading and a `## Confidence` verdict of `clean` or `proceed-with-caveats` (a `block`/malformed/missing critique blocks the lock).
 
 ---
 

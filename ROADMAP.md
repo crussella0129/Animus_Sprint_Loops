@@ -67,7 +67,11 @@ a 49-line translation file (`global_workflows/sprint-loops.md`) that lags the
 claude/codex phase docs (no critic protocol, no research budget, no CI
 confirmations detail beyond the sprint-11 pointer sentence, and a PowerShell
 installer driving bash scripts). Decide: either grow the translation layer to
-full parity or document it as a deliberately thin adapter.
+full parity or document it as a deliberately thin adapter. Note (sprint 13):
+antigravity's Plan sync-step adds the `Finalized - DO NOT EDIT` header *manually*
+rather than via `finalize-plan.sh`, so the new critique gate (and every other
+finalize-plan gate) does not bind there — the translation layer would need to
+either call the script or replicate the gate to enforce the critic protocol.
 
 ## 7. Launch-time E2E harness
 

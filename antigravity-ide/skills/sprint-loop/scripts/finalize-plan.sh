@@ -48,16 +48,64 @@ if ! "$SCRIPT_DIR/research-budget.sh" >/dev/null 2>&1; then
   fi
 fi
 
+# Empty-plan gate, hoisted here (was inside the lock loop) so it runs BEFORE the
+# critique gate — keeps selftest's empty-plan step isolating its own failure
+# rather than tripping the critique gate first.
+BP="$D/build-plan.md"
+if [ ! -s "$BP" ]; then echo "missing or empty: $BP" >&2; exit 1; fi
+# An empty build-plan (no `### T-XXX:` execution entries) would route the next
+# phase to `build` and then never queue a task — infinite build loop.
+if ! grep -qE '^### T-[0-9]+:' "$BP"; then
+  echo "refusing to finalize build-plan.md: no \`### T-XXX:\` execution entries found" >&2
+  exit 1
+fi
+
+# Critique gate (runs LAST, after empty-plan / decisions-reviewed / budget, so
+# those gates keep isolating their own failures): the plan critic must have run
+# and not blocked. `critique.md` must exist non-empty, carry a `## Concerns`
+# heading, and its `## Confidence` verdict — the FIRST non-empty line after that
+# heading — must start with `clean` or `proceed-with-caveats` (optionally
+# backticked). A `block` verdict, a missing/malformed verdict, or a missing file
+# refuses the lock. Line-scoped parse so prose mentioning "block" can't false-match.
+CRIT="$D/critique.md"
+CRIT_HELP="  run the plan critic (see phases/03-plan-phase.md) and record its verdict in critique.md"
+if [ ! -s "$CRIT" ]; then
+  echo "refusing to finalize: $CRIT missing or empty" >&2
+  echo "$CRIT_HELP" >&2
+  exit 1
+fi
+if ! grep -qE '^## Concerns' "$CRIT"; then
+  echo "refusing to finalize: $CRIT lacks a \`## Concerns\` heading (malformed critique)" >&2
+  echo "$CRIT_HELP" >&2
+  exit 1
+fi
+# Extract the verdict line. Accept BOTH forms the phase docs model: inline
+# (`## Confidence: clean`) and the heading-then-next-line form the critic
+# prompts produce.
+VLINE=$(awk '
+  /^## Confidence:[[:space:]]*[^[:space:]]/ { sub(/^## Confidence:[[:space:]]*/, ""); print; exit }
+  /^## Confidence/ { f=1; next }
+  f && NF { print; exit }
+' "$CRIT")
+# Reduce to the bare verdict TOKEN: drop a leading backtick, cut at the first
+# whitespace, drop a trailing backtick. Then EXACT-match — so `cleanish`,
+# `blocked`, etc. do not slip through a prefix glob.
+VERDICT=$(printf '%s\n' "$VLINE" | sed -e 's/^`//' -e 's/[[:space:]].*$//' -e 's/`$//')
+case "$VERDICT" in
+  clean|proceed-with-caveats)
+    : ;;  # critic cleared the plan — proceed to lock
+  block)
+    echo "refusing to finalize: plan critique verdict is \`block\` — fix the concerns and re-critique" >&2
+    exit 1 ;;
+  *)
+    echo "refusing to finalize: $CRIT has no recognizable \`## Confidence\` verdict" >&2
+    echo "  the verdict (inline after \`## Confidence:\` or on the next non-empty line) must be exactly clean, proceed-with-caveats, or block (optionally backticked)" >&2
+    exit 1 ;;
+esac
+
 for f in build-plan.md test-plan.md; do
   P="$D/$f"
   if [ ! -s "$P" ]; then echo "missing or empty: $P" >&2; exit 1; fi
-  # An empty build-plan (no `### T-XXX:` execution entries) would route the
-  # next phase to `build` and then never queue a task — infinite build loop.
-  # Refuse to lock it; the planner must add at least one elementary task.
-  if [ "$f" = "build-plan.md" ] && ! grep -qE '^### T-[0-9]+:' "$P"; then
-    echo "refusing to finalize build-plan.md: no \`### T-XXX:\` execution entries found" >&2
-    exit 1
-  fi
   if head -n1 "$P" | grep -qF "$HEADER"; then
     echo "$f already finalized"
   else

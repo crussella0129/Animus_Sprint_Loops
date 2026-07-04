@@ -249,3 +249,27 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `.github/workflows/ci.yml`
 - **Commit:** `55bf553`
+
+## T-001 (sprint 13)
+- **Description:** finalize-plan.sh gains a fourth gate (executing the sprint-5 ADR's deferred hard gate): a valid plan critique.md is required to lock. Gate checks non-empty file + `## Concerns` heading + the `## Confidence` verdict (first non-empty line after the heading, awk-extracted, line-scoped so prose "block"/"unblocked" can't false-match) starting with clean/proceed-with-caveats (backticked or bare); block/malformed/missing refuse with a shape-stating message. Empty-plan check hoisted out of the lock loop to run BEFORE the critique gate (keeps selftest's empty-plan step isolating its own failure). selftest: write_ok_critique helper + fixtures on the two success-path finalize calls (steps 04, 13); new steps 16 (refuse-missing) + 17 (refuse-block then lock-on-valid). "all 17 transitions matched". Verified edges: malformed verdict → exit 1 unlocked; prose false-match → locks. POSIX-portable; propagated ×4; bundle-sync + shellcheck green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{finalize-plan.sh,selftest.sh}`
+- **Commit:** `ecae152`
+
+## T-002 (sprint 13)
+- **Description:** current-phase.sh test→loop pass path now requires sprint-tests/critique.md alongside test-report.md (existence-only; content validation stays at lock time). Failure path (failure-report.md) is exempt and still routes loop, and the sprint-1 abort short-circuit at the top of the file is untouched (precedes the edited line). selftest step 07 split into 07a (report, no critique → test) + 07b (report + critique → loop). Verified all three routing edges + negative arm (reverting the routing change makes 07a FAIL). Propagated ×4; bundle-sync green; selftest 17/17.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{current-phase.sh,selftest.sh}`
+- **Commit:** `2a0b8fb`
+
+## T-003 (sprint 13)
+- **Description:** Documented both gates where agents read. claude 03 + codex 03 (per-copy): finalize gate list corrected from stale "two gates" to four (adding the previously-undocumented budget gate + the new critique gate). phases/05 (claude=codex parity): a "Routing gate (sprint 13)" note that the state machine won't leave Test on the pass path until sprint-tests/critique.md exists (failure path exempt). open-harnesses particles 03 + 07: one-sentence integrations of each gate. ROADMAP §6: note that antigravity's manual-header Plan flow bypasses finalize-plan.sh so the critique gate can't bind there (T-106 input). All presence greps pass; bundle-sync + merge-policy green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `claude+codex phases/03-plan-phase.md`, `claude+codex phases/05-test-phase.md`, `open-harnesses/particles/{03-plan-phase,07-test-phase}.md`, `ROADMAP.md`
+- **Commit:** `274bd46`
+
+## T-001 addendum (sprint 13 test phase)
+- **Description:** Test critic (proceed-with-caveats) drove three finalize-plan.sh parser improvements applied during Test phase: (C-001) verdict parsing now reduces to a bare token + EXACT-matches, so `cleanish`/`blocked` near-misses refuse instead of slipping through prefix globs; (C-002) parser accepts BOTH the inline `## Confidence: <verdict>` form (modeled in phase docs) and the heading-then-next-line form; (C-003) selftest steps 16/17 now assert the refusal MESSAGES (names critic protocol / states verdict shape), not just exit code. All 5 committed critiques still parse to accept. Re-propagated ×4; selftest 17/17; run-guards 7/7.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{finalize-plan.sh,selftest.sh}`
+- **Commit:** PENDING

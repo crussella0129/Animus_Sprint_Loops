@@ -22,8 +22,11 @@ if grep -qE "\(sprint $N\)" agent-tasks/agent-tasks.md 2>/dev/null; then echo "b
 # No sprint-N tasks queued. If none have been completed either, the Build Phase
 # has not started yet — the protocol's first Build-Phase action is to append tasks.
 if ! grep -qE "\(sprint $N\)" agent-tasks/completed-tasks.md 2>/dev/null; then echo "build"; exit 0; fi
-# Build is done. Test runs until a report exists.
-if [ ! -s "$D/sprint-tests/test-report.md" ] && [ ! -s "$D/failure-report.md" ]; then echo "test"; exit 0; fi
-# Tests are done; Loop Phase runs until exit status is set (handled by the
-# hoisted check above on the next invocation).
-echo "loop"
+# Build is done. Test runs until an exit artifact exists. On the PASS path the
+# test critic must also have run (sprint 13): a test-report without
+# sprint-tests/critique.md keeps us in `test`. The FAILURE path
+# (failure-report.md) is exempt — a failed sprint skips the critic by design.
+if [ -s "$D/failure-report.md" ]; then echo "loop"; exit 0; fi
+if [ -s "$D/sprint-tests/test-report.md" ] && [ -s "$D/sprint-tests/critique.md" ]; then echo "loop"; exit 0; fi
+# Tests are not done (or the critic hasn't run yet).
+echo "test"
