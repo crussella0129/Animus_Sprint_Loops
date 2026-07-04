@@ -71,14 +71,30 @@ suite_script_hash() {
     bundle-sync-test)  cat tools/check-bundle-sync.test.sh ;;
     shellcheck)        cat claude-code/skills/sprint-loop/scripts/*.sh tools/*.sh ;;
     extra:*)           cat "$EXTRA_DIR/${1#extra:}" ;;
-  esac | sha256sum | cut -d' ' -f1
+  esac | hash_stdin
+}
+
+# Portable sha256 over stdin: stock macOS ships `shasum -a 256` (perl), not
+# coreutils' sha256sum. RUN_GUARDS_HASH_TOOL forces one tool — the explicit
+# test seam so the fallback path is testable on hosts that have both.
+hash_stdin() {
+  case "${RUN_GUARDS_HASH_TOOL:-auto}" in
+    sha256sum) sha256sum | cut -d' ' -f1 ;;
+    shasum)    shasum -a 256 | cut -d' ' -f1 ;;
+    *) if command -v sha256sum >/dev/null 2>&1; then sha256sum | cut -d' ' -f1
+       else shasum -a 256 | cut -d' ' -f1; fi ;;
+  esac
 }
 
 # Normalize suite output so evidence hashes are stable across identical runs:
-# strip CRs, replace mktemp paths and ISO-8601 UTC timestamps with tokens.
+# strip CRs, replace mktemp paths (Linux/git-bash /tmp/tmp.*; macOS
+# /var/folders/…, sometimes /private-prefixed) and ISO-8601 UTC timestamps
+# with tokens.
 normalize() {
   tr -d '\r' \
-    | sed -E -e 's|/tmp/tmp\.[A-Za-z0-9]+|<TMP>|g' \
+    | sed -E -e 's|/private/var/folders/[^[:space:]]+|<TMP>|g' \
+             -e 's|/var/folders/[^[:space:]]+|<TMP>|g' \
+             -e 's|/tmp/tmp\.[A-Za-z0-9]+|<TMP>|g' \
              -e 's|[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z|<TS>|g'
 }
 
@@ -87,7 +103,7 @@ run_once() {
   local cap rc
   cap=$(mktemp)
   if (cd "$ROOT" && suite_cmd "$1") >"$cap" 2>&1; then rc=0; else rc=$?; fi
-  normalize <"$cap" | sha256sum | cut -d' ' -f1
+  normalize <"$cap" | hash_stdin
   rm -f "$cap"
   return "$rc"
 }

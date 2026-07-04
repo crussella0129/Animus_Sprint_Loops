@@ -44,7 +44,7 @@ assert_phase build                  "05 task queued, build in progress"
 
 # Simulate the Build Phase completing the task: consume from agent-tasks,
 # append to completed-tasks.
-sed -i '/T-001 (sprint 0)/d' agent-tasks/agent-tasks.md
+sed '/T-001 (sprint 0)/d' agent-tasks/agent-tasks.md > agent-tasks/agent-tasks.md.tmp && mv agent-tasks/agent-tasks.md.tmp agent-tasks/agent-tasks.md
 cat >> agent-tasks/completed-tasks.md <<'EOF'
 
 ## T-001 (sprint 0)
@@ -55,7 +55,7 @@ assert_phase test                   "06 task done, test pending"
 echo "tests passed" > sprints/s0/sprint-tests/test-report.md
 assert_phase loop                   "07 test-report written"
 
-sed -i '/Exit status/s/in-progress/success/' sprints/s0/sprint-meta.md
+sed '/Exit status/s/in-progress/success/' sprints/s0/sprint-meta.md > sprints/s0/sprint-meta.md.tmp && mv sprints/s0/sprint-meta.md.tmp sprints/s0/sprint-meta.md
 assert_phase ready-for-next-sprint  "08 sprint closed"
 
 # Step 09 exercises abort-sprint.sh: init a fresh sprint, abort it, and assert
@@ -72,6 +72,17 @@ SPRINT_MODEL=selftest bash "$T/scripts/init-sprint.sh" >/dev/null
 git add -A
 git -c commit.gpgsign=false commit -q --allow-empty -m "selftest: init sprint 1" >/dev/null
 bash "$T/scripts/abort-sprint.sh" "selftest abort" >/dev/null
+# Routing flips on the Exit-status edit alone, so assert the OTHER two abort
+# effects explicitly — a silently no-op'ing timestamp substitution or a lost
+# abort-note append must fail here, not pass vacuously (sprint-12 critique C-001).
+if ! grep -qE '^- \*\*End timestamp:\*\* 20[0-9]{2}-' sprints/s1/sprint-meta.md; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "09 abort end-timestamp filled" "real timestamp" "placeholder/missing" >&2
+  exit 1
+fi
+if ! grep -q '^## Abort note' sprints/s1/sprint-meta.md; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "09 abort note appended" "## Abort note section" "missing" >&2
+  exit 1
+fi
 assert_phase ready-for-next-sprint  "09 sprint aborted via abort-sprint.sh"
 
 # Step 10 exercises the empty-build-plan rejection: a fresh sprint whose
@@ -196,4 +207,33 @@ else
   exit 1
 fi
 
-echo "selftest: all 14 transitions matched"
+# Step 15 guards the back-fill's FIRST-MATCH-ONLY contract (sprint-1/3 ADRs,
+# reimplemented portably in sprint 12): with TWO anchored PENDING placeholder
+# lines present, exactly the first is filled; the second placeholder and a
+# prose mention of the token must survive untouched.
+cat > agent-tasks/completed-tasks.md <<'EOF'
+# Completed Tasks Log (Append-Only)
+
+## T-010 (sprint 0)
+- **Description:** prose mention of `Commit:** PENDING` — must NOT be touched.
+- **Files modified:** none
+- **Commit:** PENDING
+
+## T-011 (sprint 0)
+- **Description:** second placeholder, must remain pending
+- **Files modified:** none
+- **Commit:** PENDING
+EOF
+echo "trigger-15" > seed15
+bash "$T/scripts/commit-task.sh" T-010 "selftest first-match-only" >/dev/null
+FILLED=$(grep -cE '^- \*\*Commit:\*\* `[0-9a-f]+`$' agent-tasks/completed-tasks.md || true)
+PENDING_LEFT=$(grep -cE '^- \*\*Commit:\*\* PENDING$' agent-tasks/completed-tasks.md || true)
+PROSE_OK15=$(grep -c 'prose mention of `Commit:\*\* PENDING`' agent-tasks/completed-tasks.md || true)
+if [ "$FILLED" = "1" ] && [ "$PENDING_LEFT" = "1" ] && [ "$PROSE_OK15" = "1" ]; then
+  printf "  PASS  %-34s expected=%-22s got=%s\n" "15 back-fill first-match-only" "1 filled, 1 pending" "first filled, second intact, prose intact"
+else
+  printf "  FAIL  %-34s filled=%s pending_left=%s prose_ok=%s\n" "15 back-fill first-match-only" "$FILLED" "$PENDING_LEFT" "$PROSE_OK15" >&2
+  exit 1
+fi
+
+echo "selftest: all 15 transitions matched"

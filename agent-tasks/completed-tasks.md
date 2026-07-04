@@ -225,3 +225,27 @@
 - **Completed:** 2026-07-03T00:00:00Z
 - **Files modified:** `ROADMAP.md` (new), `agent-tasks/agent-tasks.md`
 - **Commit:** `b11aea0`
+
+## T-001 (sprint 12)
+- **Description:** All GNU-only in-place edits removed (promoted from backlog T-102): abort-sprint.sh's two `sed -i` calls merged into one two-expression sed via tmp+mv; commit-task.sh's GNU `0,/…/` range replaced by awk whole-line-equality first-match-only back-fill (exactly equivalent match set, per plan-critique C-004); selftest.sh's two `sed -i` fixture edits → tmp+mv; check-merge-policy.test.sh's GNU `I` flag → `grep -iv` with the exit-1 nuance guarded. Propagated ×4 bundles. Verified: zero `sed -i` matches, shellcheck clean, selftest 14/14 (abort step 09 + back-fill step 11 exercised the rewrites), merge-policy fixture 4/4, bundle-sync parity green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{abort-sprint.sh,commit-task.sh,selftest.sh}`, `tools/check-merge-policy.test.sh`
+- **Commit:** `d4166c7`
+
+## T-004 (sprint 12)
+- **Description:** selftest step 15: double-PENDING fixture asserting the back-fill's first-match-only contract — first anchored placeholder filled with backticked hash, second placeholder AND prose token mention untouched. Negative arm verified: a throwaway commit-task.sh with the awk done-guard stripped makes step 15 FAIL (fill-all regression genuinely caught). Selftest now reports "all 15 transitions matched". Propagated ×4; lint + bundle-sync green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/selftest.sh`
+- **Commit:** `a365317`
+
+## T-002 (sprint 12)
+- **Description:** run-guards.sh portable hashing + normalization: hash_stdin() auto-detects sha256sum vs shasum -a 256 with RUN_GUARDS_HASH_TOOL as the explicit test seam (plan-critique C-003); both call sites switched. normalize() now strips /private/var/folders/... and /var/folders/... (macOS mktemp) ahead of the /tmp/tmp.* rule. Verified: hash seam yields identical digests via both tools on the real function; per-run-varying /var/folders stub under --determinism -> ok; full round 7/7 with every unchanged suite's evidence hash byte-equal to the s11 committed baseline (only selftest re-baselined — its output legitimately grew step 15); shellcheck clean.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `tools/run-guards.sh`
+- **Commit:** `99ddc58`
+
+## T-003 (sprint 12)
+- **Description:** CI workflow now runs the guard suite on an os-matrix: ubuntu-latest + macos-latest, fail-fast: false (a red leg preserves the other leg's evidence), per-OS artifact names (guards-report-<os>, upload-artifact@v4 duplicate-name rule), and an install-shellcheck-if-missing step (brew path for macOS; no-ops on ubuntu). Runner invocation unchanged. YAML assertions all pass (test_yaml_matrix). The macos leg's live green run is the sprint's E2E, verified at Test phase.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `.github/workflows/ci.yml`
+- **Commit:** `55bf553`

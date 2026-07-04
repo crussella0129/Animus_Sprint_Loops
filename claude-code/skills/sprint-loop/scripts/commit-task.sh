@@ -29,7 +29,13 @@ git commit -m "sprint-$N: $1 $2"
 F="agent-tasks/completed-tasks.md"
 if [ -f "$F" ] && grep -qE '^- \*\*Commit:\*\* PENDING$' "$F"; then
   HASH=$(git rev-parse --short HEAD)
-  sed -i "0,/^- \\*\\*Commit:\\*\\* PENDING$/{s|^- \\*\\*Commit:\\*\\* PENDING\$|- **Commit:** \`$HASH\`|}" "$F"
+  # Portable first-match-only replacement (GNU sed's `0,/…/` range and bare
+  # `-i` are not BSD-safe): awk whole-line equality — an exactly equivalent
+  # match set to the anchored regex above — fills only the FIRST placeholder.
+  awk -v h="$HASH" '
+    !done && $0 == "- **Commit:** PENDING" { $0 = "- **Commit:** `" h "`"; done = 1 }
+    { print }
+  ' "$F" > "$F.tmp" && mv "$F.tmp" "$F"
   git add "$F"
   git commit --amend --no-edit --quiet
 fi

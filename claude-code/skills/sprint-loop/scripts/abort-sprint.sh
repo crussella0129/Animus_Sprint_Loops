@@ -33,8 +33,10 @@ if [ ! -s "$META" ]; then
 fi
 
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-sed -i '/Exit status/s/in-progress/aborted/' "$META"
-sed -i "s|^- \*\*End timestamp:\*\* (filled at Loop Phase)|- **End timestamp:** $TS|" "$META"
+# Portable in-place edit (BSD sed has no bare -i): write to tmp, then move.
+sed -e '/Exit status/s/in-progress/aborted/' \
+    -e "s|^- \*\*End timestamp:\*\* (filled at Loop Phase)|- **End timestamp:** $TS|" \
+    "$META" > "$META.tmp" && mv "$META.tmp" "$META"
 cat >> "$META" <<EOF
 
 ## Abort note ($TS)
