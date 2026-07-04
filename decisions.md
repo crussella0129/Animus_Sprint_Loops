@@ -1,5 +1,17 @@
 # Architectural Decisions
 
+## 2026-07-04 — Critic protocol is structurally enforced: critique.md hard-gate (sprint 13)
+- **Context:** Backlog T-103, executing the sprint-5 ADR's explicit deferral ("Hard gate via finalize-plan.sh requiring critique.md. Deferred to sprint 6+ once the pattern has been exercised manually"). The critic caught real defects in sprints 6, 7, 8, 11, and 12 — the pattern earned the gate.
+- **Decision:**
+  (a) **finalize-plan.sh fourth gate (runs LAST):** locking refuses unless `sprint-plans/critique.md` exists non-empty, carries a `## Concerns` heading, and its `## Confidence` verdict is `clean` or `proceed-with-caveats`. `block`/malformed/missing refuse. The verdict parser reduces the verdict to a bare TOKEN (drop backticks, cut at first whitespace) and EXACT-matches — near-misses like `cleanish` refuse — and accepts BOTH the inline `## Confidence: <verdict>` and heading-then-next-line forms. The empty-plan check was hoisted out of the lock loop to run before the critique gate so existing gates keep isolating their own failures.
+  (b) **current-phase.sh test→loop routing gate:** the PASS path requires `sprint-tests/critique.md` alongside `test-report.md`; a report without the critique stays in `test`. The FAILURE path (`failure-report.md`) is exempt — a failed sprint skips the critic by design. Existence-only check (routing stays derive-only); content validation lives at lock time.
+- **Alternatives considered:** a separate `finalize-test-report.sh` for the test-side gate (rejected — the state machine already IS the enforcement point; no new script/suite); semantic verdict parsing inside current-phase.sh (rejected — routing must stay derive-only and fast).
+- **Consequences:**
+  - selftest grew to 17 transitions: steps 16 (refuse-missing) + 17 (refuse-block/near-miss then lock-on-valid, with message-content assertions), and step 07 split into 07a (report-no-critique → test) / 07b (report+critique → loop). Both new behaviors have verified negative arms.
+  - The verdict parser is validated against the real format corpus (all five committed critiques parse to accept). Any future critique must use the `## Concerns` + `## Confidence`-verdict shape or it won't lock.
+  - **Non-binding surface:** antigravity's Plan sync-step adds the lock header MANUALLY (not via finalize-plan.sh), so neither the critique gate nor any other finalize gate binds there — documented in ROADMAP §6 (T-106).
+  - **Dogfood boundary:** s13's own plans locked before the gate shipped; **s14 is the first sprint the gate mechanically enforces.** Downstream projects mid-sprint at upgrade: already-locked plans are untouched; a project in Test with a report but no critique re-routes to `test` (correct — the fix is to write the critique).
+
 ## 2026-05-19 — `current-phase.sh` build/test disambiguator uses `completed-tasks.md` (sprint 0)
 - **Context:** The original phase-detection script could not distinguish
   "Build Phase not yet started" from "Build Phase done; Test pending" — both
