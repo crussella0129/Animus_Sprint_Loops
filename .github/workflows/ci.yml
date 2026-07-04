@@ -15,9 +15,19 @@ on:
 
 jobs:
   guards:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false  # a red leg must not cancel the other leg's evidence
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install shellcheck if missing (macOS runners may not ship it)
+        run: |
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            brew install shellcheck
+          fi
 
       - name: Run guard suite (with determinism meta-check)
         run: bash tools/run-guards.sh --determinism --out guards-report.ndjson
@@ -36,6 +46,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: guards-report
+          name: guards-report-${{ matrix.os }}
           path: guards-report.ndjson
           if-no-files-found: warn

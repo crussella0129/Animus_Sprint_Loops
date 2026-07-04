@@ -243,3 +243,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `tools/run-guards.sh`
 - **Commit:** `99ddc58`
+
+## T-003 (sprint 12)
+- **Description:** CI workflow now runs the guard suite on an os-matrix: ubuntu-latest + macos-latest, fail-fast: false (a red leg preserves the other leg's evidence), per-OS artifact names (guards-report-<os>, upload-artifact@v4 duplicate-name rule), and an install-shellcheck-if-missing step (brew path for macOS; no-ops on ubuntu). Runner invocation unchanged. YAML assertions all pass (test_yaml_matrix). The macos leg's live green run is the sprint's E2E, verified at Test phase.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `.github/workflows/ci.yml`
+- **Commit:** `55bf553`
