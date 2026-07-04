@@ -255,3 +255,17 @@
   - **Meta-lesson (test-integrity class):** the sprint's review de-vacuated `check-merge-policy.test.sh` — its drift cases had passed vacuously since sprint 8 (quoted "cmd + args" string → exit-127 counted as "caught"), which had been masking a second false-pass (phrase-level sed spanning hard-wrapped lines). Fixture tests must (1) invoke guards as `bash "$path"`, (2) assert the SPECIFIC failure message, not just non-zero exit, (3) route expected-failure captures around `set -e` via `|| rc=$?`. The bundle-sync fixture ships with all three baked in.
   - Suite additions must be registered in `run-guards.sh` (the single suite definition) — adding a guard without wiring it there means CI never runs it.
   - Evidence hashes compare within one environment only; the normalize() temp-path pattern is `/tmp`-scoped until T-102 (macos leg) broadens it.
+
+## 2026-07-04 — Scripts are BSD/macOS-portable; the macos CI leg is the permanent portability proof (sprint 12)
+- **Context:** Backlog T-102 (promoted this sprint): the scripts carried GNU-only constructs — 6 `sed -i` sites, the back-fill's `0,/…/` first-match range, a `I` case-flag, `sha256sum` — and run-guards' normalization only knew `/tmp/tmp.*`. The host is Windows, so no local macOS verification exists.
+- **Decision:**
+  (a) **No GNU-only in-place edits:** all `sed -i` → `sed 'expr' f > f.tmp && mv` (finalize-plan.sh's existing precedent); the back-fill's GNU range → awk whole-line-equality first-match-only (an exactly equivalent match set to the anchored regex it replaced — sprint-1/3 ADR contracts preserved, not revised); the `I` flag → `grep -iv`.
+  (b) **Portable hashing with an explicit seam:** run-guards' `hash_stdin()` auto-detects sha256sum vs `shasum -a 256`; `RUN_GUARDS_HASH_TOOL` forces a tool so tests exercise the real function (no copied-code false-pass).
+  (c) **normalize() knows macOS temp paths** (`/private/var/folders/…`, `/var/folders/…`) ahead of the `/tmp/tmp.*` rule.
+  (d) **CI is an os-matrix** (ubuntu-latest + macos-latest, `fail-fast: false`, per-OS artifact names, install-shellcheck-if-missing). The macos leg runs the full canonical suite twice under `--determinism` on every push — portability is a continuously re-verified invariant, not a one-time audit.
+- **Alternatives considered:** `perl -pi -e` (rejected — second language dependency; tmp+mv is repo precedent); GNU-ifying the macos runner via brew coreutils/gnu-sed PATH (rejected — makes CI pass while stock-macOS users stay broken, defeating T-102's point).
+- **Consequences:**
+  - selftest grew two guards with verified negative arms: step 15 (back-fill fills ONLY the first of two PENDING placeholders) and step-09 assertions (abort's timestamp fill + note append can't silently no-op). Any future back-fill/abort change must keep both green.
+  - Suites' evidence hashes survived the refactor byte-identically except selftest's (documented output growth) — the strongest available demonstration that the portability rewrite was behavior-preserving.
+  - New-script authors must avoid GNU-only constructs (`sed -i`, `0,/`, sed flags beyond POSIX, coreutils-only binaries); the macos leg will catch violations on the first push.
+  - The pre-amend-hash quirk and all other back-fill semantics are unchanged (awk rewrite is match-set-equivalent by design).
