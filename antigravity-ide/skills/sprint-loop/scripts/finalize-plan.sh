@@ -79,16 +79,27 @@ if ! grep -qE '^## Concerns' "$CRIT"; then
   echo "$CRIT_HELP" >&2
   exit 1
 fi
-VERDICT=$(awk '/^## Confidence/{f=1; next} f && NF {print; exit}' "$CRIT")
+# Extract the verdict line. Accept BOTH forms the phase docs model: inline
+# (`## Confidence: clean`) and the heading-then-next-line form the critic
+# prompts produce.
+VLINE=$(awk '
+  /^## Confidence:[[:space:]]*[^[:space:]]/ { sub(/^## Confidence:[[:space:]]*/, ""); print; exit }
+  /^## Confidence/ { f=1; next }
+  f && NF { print; exit }
+' "$CRIT")
+# Reduce to the bare verdict TOKEN: drop a leading backtick, cut at the first
+# whitespace, drop a trailing backtick. Then EXACT-match — so `cleanish`,
+# `blocked`, etc. do not slip through a prefix glob.
+VERDICT=$(printf '%s\n' "$VLINE" | sed -e 's/^`//' -e 's/[[:space:]].*$//' -e 's/`$//')
 case "$VERDICT" in
-  '`clean`'*|clean*|'`proceed-with-caveats`'*|proceed-with-caveats*)
+  clean|proceed-with-caveats)
     : ;;  # critic cleared the plan — proceed to lock
-  '`block`'*|block*)
+  block)
     echo "refusing to finalize: plan critique verdict is \`block\` — fix the concerns and re-critique" >&2
     exit 1 ;;
   *)
     echo "refusing to finalize: $CRIT has no recognizable \`## Confidence\` verdict" >&2
-    echo "  the first non-empty line after \`## Confidence\` must start with clean, proceed-with-caveats, or block (optionally backticked)" >&2
+    echo "  the verdict (inline after \`## Confidence:\` or on the next non-empty line) must be exactly clean, proceed-with-caveats, or block (optionally backticked)" >&2
     exit 1 ;;
 esac
 

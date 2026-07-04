@@ -258,26 +258,35 @@ printf '# r\n## Decisions Reviewed\n- selftest ADR\n' > "sprints/s$CN/sprint-res
 printf '# build\n\n### T-001: demo\n' > "sprints/s$CN/sprint-plans/build-plan.md"
 echo "tp" > "sprints/s$CN/sprint-plans/test-plan.md"
 
-# 16: no critique.md → refuse, plans unlocked.
-if bash "$T/scripts/finalize-plan.sh" >/dev/null 2>&1; then
-  printf "  FAIL  %-34s expected=%-22s got=%s\n" "16 critique gate: missing" "non-zero exit" "exit 0 (accepted)" >&2
-  exit 1
-fi
+# 16: no critique.md → refuse, plans unlocked, AND the message points at the
+# critic protocol (message-content SHALL, not just exit code).
+MSG16=$(bash "$T/scripts/finalize-plan.sh" 2>&1 >/dev/null || true)
 if head -n1 "sprints/s$CN/sprint-plans/build-plan.md" | grep -qF "Finalized - DO NOT EDIT"; then
   printf "  FAIL  %-34s expected=%-22s got=%s\n" "16 not locked w/o critique" "no lock" "locked anyway" >&2
   exit 1
 fi
-printf "  PASS  %-34s expected=%-22s got=%s\n" "16 critique gate: missing" "refuse + no lock" "refused, unlocked"
+if ! printf '%s' "$MSG16" | grep -q 'critic'; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "16 message names critic" "critic mentioned" "no pointer in message" >&2
+  exit 1
+fi
+printf "  PASS  %-34s expected=%-22s got=%s\n" "16 critique gate: missing" "refuse + no lock + msg" "refused, unlocked, protocol named"
 
-# 17: `block` verdict → refuse; then a valid verdict → lock (proves the gate
-# discriminates, not just always-refuses).
+# 17: `block` verdict → refuse; a `cleanish` near-miss → refuse as malformed
+# with a shape-stating message (exact-token match, not prefix glob); then a
+# valid verdict → lock (proves the gate discriminates, not just always-refuses).
 printf '# c\n## Concerns\n- x\n## Confidence\n`block`\n' > "sprints/s$CN/sprint-plans/critique.md"
 if bash "$T/scripts/finalize-plan.sh" >/dev/null 2>&1; then
   printf "  FAIL  %-34s expected=%-22s got=%s\n" "17 critique gate: block" "non-zero exit" "exit 0 (accepted block)" >&2
   exit 1
 fi
+printf '# c\n## Concerns\n- x\n## Confidence\ncleanish\n' > "sprints/s$CN/sprint-plans/critique.md"
+MSG17=$(bash "$T/scripts/finalize-plan.sh" 2>&1 >/dev/null || true)
 if head -n1 "sprints/s$CN/sprint-plans/build-plan.md" | grep -qF "Finalized - DO NOT EDIT"; then
-  printf "  FAIL  %-34s expected=%-22s got=%s\n" "17 not locked on block" "no lock" "locked anyway" >&2
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "17 not locked on near-miss" "no lock" "locked (cleanish accepted!)" >&2
+  exit 1
+fi
+if ! printf '%s' "$MSG17" | grep -q 'clean, proceed-with-caveats, or block'; then
+  printf "  FAIL  %-34s expected=%-22s got=%s\n" "17 malformed msg states shape" "shape hint" "no shape hint" >&2
   exit 1
 fi
 write_ok_critique "sprints/s$CN/sprint-plans"
@@ -289,6 +298,6 @@ if ! head -n1 "sprints/s$CN/sprint-plans/build-plan.md" | grep -qF "Finalized - 
   printf "  FAIL  %-34s expected=%-22s got=%s\n" "17 locked after valid verdict" "lock header" "no lock" >&2
   exit 1
 fi
-printf "  PASS  %-34s expected=%-22s got=%s\n" "17 critique gate: block" "refuse block, lock valid" "block refused, valid locked"
+printf "  PASS  %-34s expected=%-22s got=%s\n" "17 critique gate: block/near-miss" "refuse both, lock valid" "block+cleanish refused, valid locked"
 
 echo "selftest: all 17 transitions matched"

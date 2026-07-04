@@ -267,3 +267,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `claude+codex phases/03-plan-phase.md`, `claude+codex phases/05-test-phase.md`, `open-harnesses/particles/{03-plan-phase,07-test-phase}.md`, `ROADMAP.md`
 - **Commit:** `274bd46`
+
+## T-001 addendum (sprint 13 test phase)
+- **Description:** Test critic (proceed-with-caveats) drove three finalize-plan.sh parser improvements applied during Test phase: (C-001) verdict parsing now reduces to a bare token + EXACT-matches, so `cleanish`/`blocked` near-misses refuse instead of slipping through prefix globs; (C-002) parser accepts BOTH the inline `## Confidence: <verdict>` form (modeled in phase docs) and the heading-then-next-line form; (C-003) selftest steps 16/17 now assert the refusal MESSAGES (names critic protocol / states verdict shape), not just exit code. All 5 committed critiques still parse to accept. Re-propagated ×4; selftest 17/17; run-guards 7/7.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{finalize-plan.sh,selftest.sh}`
+- **Commit:** PENDING
