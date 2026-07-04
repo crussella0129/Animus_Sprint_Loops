@@ -16,6 +16,11 @@ Authoritative verification (per phase-05 CI pattern, `gh run list` not
 - **Status/conclusion:** `completed` / **`success`** (job `guards`: success)
 - **Artifact:** `guards-report` present (883 bytes — the 7 ndjson confirmations)
 
+Second round after the test-critic fixes landed:
+- **Head SHA:** `d403825732cf69ad57b9e83ef9df7425b0712bfd`
+- **Run:** 28693323277 — https://github.com/crussella0129/sprint-loops/actions/runs/28693323277
+- **Status/conclusion:** `completed` / **`success`** — the tightened bundle-sync fixture (path-naming assertions) held on the runner.
+
 This is the first live round of "the testing phase lives in GitHub": the
 suite that gates this sprint's PR is the identical suite run locally, its
 confirmations are uploaded as an immutable run artifact, and the determinism
