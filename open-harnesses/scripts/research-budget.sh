@@ -12,10 +12,14 @@
 #
 # Tolerant of missing sections (returns 0 for that count) and numeric-prefix
 # heading variants (`## 2. Existing Code Survey` vs `## Existing Code Survey`).
+# Run from the project root. Sibling scripts are resolved relative to this
+# file, so this works whether scripts/ lives in the project or in an
+# installed skill bundle.
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-LAST=$(ls sprints/ 2>/dev/null | grep -E '^s[0-9]+$' | sed 's/^s//' | sort -n | tail -1 || true)
-if [ -z "${LAST:-}" ]; then echo "files=0 sources=0"; exit 0; fi
+LAST=$("$SCRIPT_DIR/current-sprint.sh")
+if [ "$LAST" = "-1" ]; then echo "files=0 sources=0"; exit 0; fi
 RPT="sprints/s$LAST/sprint-research/research-report.md"
 if [ ! -s "$RPT" ]; then echo "files=0 sources=0"; exit 0; fi
 

@@ -3,12 +3,13 @@
 # Run this only after both plans are reviewed for local and global correctness.
 set -euo pipefail
 
-# Sibling scripts (research-budget.sh) resolved relative to this file, so this
-# works whether scripts/ lives in the project or in an installed skill bundle.
+# Sibling scripts (current-sprint.sh, research-budget.sh) resolved relative to
+# this file, so this works whether scripts/ lives in the project or in an
+# installed skill bundle.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-LAST=$(ls sprints/ 2>/dev/null | grep -E '^s[0-9]+$' | sed 's/^s//' | sort -n | tail -1 || true)
-if [ -z "${LAST:-}" ]; then echo "no sprints found" >&2; exit 1; fi
+LAST=$("$SCRIPT_DIR/current-sprint.sh")
+if [ "$LAST" = "-1" ]; then echo "no sprints found" >&2; exit 1; fi
 D="sprints/s$LAST/sprint-plans"
 RESEARCH="sprints/s$LAST/sprint-research/research-report.md"
 HEADER="Finalized - DO NOT EDIT"

@@ -5,6 +5,7 @@
 # The marker line above makes init-sprint.sh treat the .gitignore as already
 # configured, so it won't append the sprints/-ignoring block here.
 *.tmp
+/guards-report.ndjson
 .DS_Store
 Thumbs.db
 # <<< sprint-loops <<<

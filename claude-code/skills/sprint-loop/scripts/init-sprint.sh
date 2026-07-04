@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # Initialize the next sprint's filesystem state. See particles/01-init-sprint.md.
 # Optional: set SPRINT_MODEL to record the model identifier in sprint-meta.md.
+# Run from the project root. Sibling scripts are resolved relative to this
+# file, so this works whether scripts/ lives in the project or in an
+# installed skill bundle.
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 mkdir -p sprints
-LAST=$(ls sprints/ 2>/dev/null | grep -E '^s[0-9]+$' | sed 's/^s//' | sort -n | tail -1 || true)
-if [ -z "${LAST:-}" ]; then N=0; else N=$((LAST + 1)); fi
+LAST=$("$SCRIPT_DIR/current-sprint.sh")
+if [ "$LAST" = "-1" ]; then N=0; else N=$((LAST + 1)); fi
 
 D="sprints/s$N"
 if [ -d "$D" ]; then echo "sprint $N already exists at $D" >&2; exit 1; fi

@@ -177,3 +177,51 @@
 - **Completed:** 2026-05-21T03:25:00Z
 - **Files modified:** `claude-code/commands/sprint-loop.md`, `claude-code/README.md`
 - **Commit:** `2d6c6b2`
+
+## T-001 (sprint 11)
+- **Description:** Added tools/check-bundle-sync.sh — cross-bundle parity guard enforcing the measured map (scripts+schemas ×4 bundles, prompts ×3, phases 00/01/02/04/05 claude↔codex; intentional divergences documented in header; BUNDLE_SYNC_ROOT override for fixtures). Fixture test proves real catches: content drift, deleted mirror file, extra mirror file, drifted shared phase — 5/5, plus clean-baseline pass. Guard green on the real tree.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `tools/check-bundle-sync.sh` (new), `tools/check-bundle-sync.test.sh` (new)
+- **Commit:** `3f0a626`
+
+## T-002 (sprint 11)
+- **Description:** Behavior-preserving refactor: current-sprint.sh now derives the sprint number with a glob/case loop (no `ls | grep`, SC2010 gone) and is the single source for init-sprint.sh / finalize-plan.sh / research-budget.sh (each calls it via SCRIPT_DIR; `-1` maps to their existing empty-case paths). Propagated byte-identically to codex-cli, antigravity-ide, open-harnesses (bundle-sync green). Fixed check-merge-policy.test.sh: SC2034's unused GUARD was the smell for a REAL bug — `"$GUARD_T"` invoked a quoted "bash /path" string (exit 127), so all three drift cases passed vacuously since sprint 8; now invoked as `bash "$GUARD_T"`. Making the test real exposed a second latent false-pass: case 3's phrase-level sed spanned the hard-wrapped SKILL.md line 98 and silently no-opped; mutation now deletes permit lines wholesale. Fixture 4/4 genuinely caught; selftest 14/14; shellcheck -S warning clean; current-sprint.sh prints 11 here, -1 on bare/empty trees.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop,open-harnesses}/scripts/{current-sprint.sh,init-sprint.sh,finalize-plan.sh,research-budget.sh}`, `tools/check-merge-policy.test.sh`
+- **Commit:** `83066af`
+
+## T-003 (sprint 11)
+- **Description:** update-confidence.sh now clamps at a 0.0 floor for `patched`/`failed` (mirroring the existing 1.0 cap for `pass`); a negative confidence is meaningless for the <0.5 task-count throttle. Verified: 0.2 + failed -> 0.0; 0.9 + pass -> 1.0. Propagated ×4 bundles; bundle-sync green; lint clean.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/update-confidence.sh`
+- **Commit:** `fb1ec77`
+
+## T-004 (sprint 11)
+- **Description:** Added tools/run-guards.sh — canonical suite runner (single suite definition for local Test phase + CI; array-test-derived). Emits one ndjson confirmation per suite {suite, script_hash, status, evidence_hash, duration_s, ts} with normalized output hashing (CR/temp-path/ISO-timestamp stripped); --determinism runs each suite twice and fails on hash/rc mismatch; RUN_GUARDS_EXTRA_SUITES injects stub suites for testing; fails fast (exit 2) if the confirmations file is unwritable — a runner that can't record must not report success. Verified: 7/7 green with well-formed records; failing stub -> status FAIL + exit 1 with later suites still recorded; $RANDOM stub under --determinism -> named on stderr, "determinism":"mismatch", exit 1; all 7 real suites determinism-ok. guards-report.ndjson added to .gitignore.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `tools/run-guards.sh` (new), `.gitignore`
+- **Commit:** `d035d04`
+
+## T-005 (sprint 11)
+- **Description:** Added .github/workflows/ci.yml — first CI for the repo (closes the sprint-8 ADR's "top backlog item"). Push (all branches) + PR-to-main triggers; single ubuntu-latest job runs `tools/run-guards.sh --determinism`, publishes the ndjson confirmations to the step summary and uploads them as an artifact (both `if: always()`). YAML validated: triggers, run-guards invocation, step-summary write, artifact upload all asserted (test_yaml_parses PASS). Live green-path conclusion is the Test phase's E2E check after branch push.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `.github/workflows/ci.yml` (new)
+- **Commit:** `6c9e29b`
+
+## T-006 (sprint 11)
+- **Description:** Test-phase protocol now records CI confirmations: schemas/test-report.md (×4 bundles) gains a `## CI Confirmation` block (head SHA, run ID/URL, authoritative conclusion via gh run list, confirmations reference, and the "CI not configured — local confirmations only" fallback); phases/05-test-phase.md (claude+codex identical) gains a "Canonical runner & confirmations" section directing the Test Phase at the project's canonical runner with CI-conclusion-on-head-SHA as authoritative; one-sentence integrations in open-harnesses particle 07 and antigravity global_workflows Phase 5. All presence greps pass; bundle-sync + merge-policy green.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{4 bundles}/schemas/test-report.md`, `{claude,codex}/phases/05-test-phase.md`, `open-harnesses/particles/07-test-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`
+- **Commit:** `3b8eba4`
+
+## T-007 (sprint 11)
+- **Description:** Documented the `(backlog)` carry-forward entry form: schemas/agent-tasks.md (×4 bundles) now defines both entry forms — `(sprint N)` (routing-relevant) and `(backlog)` (sprint-unassigned, T-1xx IDs, promoted by a future Build phase, never affects routing). Loop docs (claude 06, codex 06, oh particle 08) instruct appending deferred follow-ups as `(backlog)` entries so carry-forwards live as actionable backlog, not decisions.md prose. Routing safety verified with a real fixture (2 `(backlog)` entries present at plan/build/test states — phase output identical to empty backlog; earlier attempt was caught appending nothing due to a printf option-parse and redone). bundle-sync + merge-policy green.
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `{4 bundles}/schemas/agent-tasks.md`, `{claude,codex}/phases/06-loop-phase.md`, `open-harnesses/particles/08-loop-phase.md`
+- **Commit:** `347fab8`
+
+## T-008 (sprint 11)
+- **Description:** Added ROADMAP.md — the improvement trajectory: 8 prioritized future-sprint candidates with rationale (1 array-test engine integration gated on its T1–T5, incl. the explicit Merkle/memoization deferral rationale; 2 macOS/BSD portability + CI matrix leg; 3 critique.md hard-gate; 4 plugin version + documented /plugin update reload; 5 abort no-git fallback; 6 antigravity parity decision; 7 launch-time E2E harness; 8 confidence surfacing in sprint-meta). Seeded agent-tasks.md with T-101..T-108 (backlog) entries — 8/8 match the documented form; routing unaffected (current-phase still correct).
+- **Completed:** 2026-07-03T00:00:00Z
+- **Files modified:** `ROADMAP.md` (new), `agent-tasks/agent-tasks.md`
+- **Commit:** `b11aea0`

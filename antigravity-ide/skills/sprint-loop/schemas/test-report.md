@@ -11,6 +11,14 @@ Lives at `sprints/sN/sprint-tests/test-report.md`. Exit artifact of a successful
 - E2E tests: P passed / F failed / T total (or N/A)
 - CI status: green | red | not-configured
 
+## CI Confirmation
+- **Head SHA:** <commit the suite ran against>
+- **CI run:** <run ID + URL>
+- **Conclusion:** success | failure   (authoritative — from `gh run list`, not `gh run watch`)
+- **Confirmations:** <guards-report.ndjson artifact/path — one evidence record per suite>
+(If the repo has no CI: write "CI not configured — local confirmations only"
+and reference the local canonical-runner records instead.)
+
 ## Failures
 (If any — root cause analysis, not just symptom description)
 
