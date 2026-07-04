@@ -69,6 +69,12 @@ with responses, write the summary to `sprint-tests/test-report.md`
 (see `schemas/test-report.md`) covering: tests run, tests passed, tests
 failed, coverage observations, and any technical debt identified.
 
+**Routing gate (sprint 13):** on the pass path the state machine will not
+leave Test for Loop until `sprint-tests/critique.md` exists — a `test-report.md`
+without the test critique keeps `current-phase.sh` reporting `test`. Save the
+critique before you consider the phase done. (The failure path —
+`failure-report.md` — is exempt.)
+
 ## Canonical runner & confirmations
 
 If the project defines a canonical suite runner — a single script that runs

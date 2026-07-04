@@ -261,3 +261,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{current-phase.sh,selftest.sh}`
 - **Commit:** `2a0b8fb`
+
+## T-003 (sprint 13)
+- **Description:** Documented both gates where agents read. claude 03 + codex 03 (per-copy): finalize gate list corrected from stale "two gates" to four (adding the previously-undocumented budget gate + the new critique gate). phases/05 (claude=codex parity): a "Routing gate (sprint 13)" note that the state machine won't leave Test on the pass path until sprint-tests/critique.md exists (failure path exempt). open-harnesses particles 03 + 07: one-sentence integrations of each gate. ROADMAP §6: note that antigravity's manual-header Plan flow bypasses finalize-plan.sh so the critique gate can't bind there (T-106 input). All presence greps pass; bundle-sync + merge-policy green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `claude+codex phases/03-plan-phase.md`, `claude+codex phases/05-test-phase.md`, `open-harnesses/particles/{03-plan-phase,07-test-phase}.md`, `ROADMAP.md`
+- **Commit:** `274bd46`

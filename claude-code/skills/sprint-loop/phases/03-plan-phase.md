@@ -108,7 +108,7 @@ lock the plans:
 bash scripts/finalize-plan.sh
 ```
 
-This prepends `Finalized - DO NOT EDIT` to both files. It also enforces two
+This prepends `Finalized - DO NOT EDIT` to both files. It also enforces four
 gates that block the lock if violated:
 
 - **No-empty-plan gate**: `build-plan.md` must contain at least one
@@ -116,6 +116,12 @@ gates that block the lock if violated:
 - **Decisions-reviewed gate**: when `decisions.md` is non-empty, the
   current sprint's `research-report.md` must contain a heading matching
   `^## Decisions Reviewed`. See `phases/02-research-phase.md`.
+- **Research-budget gate**: the research-report must be within the file/source
+  caps (or carry a `## Budget Override`). See `phases/02-research-phase.md`.
+- **Critique gate**: `sprint-plans/critique.md` must exist with a `## Concerns`
+  heading and a `## Confidence` verdict of `clean` or `proceed-with-caveats`.
+  A `block`, malformed, or missing critique refuses the lock — run the plan
+  critic above before finalizing.
 
 If `finalize-plan.sh` rejects, fix the violation and re-run; then update
 `sprint-meta.md` with a one-line sprint summary.
