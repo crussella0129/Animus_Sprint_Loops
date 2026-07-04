@@ -237,3 +237,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/selftest.sh`
 - **Commit:** `a365317`
+
+## T-002 (sprint 12)
+- **Description:** run-guards.sh portable hashing + normalization: hash_stdin() auto-detects sha256sum vs shasum -a 256 with RUN_GUARDS_HASH_TOOL as the explicit test seam (plan-critique C-003); both call sites switched. normalize() now strips /private/var/folders/... and /var/folders/... (macOS mktemp) ahead of the /tmp/tmp.* rule. Verified: hash seam yields identical digests via both tools on the real function; per-run-varying /var/folders stub under --determinism -> ok; full round 7/7 with every unchanged suite's evidence hash byte-equal to the s11 committed baseline (only selftest re-baselined — its output legitimately grew step 15); shellcheck clean.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `tools/run-guards.sh`
+- **Commit:** `99ddc58`
