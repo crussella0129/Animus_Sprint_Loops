@@ -44,10 +44,19 @@ expect_pass() { # $1 desc
   fi
 }
 
-expect_fail() { # $1 desc ; fixture already mutated
-  local desc="$1"; total=$((total+1))
-  if BUNDLE_SYNC_ROOT="$T" bash "$GUARD" >/dev/null 2>&1; then
+expect_fail() { # $1 desc ; $2 required stderr pattern (ERE) ; fixture already mutated
+  # Non-zero exit alone is NOT enough — the guard's EARS contract is to NAME
+  # the offending path. Requiring the pattern keeps this fixture from going
+  # vacuous the way the merge-policy fixture once did (a crash or silent
+  # exit-1 must not count as "caught").
+  local desc="$1" pattern="$2" out rc
+  total=$((total+1))
+  rc=0
+  out=$(BUNDLE_SYNC_ROOT="$T" bash "$GUARD" 2>&1) || rc=$?  # || keeps set -e out of the expected-failure path
+  if [ "$rc" -eq 0 ]; then
     echo "FAIL (false pass): $desc"
+  elif ! printf '%s' "$out" | grep -qE "$pattern"; then
+    echo "FAIL (wrong failure — path not named): $desc (wanted /$pattern/)"
   else
     echo "PASS caught: $desc"; pass=$((pass+1))
   fi
@@ -58,19 +67,19 @@ mkfix; expect_pass "baseline clean copy passes"
 
 # bad 1: content drift in a mirror script
 mkfix; printf '\n# drifted\n' >> "$T/codex-cli/skills/sprint-loops/scripts/current-phase.sh"
-expect_fail "content drift in mirror script"
+expect_fail "content drift in mirror script" 'DIVERGED: codex-cli/skills/sprint-loops/scripts/current-phase\.sh'
 
 # bad 2: mirror file deleted
 mkfix; rm "$T/antigravity-ide/skills/sprint-loop/schemas/test-report.md"
-expect_fail "deleted mirror schema"
+expect_fail "deleted mirror schema" 'MISSING: antigravity-ide/skills/sprint-loop/schemas/test-report\.md'
 
 # bad 3: extra file in a mirror's mapped set
 mkfix; printf '#!/usr/bin/env bash\n' > "$T/open-harnesses/scripts/rogue-helper.sh"
-expect_fail "extra file in mirror scripts/"
+expect_fail "extra file in mirror scripts/" 'EXTRA: open-harnesses/scripts/rogue-helper\.sh'
 
 # bad 4: divergent shared phase (claude vs codex)
 mkfix; printf '\ndrifted paragraph\n' >> "$T/codex-cli/skills/sprint-loops/phases/05-test-phase.md"
-expect_fail "drifted shared phase 05"
+expect_fail "drifted shared phase 05" 'DIVERGED: codex-cli/skills/sprint-loops/phases/05-test-phase\.md'
 
 echo "bundle-sync fixture test: $pass/$total behaved"
 [ "$pass" = "$total" ] && exit 0 || exit 1

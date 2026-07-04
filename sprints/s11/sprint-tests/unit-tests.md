@@ -10,6 +10,7 @@ the final integration round. Every test below PASSED.
 - `test_sync_missing_caught` — fixture: deleted antigravity schemas/test-report.md → non-zero, names path. PASS
 - `test_sync_extra_caught` — fixture: rogue-helper.sh added to open-harnesses/scripts → non-zero, names path. PASS
 - `test_sync_fixture_suite` — check-bundle-sync.test.sh → 5/5 behaved (incl. drifted shared phase 05 case). PASS
+- Tightened per test-critique C-001: `expect_fail` now requires the guard's stderr to NAME the offending path (specific `DIVERGED:`/`MISSING:`/`EXTRA:` patterns per case) — non-zero exit alone no longer counts as "caught". Re-run: 5/5. (The tightening itself surfaced a `set -e` truncation hazard in the capture, fixed with `|| rc=$?` — see critique.md C-001.)
 
 ## T-002 (behavior-preserving refactor)
 - `test_selftest_14` — "selftest: all 14 transitions matched". PASS
@@ -30,6 +31,7 @@ the final integration round. Every test below PASSED.
 - `test_runner_fail_recorded` — injected failing stub (RUN_GUARDS_EXTRA_SUITES) → its line `"status":"FAIL"`, later suites recorded, exit 1. PASS
 - `test_runner_determinism_pass` — `--determinism` on green tree → all real suites `"determinism":"ok"`, exit 0 (final round: 7/7). PASS
 - `test_runner_nondeterminism_caught` — `$RANDOM` stub under `--determinism` → "NONDETERMINISTIC: extra:zz-rand.sh" on stderr, `"determinism":"mismatch"` recorded, exit 1. PASS
+- `test_runner_normalization_branches` (added per test-critique C-002) — stub emitting CRLF line + live ISO timestamp + `sleep 1` under `--determinism` → `"determinism":"ok"` AND evidence_hash byte-equals the precomputed sha256 of the normalized text `hello\nts: <TS>\n` — TS and CR branches proven exactly. PASS
 - Added during test-hardening: unwritable `--out` → "cannot write confirmations", exit 2 (a runner that can't record must not report success).
 
 ## T-005 (workflow)
@@ -50,4 +52,4 @@ the final integration round. Every test below PASSED.
 - `test_roadmap_sections` — 8 numbered candidates, "Deliberately deferred" rationale block, array-test link + T1–T5 precondition. PASS
 - `test_backlog_form` — 8/8 seeded entries match `^- \[ \] T-1[0-9]{2} \(backlog\): .+ — touches: .+$`. PASS
 
-**Unit totals: 27 passed / 0 failed / 27 total.**
+**Unit totals: 28 passed / 0 failed / 28 total** (27 planned + 1 added by the test critic; one planned test tightened post-critique and re-run).

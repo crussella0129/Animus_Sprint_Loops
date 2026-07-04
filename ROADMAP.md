@@ -82,3 +82,16 @@ a scriptable E2E would move them into CI.
 `confidence.txt` changes silently at Loop. Record the before → after value in
 `sprint-meta.md` at close so a sprint's confidence trajectory is readable from
 the sprint record without git archaeology.
+
+## 9. Dev-branch working model + merge-mode election (user request, sprint 11)
+
+At Init (sprint 0), establish — or verify the existence of — a long-lived
+work branch (`dev` by default, name user-specifiable) alongside `main`.
+Sprints develop on the work branch; each sprint's close opens a PR from it
+back to `main`. With that model in place, the skill should **elicit the merge
+mode at launch — approve-merge (human approves each sprint's PR) vs
+auto-merge (merge on green CI proceeds autonomously) — unless the initial
+prompt already specified it.** This turns the current implicit
+branch-per-sprint convention into a declared, verifiable protocol step
+(recordable in `sprint-meta.md`), and makes the merge-mode decision an
+explicit contract instead of an inference from the prompt.
