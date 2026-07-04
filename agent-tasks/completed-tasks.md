@@ -249,3 +249,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `.github/workflows/ci.yml`
 - **Commit:** `55bf553`
+
+## T-001 (sprint 13)
+- **Description:** finalize-plan.sh gains a fourth gate (executing the sprint-5 ADR's deferred hard gate): a valid plan critique.md is required to lock. Gate checks non-empty file + `## Concerns` heading + the `## Confidence` verdict (first non-empty line after the heading, awk-extracted, line-scoped so prose "block"/"unblocked" can't false-match) starting with clean/proceed-with-caveats (backticked or bare); block/malformed/missing refuse with a shape-stating message. Empty-plan check hoisted out of the lock loop to run BEFORE the critique gate (keeps selftest's empty-plan step isolating its own failure). selftest: write_ok_critique helper + fixtures on the two success-path finalize calls (steps 04, 13); new steps 16 (refuse-missing) + 17 (refuse-block then lock-on-valid). "all 17 transitions matched". Verified edges: malformed verdict → exit 1 unlocked; prose false-match → locks. POSIX-portable; propagated ×4; bundle-sync + shellcheck green.
+- **Completed:** 2026-07-04T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{finalize-plan.sh,selftest.sh}`
+- **Commit:** `ecae152`
