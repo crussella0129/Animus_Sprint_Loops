@@ -1,7 +1,7 @@
-# Sprint Loops
+# Animus Sprint Loops
 
-A lightweight protocol for autonomous software development — for **Claude Code**,
-**Codex CLI**, and **open harnesses** like OpenClaw and OpenCode.
+Animus Project's lightweight protocol for autonomous software development — for **Claude Code**,
+**Codex CLI**, and **open harnesses** like Animus_Ferric, OpenClaw and OpenCode.
 
 Sprint Loops decomposes long-horizon coding work into numbered sprints, each a
 five-phase sequence — **Research → Plan → Build → Test → Loop** — with persistent
