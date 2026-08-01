@@ -33,12 +33,40 @@ init_fixture() {
 plan_fixture() {
   init_fixture "$1"
   cat > "$F/docs/intents/INT-0001-runtime.md" <<'EOF'
-# INT-0001 Runtime
+# INT-0001 — Runtime
+
+<!-- sprint-loop-intent-v2 -->
+- **Intent ID:** INT-0001
+- **State:** planned
+- **Work evidence:** [T-001 build plan](../sprints/s0/sprint-plans/build-plan.md#t-001-runtime)
+- **Completion evidence:** none
+- **Code evidence:** none
+- **Test evidence:** none
+- **Documentation evidence:** none
+
+## Intent
+Exercise runtime helpers.
+
+## Acceptance criteria
+The planned helper transition succeeds.
+
+## Rationale
+Fixture coverage.
+
+## Alternatives
+None.
+
+## Consequences
+The fixture carries valid Book metadata.
+
+## Transition history
+- 2026-08-01: created as `proposed`.
+- 2026-08-01: accepted into sprint 0 as `planned`.
 EOF
   cat > "$F/docs/sprints/s0/sprint-research/research-report.md" <<'EOF'
 # Research
 ## Intents Reviewed
-- INT-0001
+- [INT-0001](../../../intents/INT-0001-runtime.md) — selected
 ## Existing Code Survey
 | File | Note |
 |---|---|
@@ -65,10 +93,28 @@ unlocked() {
 
 # Intent review, legacy migration guidance, empty tasks, and critic gates all
 # refuse before either plan changes.
+plan_fixture no_intent
+rm "$F/docs/intents/INT-0001-runtime.md"
+expect_failure 'Book has no intent chapters' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "zero-intent Book partially locked plans"
+pass
+
 plan_fixture missing_intent
 printf '# Research\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
 expect_failure 'lacks a `## Intents Reviewed`' run_script "$F" finalize-plan.sh
 unlocked "$F" || fail "missing intent review partially locked plans"
+pass
+
+plan_fixture unlinked_intent
+printf '# Research\n## Intents Reviewed\n- INT-0001\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
+expect_failure 'must link at least one Book intent' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "unlinked intent review partially locked plans"
+pass
+
+plan_fixture missing_link_target
+printf '# Research\n## Intents Reviewed\n- [INT-9999](../../../intents/INT-9999-missing.md)\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
+expect_failure 'must link at least one Book intent' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "missing intent link target partially locked plans"
 pass
 
 plan_fixture legacy_heading
@@ -98,8 +144,38 @@ cat > "$F/docs/sprints/s0/sprint-plans/critique.md" <<'EOF'
 ## ConfidenceBoost
 clean
 EOF
-expect_failure 'lacks a `## Concerns` heading' run_script "$F" finalize-plan.sh
+expect_failure 'does not match the exact critic contract' run_script "$F" finalize-plan.sh
 unlocked "$F" || fail "malformed critic partially locked plans"
+pass
+
+plan_fixture trailing_critic_verdict
+sed 's/^clean$/clean extra/' "$F/docs/sprints/s0/sprint-plans/critique.md" > "$F/crit.tmp"
+mv "$F/crit.tmp" "$F/docs/sprints/s0/sprint-plans/critique.md"
+expect_failure 'does not match the exact critic contract' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "trailing critic verdict partially locked plans"
+pass
+
+plan_fixture duplicate_critic_verdict
+cat >> "$F/docs/sprints/s0/sprint-plans/critique.md" <<'EOF'
+## Confidence
+clean
+EOF
+expect_failure 'does not match the exact critic contract' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "duplicate critic verdict partially locked plans"
+pass
+
+plan_fixture fenced_critic_verdict
+cat > "$F/docs/sprints/s0/sprint-plans/critique.md" <<'EOF'
+# Critique
+## Concerns
+- none
+```markdown
+## Confidence
+clean
+```
+EOF
+expect_failure 'does not match the exact critic contract' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "fenced critic verdict partially locked plans"
 pass
 
 plan_fixture invalid_test
@@ -114,7 +190,7 @@ pass
 # explicit authority to proceed.
 plan_fixture budget
 {
-  printf '# Research\n## Intents Reviewed\n- INT-0001\n## Existing Code Survey\n| File | Note |\n|---|---|\n'
+  printf '# Research\n## Intents Reviewed\n- [INT-0001](../../../intents/INT-0001-runtime.md)\n## Existing Code Survey\n| File | Note |\n|---|---|\n'
   i=1; while [ "$i" -le 21 ]; do printf '| f%s | n |\n' "$i"; i=$((i + 1)); done
   printf '## External Sources\n'
 } > "$F/docs/sprints/s0/sprint-research/research-report.md"
@@ -131,7 +207,7 @@ pass
 
 plan_fixture source_budget
 {
-  printf '# Research\n## Intents Reviewed\n- INT-0001\n## Existing Code Survey\n| File | Note |\n|---|---|\n'
+  printf '# Research\n## Intents Reviewed\n- [INT-0001](../../../intents/INT-0001-runtime.md)\n## Existing Code Survey\n| File | Note |\n|---|---|\n'
   printf '## External Sources\n'
   i=1
   while [ "$i" -le 6 ]; do
@@ -309,6 +385,26 @@ expect_failure 'as success: passing test report and critique are required' \
   fail "success/failure evidence crossing mutated meta"
 pass
 
+init_fixture close_blocking_critic
+META="$F/docs/sprints/s0/sprint-meta.md"
+printf '# Research\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
+printf 'Finalized - DO NOT EDIT\n\n# Build\n' > "$F/docs/sprints/s0/sprint-plans/build-plan.md"
+printf 'Finalized - DO NOT EDIT\n\n# Test\n' > "$F/docs/sprints/s0/sprint-plans/test-plan.md"
+printf '# Completed\n## T-001 (sprint 0)\n' > "$F/docs/work/completed-tasks.md"
+printf '# Test report\npass\n' > "$F/docs/sprints/s0/sprint-tests/test-report.md"
+cat > "$F/docs/sprints/s0/sprint-tests/critique.md" <<'EOF'
+# Critique
+## Concerns
+- acceptance gap
+## Confidence
+block
+EOF
+[ "$(run_script "$F" current-phase.sh)" = test ] ||
+  fail "blocking test critique routed to Loop"
+expect_failure 'current phase is test' \
+  run_script "$F" close-sprint.sh success 'blocked critique'
+pass
+
 init_fixture close
 META="$F/docs/sprints/s0/sprint-meta.md"
 awk '!/Book schema version/ && !/Completion evidence/' "$META" > "$F/meta.tmp"
@@ -318,7 +414,13 @@ printf 'Finalized - DO NOT EDIT\n\n# Build\n' > "$F/docs/sprints/s0/sprint-plans
 printf 'Finalized - DO NOT EDIT\n\n# Test\n' > "$F/docs/sprints/s0/sprint-plans/test-plan.md"
 printf '# Completed\n## T-001 (sprint 0)\n' > "$F/docs/work/completed-tasks.md"
 printf '# Test report\npass\n' > "$F/docs/sprints/s0/sprint-tests/test-report.md"
-printf '# Critique\nclean\n' > "$F/docs/sprints/s0/sprint-tests/critique.md"
+cat > "$F/docs/sprints/s0/sprint-tests/critique.md" <<'EOF'
+# Critique
+## Concerns
+- none
+## Confidence
+clean
+EOF
 awk '{ printf "%s\r\n", $0 }' "$META" > "$F/meta.tmp"
 mv "$F/meta.tmp" "$META"
 printf 'do not rewrite\n' > "$F/docs/sprints/s0/sprint-tests/unit-tests.md"

@@ -4,6 +4,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/book-paths.sh"
+# shellcheck source=critic-contract.sh
+. "$SCRIPT_DIR/critic-contract.sh"
 book_require_v2_layout
 
 LAST=$("$SCRIPT_DIR/current-sprint.sh")
@@ -18,9 +20,19 @@ HEADER="Finalized - DO NOT EDIT"
 # A legacy ADR acknowledgement is not a substitute for reviewing stable Book
 # intent. Numeric prefixes are tolerated to match the existing report schema.
 HAS_INTENT_REVIEW=0
+INTENT_REVIEW_BODY=
 if [ -s "$RESEARCH" ] &&
    grep -qE '^## ([0-9]+[.] *)?Intents Reviewed[[:space:]]*$' "$RESEARCH"; then
   HAS_INTENT_REVIEW=1
+  INTENT_REVIEW_BODY=$(awk '
+    {
+      line=$0
+      sub(/\r$/, "", line)
+    }
+    line ~ /^## ([0-9]+[.] *)?Intents Reviewed[[:space:]]*$/ { in_sec=1; next }
+    in_sec && line ~ /^## / { exit }
+    in_sec { print line }
+  ' "$RESEARCH")
 fi
 if [ "$HAS_INTENT_REVIEW" = 0 ] && [ -s "$RESEARCH" ] &&
    grep -qE '^## ([0-9]+[.] *)?Decisions Reviewed[[:space:]]*$' "$RESEARCH"; then
@@ -33,9 +45,30 @@ HAS_INTENTS=0
 for INTENT in "$BOOK_INTENTS_DIR"/INT-[0-9][0-9][0-9][0-9]-*.md; do
   if [ -f "$INTENT" ]; then HAS_INTENTS=1; break; fi
 done
-if [ "$HAS_INTENTS" = 1 ] && [ "$HAS_INTENT_REVIEW" = 0 ]; then
+if [ "$HAS_INTENTS" = 0 ]; then
+  echo 'refusing to finalize: the Book has no intent chapters' >&2
+  echo '  Research must create or select and link at least one INT-NNNN chapter before planning' >&2
+  exit 1
+fi
+if [ "$HAS_INTENT_REVIEW" = 0 ]; then
   printf 'refusing to finalize: %s lacks a `## Intents Reviewed` section\n' "$RESEARCH" >&2
   echo "  list the INT-NNNN chapters that bear on this sprint before locking the plans" >&2
+  exit 1
+fi
+HAS_LINKED_INTENT=0
+for INTENT in "$BOOK_INTENTS_DIR"/INT-[0-9][0-9][0-9][0-9]-*.md; do
+  [ -f "$INTENT" ] || continue
+  INTENT_NAME=${INTENT##*/}
+  INTENT_ID=${INTENT_NAME:0:8}
+  if printf '%s\n' "$INTENT_REVIEW_BODY" |
+     grep -F "intents/$INTENT_NAME" |
+     grep -Eq "\[[^][]*${INTENT_ID}[^][]*\]\([^)]*intents/"; then
+    HAS_LINKED_INTENT=1
+    break
+  fi
+done
+if [ "$HAS_LINKED_INTENT" = 0 ]; then
+  printf 'refusing to finalize: %s must link at least one Book intent under `## Intents Reviewed`\n' "$RESEARCH" >&2
   exit 1
 fi
 
@@ -82,27 +115,12 @@ if [ ! -s "$CRIT" ]; then
   echo "$CRIT_HELP" >&2
   exit 1
 fi
-if ! grep -qE '^## ([0-9]+[.] *)?Concerns[[:space:]]*$' "$CRIT"; then
-  printf 'refusing to finalize: %s lacks a `## Concerns` heading (malformed critique)\n' "$CRIT" >&2
+if ! VERDICT=$(critic_verdict "$CRIT"); then
+  printf 'refusing to finalize: %s does not match the exact critic contract\n' "$CRIT" >&2
+  echo "  require exactly one Concerns heading and one exact clean, proceed-with-caveats, or block Confidence verdict" >&2
   echo "$CRIT_HELP" >&2
   exit 1
 fi
-VLINE=$(awk '
-  {
-    line=$0
-    sub(/\r$/, "", line)
-  }
-  line ~ /^## ([0-9]+[.] *)?Confidence:[[:space:]]*[^[:space:]]+[[:space:]]*$/ {
-    sub(/^## ([0-9]+[.] *)?Confidence:[[:space:]]*/, "", line)
-    print line
-    exit
-  }
-  line ~ /^## ([0-9]+[.] *)?Confidence[[:space:]]*$/ { found=1; next }
-  found && line ~ /^## / { exit }
-  found && line ~ /[^[:space:]]/ { print line; exit }
-' "$CRIT")
-VERDICT=$(printf '%s\n' "$VLINE" |
-  sed -e 's/^`//' -e 's/[[:space:]].*$//' -e 's/`$//')
 case "$VERDICT" in
   clean|proceed-with-caveats) : ;;
   block)
@@ -110,8 +128,7 @@ case "$VERDICT" in
     exit 1
     ;;
   *)
-    printf 'refusing to finalize: %s has no recognizable `## Confidence` verdict\n' "$CRIT" >&2
-    echo "  verdict must be exactly clean, proceed-with-caveats, or block" >&2
+    printf 'refusing to finalize: internal critic parser returned unexpected verdict for %s\n' "$CRIT" >&2
     exit 1
     ;;
 esac

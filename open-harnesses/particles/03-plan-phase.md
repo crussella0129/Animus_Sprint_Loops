@@ -1,16 +1,14 @@
 # Particle: Plan Phase
 
 ```
-"You are in the Plan Phase. Read 'sprint-research/research-report.md' from the current sprint as authoritative input. You will produce two artifacts in sequence: 'sprint-plans/build-plan.md' first, then 'sprint-plans/test-plan.md'. Both must follow the schemas defined in the Build Plan and Test Plan particles. Do not begin building. Do not edit any source files outside the plan documents. When both plans are complete and reviewed for local and global correctness — BUT BEFORE locking them — spawn a critic subagent with the prompt at '../prompts/plan-critic.md' (if your harness supports subagents; otherwise self-critique against that prompt's failure-mode list). Save the critique to 'sprint-plans/critique.md', address each concern inline (fix-in-plan, defer-with-rationale, or reject), and only then prepend the line 'Finalized - DO NOT EDIT' to the top of each plan, update 'sprint-meta.md' with a one-line sprint summary, and proceed to the Build Phase."
+"Read the current research report and every intent linked under ## Intents Reviewed. The sprint must advance at least one INT-NNNN. Compose docs/sprints/sN/sprint-plans/build-plan.md and test-plan.md using the next two schema particles: every task links intent acceptance to measurable EARS clauses, and every EARS clause plus affected acceptance criterion maps to a named planned test. Planning may translate intent into work but may not silently redefine it. Move sprint-advanced proposed/deferred intents to planned, add plan/task Work evidence, and append only actual state transitions; preserve already-active intent. Run a read-only critic with the installed bundle's prompts/plan-critic.md, save docs/sprints/sN/sprint-plans/critique.md, and address every concern. Update sprint-meta.md Summary and Intents. Finally, invoke the installed bundle's scripts/finalize-plan.sh helper from the project root; it requires at least one linked Book intent. Do not prepend lock headers by hand or begin source work before both plans lock atomically."
 ```
 
-Compose the two plans using the next two particles:
-
-- [`04-build-plan-schema.md`](04-build-plan-schema.md) → produces `sprint-plans/build-plan.md`
-- [`05-test-plan-schema.md`](05-test-plan-schema.md) → produces `sprint-plans/test-plan.md`
-
-Helper script: [`../scripts/finalize-plan.sh`](../scripts/finalize-plan.sh) prepends the lock header to both plans — and REFUSES to lock unless `sprint-plans/critique.md` exists with a `## Concerns` heading and a `## Confidence` verdict of `clean` or `proceed-with-caveats` (a `block`/malformed/missing critique blocks the lock).
+Schemas: [`../schemas/build-plan.md`](../schemas/build-plan.md) and
+[`../schemas/test-plan.md`](../schemas/test-plan.md).
+Helper: [`../scripts/finalize-plan.sh`](../scripts/finalize-plan.sh).
 
 ---
 
-Next particle: `04-build-plan-schema.md`.
+Compose the plans with `04-build-plan-schema.md` and
+`05-test-plan-schema.md`, then proceed to `06-build-phase.md` after lock.

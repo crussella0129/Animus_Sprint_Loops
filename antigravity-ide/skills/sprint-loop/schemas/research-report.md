@@ -1,22 +1,19 @@
 # Schema: `research-report.md`
 
-Lives at `sprints/sN/sprint-research/research-report.md`. Exit artifact of the
-Research Phase. Must contain the five numbered sections below, plus the
-`## Decisions Reviewed` section whenever `decisions.md` has any entries
-(`finalize-plan.sh` enforces this).
+Lives at
+`docs/sprints/sN/sprint-research/research-report.md`. It is Research
+provenance, not a replacement for stable intent. Research must create or select
+at least one intent chapter and record every relevant chapter under the exact
+`## Intents Reviewed` heading used by `finalize-plan.sh`.
 
 ```markdown
 # Sprint N Research Report
 
-## Decisions Reviewed
-(Required when `decisions.md` has entries. List the ADRs from `decisions.md` that
-bear on this sprint's work, with one line of relevance each. Explicitly call out
-any proposal to revise or violate a prior decision; if none, say "No prior
-decision is being violated.")
-- **YYYY-MM-DD <short title>** (sprint N) — relevance: ...
+## Intents Reviewed
+- [INT-0001](../../../intents/INT-0001-short-title.md) — selected | created | revised; relevance: ...; current state: ...
 
 ## 1. Sprint Goal
-(One paragraph in agent's own words.)
+(One paragraph in the agent's own words, bounded by the reviewed intent.)
 
 ## 2. Existing Code Survey
 | File | Relevance | Notes |
@@ -41,9 +38,16 @@ Rationale: ...
 - `error-trace.txt` — observed failure mode
 
 ## Budget Override
-(OPTIONAL — include only when the Existing Code Survey exceeds 20 file rows or
-External Sources exceeds 5 URLs. `finalize-plan.sh` refuses to lock plans when
-over budget unless this section is present with a non-empty justification.
-Explain why the scope genuinely required the extra breadth — e.g. a
-cross-cutting refactor touching many files. Do not use as a default escape.)
+(OPTIONAL — a non-empty justification required only when the code survey
+exceeds 20 file rows or External Sources exceeds 5 URLs.)
 ```
+
+Update the reviewed intent chapter when research changes its desired outcome,
+acceptance criteria, rationale, alternatives, or consequences, and append a
+Transition history entry for any state change. Do not bury such changes only in
+the sprint report.
+
+`research-budget.sh` reports the file/source count.
+`finalize-plan.sh` requires at least one Book intent and at least one
+Markdown-linked intent under `## Intents Reviewed`; it rejects a legacy
+review heading as a substitute.

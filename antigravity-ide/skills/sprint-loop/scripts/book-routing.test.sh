@@ -43,7 +43,29 @@ printf '\n## T-001 (sprint 0)\n- **Commit:** `fixture`\n' >> "$F/docs/work/compl
 assert_phase "$F" test test_phase_walk_test
 printf '# report\n' > "$F/docs/sprints/s0/sprint-tests/test-report.md"
 assert_phase "$F" test test_phase_walk_requires_critique
-printf '# critique\n' > "$F/docs/sprints/s0/sprint-tests/critique.md"
+cat > "$F/docs/sprints/s0/sprint-tests/critique.md" <<'EOF'
+# Critique
+## Concerns
+- evidence gap
+## Confidence
+block
+EOF
+assert_phase "$F" test test_phase_walk_rejects_blocking_critique
+cat > "$F/docs/sprints/s0/sprint-tests/critique.md" <<'EOF'
+# Critique
+## Concerns
+- none
+## Confidence
+clean extra
+EOF
+assert_phase "$F" test test_phase_walk_rejects_malformed_critique
+cat > "$F/docs/sprints/s0/sprint-tests/critique.md" <<'EOF'
+# Critique
+## Concerns
+- none
+## Confidence
+clean
+EOF
 assert_phase "$F" loop test_phase_walk_loop
 awk '{ sub(/\*\*Exit status:\*\* in-progress/, "**Exit status:** success"); print }' "$F/docs/sprints/s0/sprint-meta.md" > "$F/docs/sprints/s0/sprint-meta.md.tmp"
 mv "$F/docs/sprints/s0/sprint-meta.md.tmp" "$F/docs/sprints/s0/sprint-meta.md"

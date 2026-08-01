@@ -297,3 +297,9 @@
 - **Completed:** 2026-08-01T16:19:44Z
 - **Files modified:** `{4 bundles}/scripts/{abort-sprint.sh,close-sprint.sh,commit-task.sh,finalize-plan.sh,research-budget.sh,update-confidence.sh,runtime-helpers.test.sh,selftest.sh}`, task ledgers
 - **Commit:** `33cb34d`
+
+## T-114 (sprint 14)
+- **Description:** Rewrote the harness-neutral protocol around Book v2 intent authority, evidence, provenance, and non-authoritative views; removed active decision schemas; made planning/build/test/loop lifecycle transitions explicit; and hardened plan/test gates with existing-linked-intent and exact accepted-critique validation.
+- **Completed:** 2026-08-01T20:07:39Z
+- **Files modified:** `{claude-code,codex-cli}/skills/sprint-loop*/{phases,prompts}/**`, `open-harnesses/{particles,prompts}/**`, `{4 bundles}/schemas/**`, `{4 bundles}/scripts/{critic-contract.sh,finalize-plan.sh,current-phase.sh,book-routing.test.sh,runtime-helpers.test.sh}`, task ledgers
+- **Commit:** `2ce56ff`

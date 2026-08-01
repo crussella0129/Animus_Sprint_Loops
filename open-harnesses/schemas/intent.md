@@ -1,8 +1,9 @@
 # Schema: intent chapter
 
-Intent chapters live at `docs/intents/INT-NNNN-<slug>.md`. They are the Book's
-stable semantic authority: one durable statement of project intent spanning
-planned and realized work. `docs/SUMMARY.md` is navigation only.
+Intent chapters live at `docs/intents/INT-NNNN-<slug>.md`. They are the
+Project Book's stable semantic authority: one durable statement of project
+intent spanning unrealized and realized work. `docs/SUMMARY.md` is navigation
+only.
 
 ```markdown
 # INT-0001 — Short title
@@ -17,13 +18,13 @@ planned and realized work. `docs/SUMMARY.md` is navigation only.
 - **Documentation evidence:** none
 
 ## Intent
-<desired outcome and boundaries>
+<desired outcome, boundaries, and non-goals>
 
 ## Acceptance criteria
 <observable conditions that prove the intent>
 
 ## Rationale
-<why this intent exists>
+<why this intent exists and why the current direction was chosen>
 
 ## Alternatives
 <options considered and why they were not selected>
@@ -35,22 +36,46 @@ planned and realized work. `docs/SUMMARY.md` is navigation only.
 - YYYY-MM-DD: created as `proposed`.
 ```
 
-Every Markdown file in `docs/intents/` except `README.md` is an intent chapter.
-Each chapter has exactly one `INT-NNNN` identifier, and identifiers are globally
-unique. Legal states are `proposed`, `planned`, `active`, `deferred`, `realized`,
-`superseded`, and `abandoned`.
+Every Markdown file in `docs/intents/` except `README.md` is an intent
+chapter. Each chapter has exactly one globally unique `INT-NNNN` identifier.
+Legal states are:
 
-Every evidence value is either `none` or one or more Markdown links.
+- `proposed` — described but not accepted into executable work.
+- `planned` — accepted and linked to scheduled work.
+- `active` — implementation or verification is in progress.
+- `deferred` — still desired, with work deliberately postponed.
+- `realized` — acceptance criteria are satisfied and realization evidence is
+  attached.
+- `superseded` — replaced by a newer intent; name the replacement in prose.
+- `abandoned` — no longer intended; preserve the reason.
 
-- `planned`, `active`, and `deferred` require Work evidence naming a `T-NNN`
-  task or linking a plan beneath `docs/sprints/sN/sprint-plans/`.
-- `realized` requires Completion evidence that names a `T-NNN` and links
-  `docs/work/completed-tasks.md`. It also requires at least one link in Code,
-  Test, or Documentation evidence.
-- Other states may use `none` when that evidence does not apply.
+Protocol transitions are `proposed → planned|abandoned`,
+`planned → active|deferred|abandoned`,
+`active → realized|deferred|superseded|abandoned`,
+`deferred → planned|active|superseded|abandoned`, and
+`realized → superseded`. Create a follow-on intent instead of rewriting a
+terminal chapter. Append every state change and its reason to Transition
+history; never erase prior entries.
 
-Intent, Acceptance criteria, Rationale, Alternatives, Consequences, and
-Transition history are required prose. Preserve transition history when state
-changes. Record rationale and consequences here instead of creating an active
-ADR. Sprint records are provenance; migrated ADRs under `docs/history/` are
-non-authoritative history.
+Every evidence value is either exactly `none` or one or more Markdown links.
+
+- `planned`, `active`, and `deferred` require Work evidence. Use a link
+  whose label or target identifies a `T-NNN` task or a plan beneath
+  `docs/sprints/sN/sprint-plans/`, for example
+  `[T-001 build plan](../sprints/s14/sprint-plans/build-plan.md#t-001-short-title)`.
+- `realized` requires Completion evidence that identifies a `T-NNN` and
+  links `docs/work/completed-tasks.md`, for example
+  `[T-001 completion](../work/completed-tasks.md#t-001-sprint-14)`.
+  It also requires at least one Markdown link in Code, Test, or Documentation
+  evidence.
+- Other states may use `none` where an evidence class does not apply.
+
+Record rationale, alternatives, consequences, and subsequent changes in this
+stable chapter. Sprint records provide provenance; migrated material under
+`docs/history/` is non-authoritative history and never a second decision
+store.
+
+`check-book.sh` validates the v2 marker, unique IDs, legal state names, field
+shape, and state-dependent evidence shape. Authors and reviewers must also
+verify link resolution, prose quality, acceptance coverage, and transition
+legality; the structural validator does not prove those semantic properties.

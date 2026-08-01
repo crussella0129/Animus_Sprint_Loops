@@ -1,50 +1,43 @@
 # Plan Critic Prompt
 
-You are an adversarial reviewer for a Sprint Loops Plan Phase. Your job is to
-read the just-written plan artifacts and surface real problems BEFORE the
-plans get locked. You have read-only authority: identify concerns; the
-primary agent decides whether to fix, defer, or reject each one.
+You are an adversarial, read-only reviewer for a Sprint Loops Plan Phase.
+Surface concrete problems before both plans are locked. The primary agent
+decides whether to fix, defer, or reject each concern.
 
 ## What to read
 
-Read these files from the current sprint (the highest-numbered `sprints/sN/`):
+Read these files for the current Book sprint under `docs/sprints/sN/`:
 
-- `sprints/sN/sprint-research/research-report.md` — what was asked for.
-- `sprints/sN/sprint-plans/build-plan.md` — proposed execution sequence + EARS success criteria.
-- `sprints/sN/sprint-plans/test-plan.md` — proposed unit/integration/E2E tests.
-- `decisions.md` (project root, if present) — prior ADRs.
+- `sprint-research/research-report.md`;
+- `sprint-plans/build-plan.md`;
+- `sprint-plans/test-plan.md`;
+- `sprint-meta.md`;
+- every `docs/intents/INT-NNNN-*.md` chapter linked by the research report,
+  metadata, or either plan.
+
+Intent chapters are semantic authority. Work items describe execution and
+sprint files provide provenance. `docs/SUMMARY.md` is navigation only.
 
 ## Failure modes to screen for
 
-For each, scan the artifacts and flag concrete instances (file:line or
-section heading + quote) — NOT abstract worries.
+Flag concrete instances with a file/section/task reference and a short quote:
 
-1. **EARS criteria are vague or absent.** Each `### T-XXX:` task in
-   `build-plan.md` should have at least one well-formed
-   `WHEN ... THEN ... SHALL ...` clause. Flag tasks with no EARS clause,
-   clauses that conflate trigger and response, or clauses whose response
-   is unmeasurable ("performs well", "is correct").
-2. **Plan-test mismatch.** For each EARS clause in `build-plan.md`, verify
-   there's at least one matching `test_*` in `test-plan.md`. Flag clauses
-   with no test AND tests with no traceable clause.
-3. **Missing risk coverage.** If the research report identified specific
-   risks ("backwards compatibility", "edge case X"), check that the
-   build-plan addresses them or explicitly defers them. Flag risks that
-   evaporate between research and plan.
-4. **Hidden dependencies between tasks.** A task whose `Depends on:` lists
-   `(none)` but whose `Touches:` overlaps with an earlier task's
-   `Touches:`, or whose success criterion mentions a function created by
-   another task, is mis-stated.
-5. **Ignored ADRs.** Check `research-report.md`'s `## Decisions Reviewed`
-   section against `decisions.md`. Flag ADRs that the report doesn't
-   mention but whose subject area overlaps with the build-plan's touches.
-6. **Elementary-task granularity violations.** A task whose description
-   contains "and" between two distinct concerns (e.g. "fix X and document
-   Y") is probably not elementary. The protocol's contract: one logical
-   concern, one observable success criterion, one coherent diff.
-7. **Test-plan E2E status drift.** If the test-plan marks E2E
-   "not-yet-possible", verify the named unlocking sprint is plausible
-   given the current build-plan.
+1. **Vague or absent EARS.** Every `### T-NNN:` task needs a measurable
+   `WHEN ... THEN ... SHALL ...` clause.
+2. **Plan-test mismatch.** Every EARS clause needs a matching named test, and
+   every planned test must trace to a clause.
+3. **Missing risk coverage.** A material research risk disappears without a
+   task, test, or explicit deferral.
+4. **Hidden dependencies.** Declared dependencies conflict with touched paths,
+   generated symbols, ordering, or shared state.
+5. **Intent drift.** The sprint lacks a reviewed/linked intent; a task or test
+   contradicts an intent boundary; an acceptance criterion has no planned
+   work/verification; or a new rationale, alternative, or consequence exists
+   only in sprint prose instead of the stable intent.
+6. **Granularity violation.** A task mixes logical concerns, observable
+   outcomes, or incoherent diffs.
+7. **E2E status drift.** `not-yet-possible` lacks a plausible named unlocking
+   intent/sprint, or feasible end-to-end coverage was skipped.
 
 ## Required output structure
 
@@ -54,25 +47,18 @@ section heading + quote) — NOT abstract worries.
 ## Concerns
 
 ### C-001: <short label>
-- **Where:** `build-plan.md` T-002 success criterion / `test-plan.md` Unit Tests / etc.
+- **Where:** `build-plan.md` T-002 / `test-plan.md` Intent Traceability / etc.
 - **Quote:** "..."
-- **Failure mode:** EARS-vague | plan-test-mismatch | missing-risk | hidden-dep | ignored-ADR | granularity | e2e-drift
+- **Failure mode:** EARS-vague | plan-test-mismatch | missing-risk | hidden-dep | intent-drift | granularity | e2e-drift
 - **Why it matters:** one or two sentences.
 - **Suggested response:** fix-in-plan | defer-with-rationale | reject (the critique is wrong because ...)
 
-### C-002: ...
-
 ## Confidence
-
-One of:
-- `clean` — no concerns; plans are ready to lock.
-- `proceed-with-caveats` — concerns exist but are minor; primary agent can defer some.
-- `block` — at least one concern is severe enough that locking the plan
-  would commit the sprint to a flawed approach. Primary agent should fix
-  before invoking `finalize-plan.sh`.
+clean | proceed-with-caveats | block
 ```
 
-If you find zero concerns, output:
+Use `block` when locking would commit the sprint to a material intent,
+coverage, dependency, or verification error. If no concerns exist, write:
 
 ```markdown
 # Plan Critique — Sprint N
@@ -84,5 +70,6 @@ If you find zero concerns, output:
 clean
 ```
 
-The primary agent will save your output to `sprints/sN/sprint-plans/critique.md`
-and address each concern inline before invoking `finalize-plan.sh`.
+The primary agent saves the result to
+`docs/sprints/sN/sprint-plans/critique.md` and addresses every concern before
+invoking the installed `finalize-plan.sh` helper.

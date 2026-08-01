@@ -1,12 +1,17 @@
 # Particle: Loop Phase
 
 ```
-"You are in the Loop Phase. First, update 'sprint-meta.md' for the current sprint: set the end timestamp (ISO 8601), record the token count if observable, and set the exit status to 'success' if all tests passed, 'failed' if a failure-report was written, or 'aborted' if the sprint was already closed mid-flight via 'abort-sprint.sh' (in which case Exit status and end timestamp are already set — verify and move on). Second, compact context: do NOT re-inject prior sprint research, plans, or completed-task logs into your working context unless they are explicitly needed for the next sprint's research. The persistent state lives on disk; trust it. Third, if any architectural decisions were made during this sprint that future sprints will need to understand, append a brief entry to 'decisions.md' at the project root following the ADR-lite schema; and append any follow-up work the sprint surfaced but deferred to 'agent-tasks/agent-tasks.md' as '(backlog)' entries per the agent-tasks schema, so carry-forwards live as actionable backlog rather than prose. Fourth, verify the git working tree is clean — if any uncommitted changes remain, commit them with a 'sprint-N: cleanup' message. If the sprint was developed as a PR and CI is green (per the Test Phase's separate-step verification), merging is AI-verifiable and proceeds autonomously when the consequence is known and reversible ('gh pr merge <n> --merge --delete-branch' then sync local base); but STOP and surface (leave the PR open) when the merge's effect is unverifiable or undeterminable — a production deploy, a public release, or an unknown blast radius ('can't verify' includes 'can't determine the consequence'). Likewise, if the sprint produced a visually-inspectable artifact, surface it for human review rather than continuing silently. Use a heredoc for the PR body to avoid escaping issues. A harness with a recurring-invocation primitive (e.g. Claude Code's '/loop') can drive sprint-to-sprint recurrence automatically — see the Claude Code bundle's SKILL.md 'Autonomous operation' for the auto-accept + /loop pattern. Finally, return to the Initialize Sprint particle and begin sprint N+1."
+"Reconcile each sprint intent against its acceptance criteria and completion/code/test/documentation evidence. Move an eligible intent to realized, or retain active/defer it with a reason, and append Transition history. Record durable rationale, alternatives, and consequences in the stable intent; create and navigate a new intent for a distinct outcome. Append deferred executable work to docs/work/tasks.md as (backlog) [intent: INT-NNNN]. Optionally invoke update-confidence.sh, commit coherent remaining Book updates with a scoped boundary, and require check-book.sh to pass. Unless already aborted, then invoke the installed bundle's scripts/close-sprint.sh <success|failed> \"<one-line completion evidence>\" helper from the project root; success requires a test report with final clean/proceed-with-caveats critique and failed requires failure-report provenance. Invoke current-phase.sh and require ready-for-next-sprint. Compact context by selecting only Book evidence relevant to the next Research Phase."
 ```
 
-Output artifact schema: [`../schemas/decisions.md`](../schemas/decisions.md).
-Helper script: [`../scripts/update-confidence.sh`](../scripts/update-confidence.sh) adjusts the optional confidence throttle.
+Schemas: [`../schemas/intent.md`](../schemas/intent.md),
+[`../schemas/agent-tasks.md`](../schemas/agent-tasks.md), and
+[`../schemas/sprint-meta.md`](../schemas/sprint-meta.md).
+Helpers: [`../scripts/close-sprint.sh`](../scripts/close-sprint.sh),
+[`../scripts/update-confidence.sh`](../scripts/update-confidence.sh),
+[`../scripts/check-book.sh`](../scripts/check-book.sh), and
+[`../scripts/current-phase.sh`](../scripts/current-phase.sh).
 
 ---
 
-Loop closed. Re-inject [`01-init-sprint.md`](01-init-sprint.md) for sprint N+1.
+Loop closed. Re-inject `01-init-sprint.md` for sprint N+1.

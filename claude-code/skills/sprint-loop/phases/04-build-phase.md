@@ -1,70 +1,73 @@
 # Phase 04 — Build
 
-The current sprint's `build-plan.md` is finalized and must not be edited. Read it
-as authoritative input.
+## Outcome
 
-Open `agent-tasks/agent-tasks.md`. Append each task from the build-plan's
-execution sequence to the bottom in the order given, preserving task IDs and
-descriptions (see `schemas/agent-tasks.md`). Tasks are consumed from the **top**
-of `agent-tasks.md` — never reorder them based on preference.
+Implement each locked task as a coherent, verified commit while keeping Book
+execution state and the linked intent lifecycle synchronized.
 
-## Pre-flight (before the first commit)
+## Inputs
 
-If this sprint is working on a feature branch (not directly on `main`), refresh
-the base first so per-task commits land cleanly:
+Read:
 
-```bash
-git fetch && git rebase origin/<base>      # e.g. origin/main
-```
+- the finalized `docs/sprints/sN/sprint-plans/build-plan.md`;
+- the finalized test plan for expected verification;
+- `docs/work/tasks.md` and `docs/work/completed-tasks.md`;
+- every intent chapter linked by the sprint metadata and tasks.
 
-Run the project's sanity gate before each `commit-task.sh` — fail fast inside
-the loop is cheaper than failing in CI. Examples:
+Queue each build-plan task in plan order using the
+`[intent: INT-NNNN]` form from `schemas/agent-tasks.md`, adding only tasks
+that are neither already queued nor recorded in `completed-tasks.md` when
+resuming. Consume sprint tasks from the top. Run the project's formatter,
+linter, and affected tests before each commit boundary.
 
-- **Rust:** `cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test`
-- **Python:** `ruff format --check && ruff check && pytest`
-- **Go:** `gofmt -l . | (! grep .) && go vet ./... && go test ./...`
-- **TypeScript:** `npm run lint && npm test`
+Before implementing a task, move its `planned` linked intent to `active` and
+append that actual state change to Transition history. Preserve an already
+`active` intent without adding a duplicate history entry. A `deferred` intent
+must return through Plan before execution. Preserve Work evidence throughout.
 
-Block the commit on any failure; fix and re-run before invoking
-`commit-task.sh`. The protocol's commit-per-task contract assumes each commit
-is independently green.
+For every completed task:
 
-Execute tasks in order. Deviate only when a task is genuinely blocked by a missing
-dependency the plan did not anticipate; in that case, leave the blocking task in
-place, skip to the next executable task, and note the blockage in `sprint-meta.md`
-under a `blockages` section.
+1. Verify its EARS success criteria.
+2. Remove its exact entry from `docs/work/tasks.md`.
+3. Append a `docs/work/completed-tasks.md` entry with intent link, timestamp,
+   actual touched paths, and exact `- **Commit:** PENDING`.
+4. Invoke the installed bundle's
+   `scripts/commit-task.sh T-XXX "<description>" -- <explicit-path> [path...]`
+   helper with the project root as its working directory. List every modified
+   task-owned path after `--`, including intent, sprint metadata,
+   implementation, test, and documentation files.
 
-**Defer rather than block.** When a task's full scope depends on something the
-plan didn't anticipate (cross-component refactor, a missing library, an
-upstream API change), prefer to ship the *scoped piece* — the part that's
-self-contained and tested — and explicitly list the deferred work in the
-blockage note and, if applicable, the PR body. Blocking the whole sprint for
-one over-scoped task wastes the other tasks' value. Save abort for
-unrecoverable blockages.
+`commit-task.sh` stages and commits only the explicit paths plus the two Book
+ledgers, then backfills only the first exact `PENDING` line in a second small
+evidence commit. This keeps the recorded task commit reachable in normal clones
+while leaving unrelated staged and working-tree changes outside the boundary.
+It does not move ledger entries or edit intent chapters.
 
-If a blockage proves unrecoverable mid-sprint (an external dependency disappears,
-scope is invalidated, the user changes their mind), run:
+For a recoverable dependency gap, leave the task queued, record a Blockages
+entry in sprint metadata, and work the next executable planned task. Before
+leaving Build, resolve the blockage, re-scope it through an unlocked future
+plan/backlog, or abort; a queued current-sprint task keeps routing in Build.
+For an unrecoverable mid-sprint invalidation, invoke the installed bundle's
+`scripts/abort-sprint.sh "<one-line reason>"` helper with the project root as
+its working directory.
 
-```bash
-bash scripts/abort-sprint.sh "<one-line reason>"
-```
+## Authority
 
-It sets `sprint-meta.md` Exit status to `aborted`, records the end timestamp,
-appends an `## Abort note` section, and commits the close-out. The next sprint
-begins fresh — an aborted sprint, unlike a failed one, does **not** become the
-next sprint's primary research input.
+The locked build plan controls sprint execution order, but linked intent
+chapters still control meaning and acceptance boundaries. The work ledgers
+record queued/completed execution. Code and commits are realization evidence;
+they do not silently redefine intent. If implementation exposes a semantic
+change, stop, revise the intent explicitly, and record its history before
+continuing.
 
-For every task you complete:
+## Exit evidence
 
-1. Verify the success criterion is met.
-2. Delete the task entry from `agent-tasks.md`.
-3. Append it to `completed-tasks.md` with a completion timestamp and the file
-   paths actually modified (see `schemas/completed-tasks.md`).
-4. Create a commit boundary:
+- No `(sprint N)` task remains in `docs/work/tasks.md`.
+- Every completed task has one append-only completion entry, intent link,
+  timestamp, touched paths, and resolvable commit evidence.
+- Linked intents are `active` (or explicitly `deferred` with transition
+  history) and retain valid Work evidence.
+- Project sanity checks pass at each completed task boundary.
+- The installed `current-phase.sh` helper reports `test`.
 
-   ```bash
-   bash scripts/commit-task.sh T-XXX "<description>"
-   ```
-
-When all tasks in the current sprint's build-plan are either completed or
-documented as blocked, **read `phases/05-test-phase.md`.**
+When complete, read `phases/05-test-phase.md`.

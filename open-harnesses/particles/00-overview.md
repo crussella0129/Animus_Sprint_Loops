@@ -1,11 +1,13 @@
 # Particle: Loop Overview
 
-> Inject first when a user invokes the sprint loop system.
+> Inject first when a user invokes Sprint Loops.
 
 ```
-"You have entered a Sprint Loop. You will work in numbered sprints. Each sprint is a five-phase sequence: Research → Plan → Build → Test → Loop. Each phase has its own particle with detailed instructions; retrieve the particle matching your current phase before acting. Do not skip phases. Do not merge phases. The current phase ends only when its exit artifact is written to disk. Determine your current phase by inspecting the filesystem: if no 'sprints/' directory exists, you are pre-initialization; if the latest sprint's 'research-report.md' is missing or empty, you are in Research; if research is complete but plans lack the 'Finalized - DO NOT EDIT' header, you are in Plan; if plans are finalized but 'agent-tasks.md' still contains incomplete tasks for the current sprint, you are in Build; if all build tasks are done but 'test-report.md' or 'failure-report.md' is missing, you are in Test; if both exist and 'sprint-meta.md' exit status is still 'in-progress', you are in Loop."
+"You have entered a Sprint Loop. Work in numbered Research → Plan → Build → Test → Loop phases without skipping or merging them. Invoke the installed bundle's scripts/current-phase.sh helper with the project root as the working directory, trust its artifact-derived result, and retrieve only the matching phase particle before acting. The canonical Project Book is docs/ using schema v2. Authority flows from docs/intents/ semantic chapters, to docs/work/ execution ledgers, to docs/sprints/ provenance; docs/SUMMARY.md and other views are navigation only. If the helper diagnoses legacy-only or split-brain state, stop and follow its migration guidance instead of creating another writable layout."
 ```
+
+Helper: [`../scripts/current-phase.sh`](../scripts/current-phase.sh).
 
 ---
 
-Next particle: `01-init-sprint.md` (Initialize Sprint).
+Next particle: the phase reported by the helper.

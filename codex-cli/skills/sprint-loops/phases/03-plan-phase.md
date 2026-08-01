@@ -1,97 +1,71 @@
 # Phase 03 — Plan
 
-**Run `/plan` to engage Codex plan mode now. Use maximum effort.** The Plan Phase
-produces two planning artifacts and touches no source files.
+**Run `/plan` to engage Codex plan mode now. Use maximum effort.** The Plan
+Phase produces planning artifacts and does not edit implementation source.
 
-Read the current sprint's `sprint-research/research-report.md` as authoritative
-input. Also read `decisions.md` at the project root and cross-check with the
-report's `## Decisions Reviewed` section. Produce two artifacts in sequence:
-`build-plan.md` first, then `test-plan.md`, both in `sprint-plans/`.
+Read
+`docs/sprints/sN/sprint-research/research-report.md`, every intent linked
+under `## Intents Reviewed`, the current `sprint-meta.md`, and the build/test
+schemas. The sprint must advance at least one `INT-NNNN`.
 
 ## Build plan
 
-Decompose the sprint goal into a schema tree. The root is the sprint goal; each
-child node is a critical component; each leaf is an elementary task. A task is
-elementary if and only if it can be completed in a single tool-call loop without
-re-reading the plan — it touches at most one logical concern, has a single
-observable success criterion, and produces a single coherent diff. Do not
-decompose below this granularity.
+Use the research recommendation to decompose the sprint goal into a schema
+tree, then linearize elementary `T-NNN` tasks in dependency order. Each task
+names at least one intent, touched paths, dependencies, the specific intent
+acceptance criterion it advances, measurable EARS clauses, and execution notes.
 
-Linearize the tree into an execution sequence honoring dependencies — a task may
-only follow tasks it depends on. For each task, record: a stable task ID (e.g.
-`T-001`), a one-sentence description, the files it touches, its dependencies (by
-task ID), its **success criterion (EARS-format, see below)**, and execution notes.
+The plan translates intent into work. If planning changes an outcome, boundary,
+rationale, alternative, consequence, or lifecycle state, revise the stable
+intent chapter and append its Transition history before continuing.
 
-**Success criterion uses EARS** (Easy Approach to Requirements Syntax):
-`WHEN <trigger> THEN <component> SHALL <response>`. Each elementary task gets
-at least one EARS clause; multiple when the task has distinct behavioral
-surfaces (happy path, error path, edge case). This format lets the Test Phase
-scaffold one `test_*` per WHEN/THEN/SHALL triple mechanically; freeform notes
-are allowed alongside but tests are derived from the EARS clauses. Review for local
-correctness (each task well-formed) and global correctness (the sequence
-accomplishes the goal). Write to `build-plan.md` following `schemas/build-plan.md`.
+Before critic review, synchronize every sprint-advanced intent with the plan.
+Move `proposed` or `deferred` to `planned`, attach Work evidence linking its
+`T-NNN` task or plan anchor, and append the state change to Transition history.
+Preserve an already `active` intent without adding a no-op history entry.
 
 ## Test plan
 
-Walk the build-plan's execution sequence in order. For each elementary task,
-define the unit tests: input, expected output, required stubs/mocks. For each
-component (parent node in the schema tree), define the integration tests covering
-interaction between its child tasks. If the build state will permit End-to-End
-system testing after this sprint completes, define the E2E tests: full system
-invocations with mock-real input data, observable outputs, pass/fail criteria. If
-E2E is not yet possible, state so explicitly and identify the future sprint that
-unlocks it. Review for local and global correctness. Write to `test-plan.md`
-following `schemas/test-plan.md`.
+Map each EARS clause to at least one named unit test, each component to
+integration coverage, and each affected intent acceptance criterion to
+verification in the Intent Traceability table. Define E2E coverage when
+possible; otherwise name the unlocking intent or sprint and rationale.
 
 ## Critic review (before lock)
 
-After `ExitPlanMode` returns and you've written both plan files to disk —
-but BEFORE invoking `finalize-plan.sh` — spawn a critic subagent with the
-plan-critic prompt:
+After both plans are written, spawn a read-only critic with
+`prompts/plan-critic.md`. It reads the research report, plans, and linked
+intents. Save its result to
+`docs/sprints/sN/sprint-plans/critique.md`.
 
-1. Use the Agent tool with the prompt from `prompts/plan-critic.md`. The
-   critic reads `build-plan.md`, `test-plan.md`, `research-report.md`, and
-   `decisions.md`, then returns a structured critique.
-2. Save the critique to `sprints/sN/sprint-plans/critique.md`.
-3. **Address each concern inline** in `critique.md`:
-   - `fix-in-plan`: amend `build-plan.md` or `test-plan.md` before lock.
-   - `defer-with-rationale`: add to sprint-meta blockages or a follow-up
-     note for the next sprint, with one-sentence rationale.
-   - `reject`: write one sentence explaining why the critique is wrong.
-4. If the critic returned `## Confidence: block` and any concerns are
-   unaddressed, do NOT proceed to finalize — fix and re-critique.
+Address every concern inline:
 
-If your harness can't spawn subagents, self-critique against
-`prompts/plan-critic.md`'s failure-mode list in a single message before
-proceeding. Record the self-critique in `critique.md` the same way.
+- `fix-in-plan`: amend an unlocked plan.
+- `defer-with-rationale`: record the follow-up against its intent and work
+  ledger.
+- `reject`: explain why the critique is inapplicable.
+
+Do not lock while the critic verdict is `block`. If subagents are
+unavailable, self-critique against the same prompt and save the same structure.
 
 ## Finalize
 
-Do not begin building. Do not edit any source files outside the plan documents.
-After `ExitPlanMode` returns, you've written both plan files to disk per the
-schemas, AND the critic review is recorded in `critique.md` with responses,
-lock the plans:
+Before invoking the helper, update `sprint-meta.md` Summary and Intents with
+the one-line goal and links to every `INT-NNNN` advanced by the sprint. Then
+invoke the installed bundle's `scripts/finalize-plan.sh` helper with the
+project root as its working directory.
 
-```bash
-bash scripts/finalize-plan.sh
-```
+The helper validates both plans before changing either one. It requires:
 
-This prepends `Finalized - DO NOT EDIT` to both files. It also enforces four
-gates that block the lock if violated:
+- at least one `### T-NNN:` build task;
+- at least one Book intent and at least one Markdown-linked entry under the
+  research report's exact `## Intents Reviewed` heading, rejecting a legacy
+  review heading as a substitute;
+- research within the 20-file / 5-source budget or a non-empty override;
+- a critique with `## Concerns` and a `clean` or
+  `proceed-with-caveats` Confidence verdict.
 
-- **No-empty-plan gate**: `build-plan.md` must contain at least one
-  `### T-XXX:` execution entry.
-- **Decisions-reviewed gate**: when `decisions.md` is non-empty, the
-  current sprint's `research-report.md` must contain a heading matching
-  `^## Decisions Reviewed`. See `phases/02-research-phase.md`.
-- **Research-budget gate**: the research-report must be within the file/source
-  caps (or carry a `## Budget Override`). See `phases/02-research-phase.md`.
-- **Critique gate**: `sprint-plans/critique.md` must exist with a `## Concerns`
-  heading and a `## Confidence` verdict of `clean` or `proceed-with-caveats`.
-  A `block`, malformed, or missing critique refuses the lock — run the plan
-  critic before finalizing.
+On success, both plans receive `Finalized - DO NOT EDIT`. Do not begin source
+work before that evidence exists.
 
-If `finalize-plan.sh` rejects, fix the violation and re-run; then update
-`sprint-meta.md` with a one-line sprint summary.
-
-**When both plans are finalized, read `phases/04-build-phase.md`.**
+When complete, read `phases/04-build-phase.md`.

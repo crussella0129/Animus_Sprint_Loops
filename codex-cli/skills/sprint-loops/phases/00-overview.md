@@ -1,118 +1,76 @@
 # Phase 00 — Overview & Core Protocol
 
-> Read this first if this is your first interaction with the skill this session.
-> This file is the **complete protocol**. The other files in `phases/` are the
-> per-phase playbooks you route into; `schemas/` holds artifact templates and
-> `scripts/` holds deterministic helpers. Everything needed to run a Sprint Loop
-> is in this bundle — no external document is required.
+## Outcome
 
-## The loop
+Operate a five-phase Sprint Loop — Research → Plan → Build → Test → Loop —
+against one Project Book, and route to the current phase from evidence on disk.
+Do not skip or merge phases.
 
-You have entered a Sprint Loop. You will work in numbered sprints. Each sprint is
-a five-phase sequence: **Research → Plan → Build → Test → Loop**. Each phase has
-its own file in `phases/`; read the file matching your current phase before
-acting.
+## Inputs
 
-Do not skip phases. Do not merge phases. The current phase ends only when its exit
-artifact is written to disk.
+Invoke the installed bundle's `scripts/current-phase.sh` helper with the
+project root as its working directory. The harness adapter resolves the
+installed bundle path.
 
-## Determining your current phase
+It prints `uninitialized`, `research`, `plan`, `build`, `test`,
+`loop`, or `ready-for-next-sprint`. If it reports legacy-only or
+split-brain state, stop and follow the migration diagnostic; do not create a
+second writable layout.
 
-Run `scripts/current-phase.sh` — it inspects the filesystem and prints one of
-`uninitialized`, `research`, `plan`, `build`, `test`, `loop`, or
-`ready-for-next-sprint`. The mapping it applies:
+Book schema v2 is rooted at:
 
-- no `sprints/` directory → pre-initialization
-- latest sprint's `research-report.md` missing or empty → Research
-- research complete but plans lack the `Finalized - DO NOT EDIT` header → Plan
-- plans finalized but `agent-tasks.md` still has incomplete tasks for this sprint → Build
-- all build tasks done but `test-report.md`/`failure-report.md` missing → Test
-- both exist and `sprint-meta.md` exit status still `in-progress` → Loop
-
-The filesystem IS the state machine. Trust the disk — do not re-derive state from
-chat history.
-
-## Directory schema
-
-A project running Sprint Loops has this layout at its root:
-
-```
-project-root/
-├── decisions.md                      # ADR-style architectural decisions log
-├── confidence.txt                    # Optional: confidence scalar (Kalman-style throttle)
-├── agent-tasks/                      # PERSISTENT — survives across sprints
-│   ├── agent-tasks.md                # Current backlog (append at bottom, consume from top)
-│   └── completed-tasks.md            # Append-only log of finished tasks
-└── sprints/                          # EPHEMERAL — one subdirectory per sprint
-    ├── s0/
-    │   ├── sprint-meta.md
-    │   ├── sprint-research/
-    │   │   ├── research-report.md
-    │   │   └── [artifacts]
-    │   ├── sprint-plans/
-    │   │   ├── build-plan.md         # Locked after Plan Phase
-    │   │   └── test-plan.md          # Locked after Plan Phase
-    │   └── sprint-tests/
-    │       ├── unit-tests.md
-    │       ├── integration-tests.md
-    │       ├── e2e-tests.md
-    │       └── test-report.md
-    ├── s1/
-    └── sN/
+```text
+docs/
+├── .sprint-loop-book
+├── README.md
+├── SUMMARY.md
+├── intents/
+│   ├── README.md
+│   └── INT-NNNN-<slug>.md
+├── work/
+│   ├── tasks.md
+│   ├── completed-tasks.md
+│   └── confidence.txt
+├── sprints/
+│   └── sN/
+│       ├── sprint-meta.md
+│       ├── sprint-research/research-report.md
+│       ├── sprint-plans/{build-plan.md,test-plan.md,critique.md}
+│       ├── sprint-tests/{unit-tests.md,integration-tests.md,e2e-tests.md,critique.md,test-report.md}
+│       └── failure-report.md
+└── history/
 ```
 
-## Why two state surfaces
+Read the phase file matching the helper result before acting.
 
-- **`sprints/sN/`** is *working memory* — what this sprint is doing, ephemeral,
-  never modified after the sprint closes.
-- **`agent-tasks/`** is *long-term memory* — what has ever been done, what is still
-  pending, persistent across all sprints.
+## Authority
 
-Conflating these is the most common failure mode in agentic workflows.
+Authority has one direction:
 
-## Phase exit conditions
+1. `docs/intents/INT-NNNN-*.md` is semantic authority for desired outcomes,
+   boundaries, acceptance criteria, rationale, alternatives, consequences, and
+   lifecycle state.
+2. `docs/work/tasks.md` and `docs/work/completed-tasks.md` are execution
+   state linked back to intent.
+3. `docs/sprints/sN/` is sprint provenance: research, plans, critiques,
+   verification, and close evidence.
+4. `docs/SUMMARY.md` and other views are navigation only.
 
-| Phase      | Exit artifact                                              | Exit condition                              |
-|------------|------------------------------------------------------------|---------------------------------------------|
-| Initialize | All directories + files exist, `sprint-meta.md` populated  | Filesystem matches schema                   |
-| Research   | `research-report.md` with all 5 sections                   | Report complete, artifacts referenced       |
-| Plan       | `build-plan.md` + `test-plan.md` both finalized            | Both files prepended with `Finalized - DO NOT EDIT` |
-| Build      | All tasks in `agent-tasks.md` for this sprint completed or blocked | Git commits exist for each completed task   |
-| Test       | `test-report.md` written (or `failure-report.md`)          | All tests run, CI green or failure documented |
-| Loop       | `sprint-meta.md` finalized, git tree clean                 | Ready to invoke Initialize for sprint N+1   |
+When these surfaces disagree, repair the lower-authority evidence from the
+intent or explicitly revise the intent and append its Transition history. A
+sprint record never silently changes project intent.
 
-## Failure semantics
+The filesystem is the state machine. Chat history and generated navigation do
+not override Book evidence.
 
-When a sprint fails (the Test Phase produces irrecoverable failures requiring
-re-architecture):
+## Exit evidence
 
-1. Test Phase writes `sprints/sN/failure-report.md` (schema: `schemas/failure-report.md`).
-2. `sprint-meta.md` exit status is set to `failed`.
-3. Loop Phase still runs — it closes out the failed sprint cleanly.
-4. The next sprint's Research Phase begins by reading the prior `failure-report.md` as its primary input.
-5. Sprint numbering does not reset. A failed sprint still counts.
+The phase helper has produced one unambiguous state:
 
-## Confidence throttle (optional)
-
-Track a `confidence` scalar across sprints in `confidence.txt`. Initialize at 1.0.
-After each sprint:
-
-- All tests pass → `confidence = min(1.0, confidence + 0.1)`
-- Any unit/integration failures patched in-sprint → `confidence -= 0.1`
-- Failure-report written → `confidence -= 0.3`
-
-When `confidence < 0.5`, the next sprint's build-plan must have ≤ 5 elementary
-tasks. This mirrors the covariance update in a Kalman filter — research is
-measurement, plan is prediction, build is state update, test is innovation, loop
-is covariance update. The `scripts/update-confidence.sh` helper applies these
-adjustments.
-
-## Routing
-
-Once you know your phase, read the matching `phases/` file and execute it:
-
-`01-init-sprint` → `02-research-phase` → `03-plan-phase` → `04-build-phase` →
-`05-test-phase` → `06-loop-phase`, then back to `01-init-sprint` for sprint N+1.
-
-Each phase file ends by naming the next one. When a phase's exit artifact is on
-disk, re-run `scripts/current-phase.sh` and route again.
+- `uninitialized` → read `01-init-sprint.md`.
+- `research` → read `02-research-phase.md`.
+- `plan` → read `03-plan-phase.md`.
+- `build` → read `04-build-phase.md`.
+- `test` → read `05-test-phase.md`.
+- `loop` → read `06-loop-phase.md`.
+- `ready-for-next-sprint` → read `01-init-sprint.md`.

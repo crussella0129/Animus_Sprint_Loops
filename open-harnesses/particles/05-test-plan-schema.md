@@ -1,11 +1,11 @@
 # Particle: Test Plan Schema
 
 ```
-"To compose the test-plan, walk the build-plan's execution sequence in order. For each elementary task, define the unit tests required: when the task's success criterion is in EARS format ('WHEN <trigger> THEN <component> SHALL <response>'), derive one unit test per WHEN/THEN/SHALL triple — the trigger becomes the arrangement, the response becomes the assertion. Specify input, expected output, and any required stubs or mocks. For each component (parent node in the schema tree), define the integration tests covering interaction between its child tasks. Finally, if the current state of the build will permit End-to-End system testing after this sprint completes, define the E2E tests: full system invocations with mock-real input data, observable outputs, and pass/fail criteria. If E2E testing is not yet possible, state so explicitly and identify what future sprint will unlock it. Review for local correctness (each test is well-formed and runnable) and global correctness (the test suite as a whole verifies the sprint goal). Write to 'test-plan.md' following the schema below."
+"Compose docs/sprints/sN/sprint-plans/test-plan.md from the build execution sequence and linked intent acceptance criteria. Include an Intent Traceability table covering every affected acceptance criterion. Derive at least one named unit test from each EARS clause, define component integration coverage, and define feasible E2E behavior with observable pass/fail evidence. When E2E is not yet possible, name the unlocking intent or sprint and rationale. Tests may strengthen the intent oracle but may not weaken or redefine it."
 ```
 
-Output artifact schema: [`../schemas/test-plan.md`](../schemas/test-plan.md).
+Output schema: [`../schemas/test-plan.md`](../schemas/test-plan.md).
 
 ---
 
-Next particle: `06-build-phase.md`.
+Return to `03-plan-phase.md` for critique and atomic finalization.
