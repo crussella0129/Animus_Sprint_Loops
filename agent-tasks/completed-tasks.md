@@ -285,3 +285,9 @@
 - **Completed:** 2026-08-01T06:23:27Z
 - **Files modified:** `{4 bundles}/scripts/{init-sprint.sh,current-sprint.sh,current-phase.sh,selftest.sh,book-routing.test.sh}`, task ledgers
 - **Commit:** `29bde47`
+
+## T-112 (sprint 14)
+- **Description:** Added a lossless, idempotent legacy-to-Book migration with exact path/type/SHA-256 provenance, one-authority cutover, verified rollback, concurrent-change detection, split-brain and alias refusal, full Book tracking checks, and Windows-safe navigation migration.
+- **Completed:** 2026-08-01T14:43:49Z
+- **Files modified:** `{4 bundles}/scripts/{init-sprint.sh,migrate-to-book.sh,migrate-to-book.test.sh}`, task ledgers
+- **Commit:** `07add19`

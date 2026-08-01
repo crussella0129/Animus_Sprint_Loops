@@ -7,7 +7,6 @@
 - [ ] T-107 (backlog): launch-time E2E harness for picker count + auto-trigger survival — touches: tools/, .github/workflows/ci.yml
 - [ ] T-108 (backlog): record confidence before→after in sprint-meta at Loop close — touches: {4 bundles}/scripts/update-confidence.sh, phases/06, schemas/sprint-meta.md
 - [ ] T-109 (backlog): dev-branch working model — at Init (sprint 0), establish/verify a long-lived work branch ("dev" or user-named) alongside main; sprints develop on it and each sprint's PR targets main; at launch, elicit approve-merge vs auto-merge unless the initial prompt already specified it (user request, s11) — touches: {4 bundles}/scripts/init-sprint.sh, phases/01+06, claude-code SKILL.md, schemas/sprint-meta.md
-- [ ] T-112 (sprint 14): add lossless idempotent legacy-to-Book migration — touches: migrate-to-book.sh, selftest.sh
 - [ ] T-113 (sprint 14): rewire runtime helpers and hard gates to Book evidence — touches: abort-sprint.sh, commit-task.sh, finalize-plan.sh, research-budget.sh, update-confidence.sh, selftest.sh
 - [ ] T-114 (sprint 14): rewrite the harness-neutral protocol around intent and evidence — touches: phases, schemas, prompts, particles
 - [ ] T-115 (sprint 14): refactor the Codex adapter for current GPT-5.6 and Codex behavior — touches: Codex SKILL, AGENTS fragment, phases, installer, README

@@ -46,7 +46,21 @@ fi
 
 ensure_summary_line() {
   summary_line=$1
-  grep -Fqx -- "$summary_line" "$BOOK_SUMMARY" 2>/dev/null || printf '%s\n' "$summary_line" >> "$BOOK_SUMMARY"
+  if awk -v wanted="$summary_line" '
+    {
+      line=$0
+      sub(/\r$/, "", line)
+      if (line == wanted) found=1
+    }
+    END { exit !found }
+  ' "$BOOK_SUMMARY"; then
+    return
+  fi
+  if [ -s "$BOOK_SUMMARY" ] &&
+    [ "$(tail -c 1 "$BOOK_SUMMARY" | wc -l | tr -d '[:space:]')" -eq 0 ]; then
+    printf '\n' >> "$BOOK_SUMMARY"
+  fi
+  printf '%s\n' "$summary_line" >> "$BOOK_SUMMARY"
 }
 ensure_summary_line '- [Project Book](README.md)'
 ensure_summary_line '- [Intents](intents/README.md)'
@@ -71,9 +85,13 @@ GITIGNORE=$(book_join_root .gitignore)
 gitignore_tmp="$GITIGNORE.tmp.$$"
 if [ -f "$GITIGNORE" ]; then
   awk '
-    $0 == "# >>> sprint-loops >>>" { owned=1; next }
-    $0 == "# <<< sprint-loops <<<" { owned=0; next }
-    !owned { print }
+    {
+      line=$0
+      sub(/\r$/, "", line)
+      if (line == "# >>> sprint-loops >>>") { owned=1; next }
+      if (line == "# <<< sprint-loops <<<") { owned=0; next }
+      if (!owned) print
+    }
   ' "$GITIGNORE" > "$gitignore_tmp"
 else
   : > "$gitignore_tmp"
