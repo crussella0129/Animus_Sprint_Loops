@@ -273,3 +273,9 @@
 - **Completed:** 2026-07-04T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{finalize-plan.sh,selftest.sh}`
 - **Commit:** PENDING
+
+## T-110 (sprint 14)
+- **Description:** Defined the Book v2 path/layout contract, stable intent lifecycle metadata, evidence rules, split-brain detection, structural validation, and focused positive/negative fixtures across all four bundles.
+- **Completed:** 2026-08-01T04:40:56Z
+- **Files modified:** `{4 bundles}/schemas/intent.md`, `{4 bundles}/scripts/{book-paths.sh,check-book.sh,check-book.test.sh}`, Sprint 14 planning artifacts and task ledgers
+- **Commit:** `f40d7a7`
