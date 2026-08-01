@@ -279,3 +279,9 @@
 - **Completed:** 2026-08-01T04:40:56Z
 - **Files modified:** `{4 bundles}/schemas/intent.md`, `{4 bundles}/scripts/{book-paths.sh,check-book.sh,check-book.test.sh}`, Sprint 14 planning artifacts and task ledgers
 - **Commit:** `f40d7a7`
+
+## T-111 (sprint 14)
+- **Description:** Made fresh initialization and phase routing Book-native, including tracked scaffold creation, stable navigation, legacy/conflict refusal, artifact-derived transitions, and modular full-phase fixtures.
+- **Completed:** 2026-08-01T06:23:27Z
+- **Files modified:** `{4 bundles}/scripts/{init-sprint.sh,current-sprint.sh,current-phase.sh,selftest.sh,book-routing.test.sh}`, task ledgers
+- **Commit:** `29bde47`
