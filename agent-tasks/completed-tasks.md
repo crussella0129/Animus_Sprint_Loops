@@ -291,3 +291,9 @@
 - **Completed:** 2026-08-01T14:43:49Z
 - **Files modified:** `{4 bundles}/scripts/{init-sprint.sh,migrate-to-book.sh,migrate-to-book.test.sh}`, task ledgers
 - **Commit:** `07add19`
+
+## T-113 (sprint 14)
+- **Description:** Rewired runtime gates to Book evidence, including transactional plan locking, exact intent/critic/budget validation, Loop-only evidence-aligned closeout, failure-safe metadata commits, CRLF preservation, explicit per-task path authority, and clone-durable commit evidence.
+- **Completed:** 2026-08-01T16:19:44Z
+- **Files modified:** `{4 bundles}/scripts/{abort-sprint.sh,close-sprint.sh,commit-task.sh,finalize-plan.sh,research-budget.sh,update-confidence.sh,runtime-helpers.test.sh,selftest.sh}`, task ledgers
+- **Commit:** `33cb34d`

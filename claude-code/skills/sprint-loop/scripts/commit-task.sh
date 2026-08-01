@@ -1,41 +1,78 @@
 #!/usr/bin/env bash
-# Commit a completed task as a clean commit boundary, and back-fill the new
-# commit's short hash into agent-tasks/completed-tasks.md if the agent left a
-# `Commit:** PENDING` placeholder there.
-# Usage: commit-task.sh <task-id> <description>
-# Run from the project root. Sibling scripts are resolved relative to this file, so
-# this works whether scripts/ lives in the project or in an installed skill bundle.
+# Commit explicitly scoped task paths, then durably record their commit.
+# Usage: commit-task.sh <task-id> <description...> -- <path> [path...]
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-N=$("$SCRIPT_DIR/current-sprint.sh")
-git add -A
-git commit -m "sprint-$N: $1 $2"
 
-# Back-fill: if `completed-tasks.md` has a fully-anchored placeholder line
-# `- **Commit:** PENDING`, replace the FIRST such line with the just-committed
-# short hash and fold the edit into the same commit via amend.
-#
-# Line-anchoring (`^...$`) prevents false positives — earlier versions matched
-# the substring inside other entries' description text, corrupting them.
-#
-# Known quirk (intentional): the embedded hash is the PRE-amend hash. The
-# amend (which folds the back-fill itself into the commit) produces a new
-# HEAD with a different SHA. The embedded hash thus refers to a commit that
-# was rewritten by the amend; you can find the actual commit via
-# `git log --grep "sprint-N: T-XXX"` (commit messages are stable). Trying to
-# embed the post-amend hash requires either two amends (which produce a
-# THIRD hash) or a second commit (violates one-commit-per-task). The
-# pre-amend hash is the simplest stable identifier under the constraints.
-F="agent-tasks/completed-tasks.md"
-if [ -f "$F" ] && grep -qE '^- \*\*Commit:\*\* PENDING$' "$F"; then
-  HASH=$(git rev-parse --short HEAD)
-  # Portable first-match-only replacement (GNU sed's `0,/…/` range and bare
-  # `-i` are not BSD-safe): awk whole-line equality — an exactly equivalent
-  # match set to the anchored regex above — fills only the FIRST placeholder.
-  awk -v h="$HASH" '
-    !done && $0 == "- **Commit:** PENDING" { $0 = "- **Commit:** `" h "`"; done = 1 }
-    { print }
-  ' "$F" > "$F.tmp" && mv "$F.tmp" "$F"
-  git add "$F"
-  git commit --amend --no-edit --quiet
+if [ "$#" -lt 4 ]; then
+  echo "usage: $(basename "$0") <task-id> <description...> -- <path> [path...]" >&2
+  exit 1
+fi
+TASK_ID=$1
+shift
+DESCRIPTION=
+while [ "$#" -gt 0 ] && [ "$1" != -- ]; do
+  if [ -n "$DESCRIPTION" ]; then DESCRIPTION="$DESCRIPTION $1"; else DESCRIPTION=$1; fi
+  shift
+done
+if [ -z "$DESCRIPTION" ] || [ "$#" -eq 0 ] || [ "$1" != -- ]; then
+  echo "usage: $(basename "$0") <task-id> <description...> -- <path> [path...]" >&2
+  exit 1
+fi
+shift
+if [ "$#" -eq 0 ]; then
+  echo "commit-task requires at least one explicit task path after --" >&2
+  exit 1
+fi
+TASK_PATHS=("$@")
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/book-paths.sh"
+book_require_v2_layout
+N=$("$SCRIPT_DIR/current-sprint.sh")
+if [ "$N" = -1 ]; then echo "no sprint found" >&2; exit 1; fi
+
+F=$BOOK_COMPLETED_TASKS_FILE
+if [ ! -f "$F" ] || ! awk '
+  { sub(/\r$/, "", $0) }
+  $0 == "- **Commit:** PENDING" { found=1 }
+  END { exit !found }
+' "$F"; then
+  echo "refusing to commit $TASK_ID: $F has no exact pending commit evidence entry" >&2
+  exit 1
+fi
+
+# Scope both staging and committing. Unrelated staged and working-tree changes
+# remain outside this task boundary.
+COMMIT_PATHS=("${TASK_PATHS[@]}" "$BOOK_TASKS_FILE" "$BOOK_COMPLETED_TASKS_FILE")
+git add -A -- "${COMMIT_PATHS[@]}"
+git commit -m "sprint-$N: $TASK_ID $DESCRIPTION" -- "${COMMIT_PATHS[@]}"
+HASH=$(git rev-parse HEAD)
+
+# The ledger edit is intentionally exact and first-match-only. Prose that
+# merely mentions PENDING and later task entries remain untouched.
+TMP="$F.tmp.$$"
+trap 'rm -f "$TMP"' EXIT
+awk -v h="$HASH" '
+  {
+    if (NR == 1) {
+      if (sub(/\r$/, "", $0)) ORS="\r\n"
+    } else {
+      sub(/\r$/, "", $0)
+    }
+  }
+  !done && $0 == "- **Commit:** PENDING" {
+    $0 = "- **Commit:** `" h "`"; done=1
+  }
+  { print }
+' "$F" > "$TMP"
+mv "$TMP" "$F"
+trap - EXIT
+git add -- "$F"
+git commit -m "sprint-$N: $TASK_ID record commit evidence" -- "$F"
+
+# The task commit is now an ancestor of the evidence commit, so a normal clone
+# retains and resolves the recorded object without relying on a reflog.
+if ! git cat-file -e "$HASH^{commit}"; then
+  echo "commit evidence $HASH is not resolvable after recording" >&2
+  exit 1
 fi
