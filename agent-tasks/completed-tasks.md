@@ -303,3 +303,9 @@
 - **Completed:** 2026-08-01T20:07:39Z
 - **Files modified:** `{claude-code,codex-cli}/skills/sprint-loop*/{phases,prompts}/**`, `open-harnesses/{particles,prompts}/**`, `{4 bundles}/schemas/**`, `{4 bundles}/scripts/{critic-contract.sh,finalize-plan.sh,current-phase.sh,book-routing.test.sh,runtime-helpers.test.sh}`, task ledgers
 - **Commit:** `2ce56ff`
+
+## T-115 (sprint 14)
+- **Description:** Refactored the Codex adapter for current `.agents/skills` discovery and GPT-5.6-oriented progressive disclosure: explicit activation, resolved skill/project roots, uniform four-heading phase contracts, single-statement remote and shared-workspace authority, Book-native planning/Loop evidence, and a short optional AGENTS pointer. Hardened POSIX and native PowerShell installation with independent source/target resolution, per-target locks, transaction ownership markers, non-destructive rollback, terminating signal handling, Windows/WSL path boundaries, and executable race/failure/collision fixtures; all nine cross-platform adapter contracts pass.
+- **Completed:** 2026-08-02T02:28:04Z
+- **Files modified:** `codex-cli/{README.md,install.sh}`, `codex-cli/skills/sprint-loops/{SKILL.md,AGENTS.md.fragment,phases/{03-plan-phase.md,06-loop-phase.md}}`, `codex-cli/tests/{adapter-contract.test.sh,adapter-contract.windows.ps1}`, task ledgers
+- **Commit:** `3e8ccb3`
