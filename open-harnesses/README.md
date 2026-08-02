@@ -1,170 +1,82 @@
-# Sprint Loops — Open Harnesses
+# Sprint Loops for Open Harnesses
 
-> For OpenClaw, OpenCode, local LLMs, custom runners, GECK, or any agent runtime
-> that can read markdown files and execute shell commands.
+Use this distribution with OpenClaw, OpenCode, local models, custom runners,
+GECK, or any runtime that can retrieve Markdown and execute shell commands.
 
-This directory is the **canonical, runtime-agnostic specification** of the Sprint
-Loops protocol. The [`claude-code/`](../claude-code/) and [`codex-cli/`](../codex-cli/)
-bundles are thin adapters over what is defined here.
+`open-harnesses/` is the runtime-neutral distribution and physical shared-copy
+reference for Sprint Loops scripts, schemas, and prompts. That maintenance role
+does not make this directory—or any vendor adapter—the semantic owner of the
+protocol. In a target project, the canonical Project Book schema v2 is rooted
+at `docs/`.
 
-Sprint Loops decomposes long-horizon coding work into numbered sprints, each a
-five-phase sequence — **Research → Plan → Build → Test → Loop** — with persistent
-state on disk and a clean separation between working memory and the rolling backlog.
+Read the protocol from linked assets instead of reproducing it here:
 
-## What's in this directory
+- [Book overview and authority order](particles/00-overview.md)
+- [intent lifecycle and evidence schema](schemas/intent.md)
+- [repository-level harness guidance](../README.md)
 
-```
-open-harnesses/
-├── README.md            # this file — the core protocol
-├── particles/           # one prompt particle per phase (Oovra / vector-store ready)
-│   ├── 00-overview.md
-│   ├── 01-init-sprint.md
-│   ├── 02-research-phase.md
-│   ├── 03-plan-phase.md
-│   ├── 04-build-plan-schema.md
-│   ├── 05-test-plan-schema.md
-│   ├── 06-build-phase.md
-│   ├── 07-test-phase.md
-│   └── 08-loop-phase.md
-├── schemas/             # output-artifact templates, one per file
-│   ├── sprint-meta.md       research-report.md   build-plan.md
-│   ├── test-plan.md         agent-tasks.md       completed-tasks.md
-│   └── test-report.md       failure-report.md    decisions.md
-└── scripts/             # deterministic helpers — let bash count sprints, not the LLM
-    ├── current-sprint.sh    current-phase.sh     commit-task.sh
-    └── init-sprint.sh       finalize-plan.sh     update-confidence.sh
+## Install the helpers
+
+From this repository, install the deterministic helpers into an existing
+project:
+
+```bash
+bash open-harnesses/install.sh /path/to/project
 ```
 
-Particles are kept one-per-file so they can be embedded individually into
-[Oovra](https://github.com/crussella0129) or any vector store — each has a single
-semantic surface, which keeps embeddings tight and retrieval ranking clean.
+Omit the target argument to use the current directory. The installer replaces
+the target's entire `scripts/` directory with this bundle's helper directory,
+then marks the shell files executable. Use it only when `scripts/` is dedicated
+to Sprint Loops; otherwise package the helpers at a runtime-specific location
+and resolve that location explicitly in your harness.
 
-## Getting started
+Run installed helpers with the target project root as the working directory:
 
-1. **Drop the helpers into your project.** Copy `scripts/` to your project root so
-   the agent can run `scripts/current-phase.sh` from there:
-
-   ```bash
-   cp -r open-harnesses/scripts /path/to/your/project/scripts
-   chmod +x /path/to/your/project/scripts/*.sh
-   ```
-
-2. **Load the particles into your retrieval store.** Index every file in
-   `particles/` (and optionally `schemas/`) so the harness can retrieve them by
-   semantic match.
-
-3. **Wire the invocation loop** (below) into your harness.
-
-4. **Start a sprint.** When the user expresses sprint-loop intent, inject the
-   Loop Overview particle, then run `scripts/init-sprint.sh` and proceed.
-
-## Invocation model
-
-Open harnesses retrieve particles by semantic match. The harness should:
-
-1. Detect sprint-loop intent (user says "start a sprint", "continue the loop", etc.).
-2. Run `scripts/current-phase.sh` to inspect the filesystem and determine the active phase.
-3. Retrieve the matching phase particle.
-4. Inject it as a user-role or system-role message.
-5. Execute. Loop.
-
-`current-phase.sh` maps the filesystem to one of: `uninitialized`, `research`,
-`plan`, `build`, `test`, `loop`, `ready-for-next-sprint`. Route each to its particle:
-
-| Phase output            | Particle                          |
-|-------------------------|-----------------------------------|
-| `uninitialized`         | `particles/01-init-sprint.md`     |
-| `research`              | `particles/02-research-phase.md`  |
-| `plan`                  | `particles/03-plan-phase.md` (→ `04`, `05`) |
-| `build`                 | `particles/06-build-phase.md`     |
-| `test`                  | `particles/07-test-phase.md`      |
-| `loop`                  | `particles/08-loop-phase.md`      |
-| `ready-for-next-sprint` | `particles/01-init-sprint.md`     |
-
----
-
-# Core Protocol
-
-This protocol is identical across all three deployment targets. What changes
-between them is only how the agent discovers and routes through the phases.
-
-## Directory schema
-
-```
-project-root/
-├── decisions.md                      # ADR-style architectural decisions log
-├── confidence.txt                    # Optional: confidence scalar (Kalman-style throttle)
-├── agent-tasks/                      # PERSISTENT — survives across sprints
-│   ├── agent-tasks.md                # Current backlog (append at bottom, consume from top)
-│   └── completed-tasks.md            # Append-only log of finished tasks
-└── sprints/                          # EPHEMERAL — one subdirectory per sprint
-    ├── s0/
-    │   ├── sprint-meta.md
-    │   ├── sprint-research/
-    │   │   ├── research-report.md
-    │   │   └── [artifacts]
-    │   ├── sprint-plans/
-    │   │   ├── build-plan.md         # Locked after Plan Phase
-    │   │   └── test-plan.md          # Locked after Plan Phase
-    │   └── sprint-tests/
-    │       ├── unit-tests.md
-    │       ├── integration-tests.md
-    │       ├── e2e-tests.md
-    │       └── test-report.md
-    ├── s1/
-    └── sN/
+```bash
+bash scripts/current-phase.sh
 ```
 
-## Why two state surfaces
+## Index and retrieve particles
 
-- **`sprints/sN/`** is *working memory* — what this sprint is doing, ephemeral,
-  never modified after the sprint closes.
-- **`agent-tasks/`** is *long-term memory* — what has ever been done, what is still
-  pending, persistent across all sprints.
+Index the Markdown files under [`particles/`](particles/) as individually
+retrievable prompt units. Keep their filenames as stable retrieval keys. Make
+[`schemas/`](schemas/) and [`prompts/`](prompts/) available by exact path so a
+retrieved phase can request its output contract or critic.
 
-Conflating these is the most common failure mode in agentic workflows. The
-filesystem IS the state machine. Trust the disk.
+Retrieve [`00-overview.md`](particles/00-overview.md) when a user directly
+starts or resumes Sprint Loops. After that, use `current-phase.sh` output—not
+chat memory or directory presence—to retrieve one phase particle. During Plan,
+`03-plan-phase.md` explicitly composes the build and test plans with
+`04-build-plan-schema.md` and `05-test-plan-schema.md` before routing to Build.
 
-## Phase exit conditions (quick reference)
+## Invocation and routing
 
-| Phase      | Exit artifact                                              | Exit condition                              |
-|------------|------------------------------------------------------------|---------------------------------------------|
-| Initialize | All directories + files exist, `sprint-meta.md` populated  | Filesystem matches schema                   |
-| Research   | `research-report.md` with all 5 sections                   | Report complete, artifacts referenced       |
-| Plan       | `build-plan.md` + `test-plan.md` both finalized            | Both files prepended with `Finalized - DO NOT EDIT` |
-| Build      | All tasks in `agent-tasks.md` for this sprint completed or blocked | Git commits exist for each completed task   |
-| Test       | `test-report.md` written (or `failure-report.md`)          | All tests run, CI green or failure documented |
-| Loop       | `sprint-meta.md` finalized, git tree clean                 | Ready to invoke Initialize for sprint N+1   |
+Wire the following loop into the host runtime:
 
-## Failure semantics
+1. Activate only for direct sprint-loop intent.
+2. Resolve the target project root and the installed helper location.
+3. Run `current-phase.sh` from the project root.
+4. Retrieve and inject the matching particle.
+5. Execute until its evidence exit, then re-run the helper.
 
-When a sprint fails (Test Phase produces irrecoverable failures requiring re-architecture):
+| Router output | Particle |
+| --- | --- |
+| `uninitialized` | [`01-init-sprint.md`](particles/01-init-sprint.md) |
+| `research` | [`02-research-phase.md`](particles/02-research-phase.md) |
+| `plan` | [`03-plan-phase.md`](particles/03-plan-phase.md), then [`04-build-plan-schema.md`](particles/04-build-plan-schema.md) and [`05-test-plan-schema.md`](particles/05-test-plan-schema.md) |
+| `build` | [`06-build-phase.md`](particles/06-build-phase.md) |
+| `test` | [`07-test-phase.md`](particles/07-test-phase.md) |
+| `loop` | [`08-loop-phase.md`](particles/08-loop-phase.md) |
+| `ready-for-next-sprint` | [`01-init-sprint.md`](particles/01-init-sprint.md) |
 
-1. Test Phase writes `sprints/sN/failure-report.md`.
-2. `sprint-meta.md` exit status is set to `failed`.
-3. Loop Phase still runs — closes out the failed sprint cleanly.
-4. The next sprint's Research Phase begins by reading the prior `failure-report.md` as its primary input.
-5. Sprint numbering does not reset. A failed sprint still counts.
+If the router reports legacy-only or split-brain state, surface its diagnostic
+and migration guidance instead of choosing a phase or creating another writable
+layout.
 
-See [`schemas/failure-report.md`](schemas/failure-report.md) for the report template.
+## Host-runtime boundary
 
-## Confidence throttle (optional)
-
-Track a `confidence` scalar across sprints. Initialize at 1.0. After each sprint:
-
-- All tests pass → `confidence = min(1.0, confidence + 0.1)`
-- Any unit/integration failures patched in-sprint → `confidence -= 0.1`
-- Failure-report written → `confidence -= 0.3`
-
-Use confidence to gate sprint ambition: when `confidence < 0.5`, the next sprint's
-build-plan must have ≤ 5 elementary tasks. This mirrors the covariance update in a
-Kalman filter — research is measurement, plan is prediction, build is state update,
-test is innovation, loop is covariance update.
-
-Store in `confidence.txt` as a single float. The [`scripts/update-confidence.sh`](scripts/update-confidence.sh)
-helper applies the three adjustments above.
-
----
-
-The protocol is the contract. A repo using Sprint Loops can be worked on by any
-harness interchangeably — see the [root README](../README.md) for cross-harness notes.
+The host decides how particles are injected, how tools are exposed, and whether
+recurrence exists. Those orchestration choices do not change Book authority,
+bypass evidence gates, or grant remote-operation permission. Persist durable
+intent and state in the Project Book so another harness can resume from
+`docs/` alone.

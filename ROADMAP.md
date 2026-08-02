@@ -1,10 +1,14 @@
-# Roadmap — sprint-loops improvement trajectory
+# Roadmap — pre-Book migration source
 
-Written at sprint 11 (the self-review/refactor sprint). Each item below is a
-future-sprint candidate, ordered by expected leverage. The actionable form of
-this list lives in `agent-tasks/agent-tasks.md` as `(backlog)` entries (see
-`schemas/agent-tasks.md`); this file carries the rationale. When a sprint picks
-an item up, its Build Phase promotes the backlog entry to `(sprint N)`.
+> **Non-authoritative migration source.**
+>
+> This document predates Book schema v2. Sprint 14 T-119 will preserve and map
+> each item and its rationale into stable intent chapters under `docs/intents/`
+> using the [intent lifecycle contract](open-harnesses/schemas/intent.md).
+> Until that migration is complete, do not add, delete, reorder, or reclassify
+> items here. This file is inventory input, not active project authority.
+
+The original roadmap items follow unchanged.
 
 ## 1. array-test engine integration
 

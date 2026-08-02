@@ -1,106 +1,74 @@
 # Animus Sprint Loops
 
-Animus Project's lightweight protocol for autonomous software development — for **Claude Code**,
-**Codex CLI**, and **open harnesses** like Animus_Ferric, OpenClaw and OpenCode.
+Animus Sprint Loops turns a project's documentation into a living **Project
+Book**: one durable, linkable record of intended outcomes, active work,
+realization evidence, and the sprint history that connects them. Work advances
+through **Research → Plan → Build → Test → Loop**, with state derived from Book
+evidence on disk.
 
-Sprint Loops decomposes long-horizon coding work into numbered sprints, each a
-five-phase sequence — **Research → Plan → Build → Test → Loop** — with persistent
-state on disk and a clean separation between working memory and the rolling
-backlog. The filesystem IS the state machine. Trust the disk.
+## The Project Book
 
-## Three install paths
+Book schema v2 is rooted at `docs/` and identified by
+`docs/.sprint-loop-book`. Its authority is deliberately small and directional:
 
-This repo ships the same protocol three ways. Pick the directory that matches your
-agent runtime — each is self-contained and ready to use:
+| Surface | Role |
+| --- | --- |
+| `docs/intents/` | Semantic authority for desired outcomes, boundaries, rationale, consequences, lifecycle state, and evidence links. |
+| `docs/work/` | Current and completed execution state, linked back to intent. |
+| `docs/sprints/` | Research, plans, critiques, verification, and close provenance. |
+| `docs/SUMMARY.md` | Navigation only; it never becomes a second state store. |
 
-| Directory | Target | What it is |
-|-----------|--------|------------|
-| [`open-harnesses/`](open-harnesses/) | OpenClaw, OpenCode, local LLMs, custom runners, GECK | The **canonical, runtime-agnostic spec**: the core protocol, prompt particles, artifact schemas, and reference shell scripts. |
-| [`claude-code/`](claude-code/) | Anthropic Claude Code | The complete, install-ready **`sprint-loop`** skill, which *is* the `/sprint-loop` slash command (no separate command file). Installable as a **plugin** — this repo is a Claude Code marketplace (`/plugin marketplace add crussella0129/sprint-loops`), which loads the skill once regardless of launch directory. See [`claude-code/README.md`](claude-code/README.md#installation). |
-| [`codex-cli/`](codex-cli/) | OpenAI Codex CLI | A drop-in `~/.codex/skills/sprint-loops/` skill bundle plus an `AGENTS.md` fragment. |
+Intent chapters span both unrealized and realized work. Plans and tasks provide
+work evidence; completed tasks plus code, test, or documentation links provide
+realization evidence. See the runtime-neutral [Book
+contract](open-harnesses/particles/00-overview.md) and [intent lifecycle
+schema](open-harnesses/schemas/intent.md) for the complete rules.
 
-The core protocol — filesystem layout, phase exit conditions, schemas — is
-identical across all three. What changes is only how the agent discovers and
-routes through the phases. **Each directory is a complete, self-contained unit:**
-installing one does not require the others, and each carries the full core
-protocol. `open-harnesses/` additionally doubles as the canonical cross-harness
-reference and the Oovra-particle source.
+## Choose an adapter
 
-## Quick start
+Each adapter ships the shared Book contract plus only the orchestration needed
+by its runtime. Install and operate one through its own guide:
 
-**Claude Code** (recommended — install as a plugin; this repo is a marketplace):
+| Runtime | Adapter guide | Invocation |
+| --- | --- | --- |
+| Claude Code | [Claude Code](claude-code/README.md) | `/sprint-loop:sprint-loop start "<goal>"` |
+| OpenAI Codex | [Codex](codex-cli/README.md) | `$sprint-loops` |
+| Antigravity IDE | [Antigravity](antigravity-ide/README.md) | `/sprint-loops` |
+| OpenClaw, OpenCode, local models, and custom runners | [Open Harnesses](open-harnesses/README.md) | Route from the installed `current-phase.sh` helper. |
 
-```
-/plugin marketplace add crussella0129/sprint-loops
-/plugin install sprint-loop@sprint-loops
-```
+The Open Harnesses bundle is the runtime-neutral distribution and physical
+reference copy for shared assets. It does not own project meaning: each
+project's Book does.
 
-Or manual (skill-only — the skill *is* the `/sprint-loop` command):
+## Cross-harness continuity
+
+All supported adapters read the same Book schema and derive the same phase from
+the same evidence. Harness-native plans, checklists, walkthroughs, and chat are
+views; another harness must be able to resume from the Book alone.
+
+For a legacy project, use the selected adapter's installed
+`migrate-to-book.sh` helper before writing Book state. Migration preserves
+history and establishes one writable authority. If legacy and Book layouts
+conflict, routing stops with a split-brain diagnostic instead of choosing one
+silently.
+
+## Repository map
+
+- [`open-harnesses/`](open-harnesses/) — runtime-neutral particles, schemas,
+  and reference helpers.
+- [`claude-code/`](claude-code/) — Claude Code skill and plugin distribution.
+- [`codex-cli/`](codex-cli/) — Codex skill and cross-platform installers.
+- [`antigravity-ide/`](antigravity-ide/) — Antigravity workflow, runtime skill,
+  and installer.
+- [`tools/`](tools/) — parity, policy, and deterministic verification guards.
+
+## Verify this repository
+
+Run the canonical suite from the repository root:
 
 ```bash
-cp -r claude-code/skills/sprint-loop ~/.claude/skills/
-chmod +x ~/.claude/skills/sprint-loop/scripts/*.sh
+bash tools/run-guards.sh --determinism
 ```
-
-Then say "start a sprint" or run `/sprint-loop start "<goal>"`. See
-[`claude-code/README.md`](claude-code/README.md).
-
-**Codex CLI:**
-
-```bash
-cp -r codex-cli/skills/sprint-loops ~/.codex/skills/
-chmod +x ~/.codex/skills/sprint-loops/scripts/*.sh
-cat codex-cli/skills/sprint-loops/AGENTS.md.fragment >> AGENTS.md
-```
-
-See [`codex-cli/README.md`](codex-cli/README.md).
-
-**Open harness:**
-
-```bash
-cp -r open-harnesses/scripts /path/to/your/project/scripts
-chmod +x /path/to/your/project/scripts/*.sh
-```
-
-Index `open-harnesses/particles/` into your retrieval store and wire the
-invocation loop. See [`open-harnesses/README.md`](open-harnesses/README.md).
-
-## Repository layout
-
-```
-sprint-loops/
-├── README.md            # this file
-├── LICENSE              # MIT
-├── open-harnesses/      # Section 1 — canonical spec: protocol, particles, schemas, scripts
-├── claude-code/         # Section 2 — the sprint-loop Claude Code skill (is the /sprint-loop command) + plugin manifest
-└── codex-cli/           # Section 3 — drop-in Codex CLI skill + AGENTS.md fragment
-```
-
-## Cross-harness compatibility
-
-A repo using Sprint Loops can be worked on by any of the three harnesses
-interchangeably. The filesystem state is the contract:
-
-- `sprints/sN/` and `agent-tasks/` mean the same thing everywhere.
-- Phase files are content-identical across harnesses (only the routing layer differs).
-- `decisions.md` and `confidence.txt` are universal.
-- Git history is the source of truth for what actually happened.
-
-You can start a sprint on Claude Code at your desk, continue it on Codex in a CI
-run overnight, and resume it on an OpenClaw node the next morning — without any
-state translation. The project itself is the protocol.
-
-## Distribution
-
-Each adapter directory can ship as a separate release targeted at its harness:
-
-- `sprint-loops-protocol` — the spec, schemas, and reference shell scripts (`open-harnesses/`).
-- `sprint-loops-claude-code` — drop-in `~/.claude/skills/sprint-loop/` bundle.
-- `sprint-loops-codex` — drop-in `~/.codex/skills/sprint-loops/` bundle.
-- `sprint-loops-particles` — Oovra-ready individual `.md` particles (`open-harnesses/particles/`).
-
-If folded into GECK, "GECK Loops" becomes a fourth adapter directory — without
-changing anything in the first three.
 
 ## License
 

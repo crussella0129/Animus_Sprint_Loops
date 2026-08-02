@@ -315,3 +315,9 @@
 - **Completed:** 2026-08-02T03:32:16Z
 - **Files modified:** `claude-code/skills/sprint-loop/{SKILL.md,phases/{03-plan-phase.md,06-loop-phase.md}}`, `claude-code/tests/adapter-contract.test.sh`, `antigravity-ide/{global_workflows/sprint-loops.md,install.ps1,skills/sprint-loop/SKILL.md,tests/adapter-contract.windows.ps1}`, task ledgers
 - **Commit:** `6d8fb46`
+
+## T-117 (sprint 14)
+- **Description:** Consolidated repository and bundle operator documentation around Project Book schema v2: one root authority/adapter map, linked shared contracts, current adapter-specific installation and invocation, and no duplicated legacy protocol. Quarantined the unchanged nine-item ROADMAP as non-authoritative T-119 migration input and added executable link, legacy-authority, and adapter-scope contracts.
+- **Completed:** 2026-08-02T03:50:19Z
+- **Files modified:** `README.md`, `ROADMAP.md`, `{claude-code,antigravity-ide,open-harnesses}/README.md`, `tools/operator-docs.test.sh`, task ledgers
+- **Commit:** `5bf757b`
