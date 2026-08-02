@@ -1,109 +1,82 @@
 ---
 name: sprint-loop
-description: Structured five-phase workflow (Research → Plan → Build → Test → Loop) for long-horizon coding tasks. Use when the user runs /sprint-loop, asks to start a sprint, continue a sprint loop, run an iteration, work in numbered sprints, or invokes phrases like "sprint loop", "start a sprint", "continue the loop", or "next sprint". Also use when a project root contains a `sprints/` directory and the user asks to resume work.
-argument-hint: "[ continue | start <goal> | loop | abort ]"
+description: Run or resume the Sprint Loops Book v2 workflow when the user explicitly invokes /sprint-loop or directly asks to start, continue, resume, or run a sprint loop. Do not use it for ordinary documentation work or merely because a docs directory exists.
+argument-hint: "[ continue | start <goal> | abort <reason> ]"
 ---
 
-# Sprint Loops
+# Sprint Loops for Claude Code
 
-You are working in a Sprint Loop. Each sprint is a five-phase sequence with persistent state on disk.
+This adapter activates and routes the shared Sprint Loops workflow. The
+selected phase file owns its phase contract; the Project Book owns durable
+project meaning and state.
 
-This skill is both **model-invoked** (the `description` above triggers it on
-sprint-loop intent) and **user-invoked** as the `/sprint-loop` slash command —
-there is no separate command file; this skill *is* `/sprint-loop`.
+## Activation
 
-## Invocation (`/sprint-loop` arguments)
+Honor the frontmatter boundary. A Book marker may confirm a direct resume
+request, but filesystem or documentation presence is never an activation
+signal by itself.
 
-The user invoked this with: `$ARGUMENTS`. Route on it:
+## Resolve roots
 
-- **(no argument)** → run `scripts/current-phase.sh` and continue from whatever
-  phase the filesystem reports (the default — same as `continue`).
-- **`continue`** → same as no argument: resume the current phase.
-- **`start <goal>`** → initialize a new sprint with the goal taken from
-  `$ARGUMENTS` (the text after `start`), then proceed from the Init phase.
-- **`loop`** → jump to the Loop Phase (`phases/06-loop-phase.md`).
-- **`abort`** → run `scripts/abort-sprint.sh` to mark the current sprint
-  `aborted` in `sprint-meta.md` and close it out.
+- `${CLAUDE_SKILL_DIR}` is the absolute directory of this loaded skill.
+  Require it, and quote every bundled path resolved beneath it.
+- `<project-root>` is the target repository's Git top level or, outside Git,
+  the active workspace root. Never treat the skill directory as the project.
 
-## Routing
+Resolve both once. If the target project is ambiguous, ask before writing.
+Run every helper with `<project-root>` as the working directory.
 
-1. Run `scripts/current-phase.sh` to determine the active phase.
-2. Read the corresponding file from `phases/`:
-   - `uninitialized` → `phases/01-init-sprint.md`
-   - `research` → `phases/02-research-phase.md`
-   - `plan` → `phases/03-plan-phase.md`
-   - `build` → `phases/04-build-phase.md`
-   - `test` → `phases/05-test-phase.md`
-   - `loop` → `phases/06-loop-phase.md`
-   - `ready-for-next-sprint` → `phases/01-init-sprint.md`
-3. Execute the instructions in that phase file. When the phase exit condition is met, re-run step 1.
+## Arguments
 
-## Authoritative inputs
+The invocation arguments are `$ARGUMENTS`.
 
-- `phases/00-overview.md` — read first if this is your first interaction with the skill in this session.
-- `schemas/` — read the relevant schema file when producing any artifact.
-- The filesystem IS the state machine. Trust the disk.
+- No argument or `continue` resumes the state reported by the router.
+- `start <goal>` retains `<goal>` as the requested sprint objective. It may
+  initialize only when the router reports `uninitialized` or
+  `ready-for-next-sprint`; resume or explicitly abort an active sprint first.
+- `abort <reason>` invokes
+  `bash "${CLAUDE_SKILL_DIR}/scripts/abort-sprint.sh" "<reason>"`. Require one
+  non-empty, one-line reason.
+- Any other argument is unsupported. Never use an argument to jump directly
+  to a phase.
 
-## Plan mode
+## Route
 
-The Plan Phase uses Claude Code's plan-mode primitive as a hard constraint, not a soft instruction. On entering Plan Phase, the agent invokes `EnterPlanMode` (the mandatory first action — it blocks Edit/Write/Bash side effects), reasons through the plan synthesis while only reading the filesystem, then invokes `ExitPlanMode` with a two-section summary (Build plan / Test plan).
+From `<project-root>`, run:
 
-**The `ExitPlanMode` approval prompt is where "auto mode" is selected.** For an unattended run, choose the **auto-accept ("auto mode")** option at that prompt — that selection is the mechanism that carries Build/Test/Loop without per-step confirmation (it's what makes "leave it running" work). For an interactive run, approve normally. See `phases/03-plan-phase.md` for the exact protocol.
+```bash
+bash "${CLAUDE_SKILL_DIR}/scripts/current-phase.sh"
+```
 
-## Git discipline
+Load only the matching contract:
 
-Every completed task in the Build Phase ends with a git commit via `scripts/commit-task.sh`. Loop Phase verifies a clean working tree before incrementing the sprint number.
+- `uninitialized` or `ready-for-next-sprint` →
+  `${CLAUDE_SKILL_DIR}/phases/01-init-sprint.md`
+- `research` → `${CLAUDE_SKILL_DIR}/phases/02-research-phase.md`
+- `plan` → `${CLAUDE_SKILL_DIR}/phases/03-plan-phase.md`
+- `build` → `${CLAUDE_SKILL_DIR}/phases/04-build-phase.md`
+- `test` → `${CLAUDE_SKILL_DIR}/phases/05-test-phase.md`
+- `loop` → `${CLAUDE_SKILL_DIR}/phases/06-loop-phase.md`
 
-## Autonomous operation
+Read `${CLAUDE_SKILL_DIR}/phases/00-overview.md` only to interpret the Book
+contract or a layout diagnostic. Resolve legacy-only state through
+`${CLAUDE_SKILL_DIR}/scripts/migrate-to-book.sh`; never create a second
+writable state tree. After satisfying Exit evidence, re-run the router and
+stop at the boundary the user requested.
 
-Unattended operation is **two mechanisms working together**, both Claude-Code-specific:
+## Book and Claude Code authority
 
-1. **Auto mode (no per-step confirmation):** engaged by selecting **auto-accept** at the Plan Phase's `ExitPlanMode` prompt (see "Plan mode" above). This is what lets the Build/Test/Loop phases run without stopping for each edit/command.
-2. **Recurrence (no per-sprint check-in):** launch the whole thing under the harness `/loop` skill — `/loop /sprint-loop continue`. Each time `/loop` re-fires, the agent re-runs `scripts/current-phase.sh` and resumes whatever phase the filesystem reports; when a sprint closes, the next re-fire begins the next sprint. The user starts and stops `/loop`.
+Book schema v2 keeps semantic intent in `docs/intents/`, work state in
+`docs/work/`, sprint provenance in `docs/sprints/`, and navigation-only
+views in `docs/SUMMARY.md`. The filesystem is the state machine; lower-
+authority evidence cannot silently redefine intent.
 
-Within that, work independently for the whole sprint:
+`${CLAUDE_SKILL_DIR}/phases/03-plan-phase.md` owns Claude Code Plan Mode.
+For session-scoped recurrence, the user may start
+`/loop /sprint-loop continue`; each invocation routes from Book evidence,
+and the user starts and stops recurrence. Plan Mode, plan approval,
+auto-accept, and `/loop` affect orchestration only: none enlarges authority,
+changes active permissions, bypasses a phase gate, or validates unverifiable
+evidence. Do not weaken permission or security controls to keep a loop moving.
 
-- **Commit, push, and merge AI-verifiable work without asking per step.** The per-task commit boundary provides rollback; the sprint structure (research-report, plans, critic `critique.md`, test-report, decisions ADR) provides the review surfaces. Don't pause on routine edits/commits/pushes — or on merging a green-CI PR whose effect is known-and-reversible.
-- **Defer rather than block.** When a task's full scope hits an unanticipated dependency, ship the scoped piece, note the deferral, and continue. Use `scripts/abort-sprint.sh` only for truly unrecoverable blockages.
-- **One PR per concept, numbered sequentially** (e.g. `v117`, `v118`) when the sprint is wrapped as a PR.
-
-## The stop criterion: halt only for what AI cannot verify
-
-The point of running unattended is to keep going. The loop runs to completion
-and halts **only at a human-verification checkpoint** — something whose
-correctness or safety the AI cannot itself confirm. It is NOT bounded by an
-arbitrary sprint count. Runaway control is the per-task commit rollback, the
-checkpoints below, and your ability to interrupt `/loop`; a count cap
-(`/loop N /sprint-loop continue`) is an *optional* extra cap, not the
-recommended posture.
-
-**Stop and surface to the human at these four checkpoints:**
-
-1. **Visual / UX / aesthetic inspection** — anything where "does this look/feel
-   right" is the test: UI, layout, rendered output, copy tone. Launch the app
-   or attach the artifact and stop for the human to look (see
-   `phases/06-loop-phase.md`).
-2. **Irreversible action whose safety tests/CI cannot verify — *or whose
-   consequence the agent cannot determine*.** Force-push to a shared branch,
-   dropping a DB table, deleting infra, a public release/deploy. **If you
-   cannot tell whether an action is reversible or what its blast radius is,
-   that uncertainty is itself the checkpoint — default to stop, not proceed.**
-   ("Can't verify" includes "can't determine the consequence.")
-3. **Genuine product / scope ambiguity** — two valid interpretations and you'd
-   be guessing the intent. Ask, don't pick.
-4. **Unrecoverable failure** — a failure needing human diagnosis (failure-report
-   territory).
-
-**Everything the AI *can* verify proceeds autonomously** — green tests/CI,
-reversible diffs, and merging a green PR whose consequence is known and
-reversible. The pre-flight sanity gate (`phases/04-build-phase.md`) and the
-Plan/Test critics still run; those are AI-verifiable steps, not human stops.
-
-## Safety floor (the non-negotiable subset of the stop criterion)
-
-These hold even when the user has waved you on:
-
-- **Don't weaken permission or security controls** to keep the loop moving. If a tool call is denied, surface the decline and continue with what *is* permitted — don't ask the human to auto-accept dangerous shell patterns, secrets, or escalations.
-- **Don't skip the pre-flight sanity gate** (`phases/04-build-phase.md`) even unattended — it blocks the per-task commit by design.
-- **Never `--no-verify` or bypass hooks** unless the user explicitly opted in.
-- The category-2 checkpoints above (irreversible/unknown-consequence actions) are exactly the "human must approve what AI can't verify" cases — they stay human-gated regardless of auto-accept.
+Push, merge, release, force-push, delete, and material scope expansion require an explicit request or a declared preauthorized-remote profile.

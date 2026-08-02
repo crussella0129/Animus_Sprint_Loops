@@ -309,3 +309,9 @@
 - **Completed:** 2026-08-02T02:28:04Z
 - **Files modified:** `codex-cli/{README.md,install.sh}`, `codex-cli/skills/sprint-loops/{SKILL.md,AGENTS.md.fragment,phases/{03-plan-phase.md,06-loop-phase.md}}`, `codex-cli/tests/{adapter-contract.test.sh,adapter-contract.windows.ps1}`, task ledgers
 - **Commit:** `3e8ccb3`
+
+## T-116 (sprint 14)
+- **Description:** Aligned Claude and Antigravity on the same Book v2 authority, lifecycle, and evidence contract while retaining only native Plan Mode, recurrence, and review-artifact projections. Made Antigravity self-contained at its official workflow and skill locations with coherent transactional installation, full path-chain alias refusal, compensating rollback, retained recovery evidence, and executable mapping/install fixtures.
+- **Completed:** 2026-08-02T03:32:16Z
+- **Files modified:** `claude-code/skills/sprint-loop/{SKILL.md,phases/{03-plan-phase.md,06-loop-phase.md}}`, `claude-code/tests/adapter-contract.test.sh`, `antigravity-ide/{global_workflows/sprint-loops.md,install.ps1,skills/sprint-loop/SKILL.md,tests/adapter-contract.windows.ps1}`, task ledgers
+- **Commit:** `6d8fb46`
