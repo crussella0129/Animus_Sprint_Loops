@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sprint-loops",
-  "description": "Sprint Loops — a structured five-phase (Research → Plan → Build → Test → Loop) workflow for long-horizon coding tasks, delivered as an installable Claude Code skill.",
+  "description": "Sprint Loops — a Book v2 workflow for intent-traceable Research → Plan → Build → Test → Loop execution, delivered as an installable Claude Code skill.",
   "owner": {
     "name": "crussella0129",
     "email": "crussella0129@gmail.com"
@@ -9,13 +9,13 @@
   "plugins": [
     {
       "name": "sprint-loop",
-      "description": "Structured five-phase workflow (Research → Plan → Build → Test → Loop) for long-horizon coding tasks. Invoked via /sprint-loop or when you ask to start/continue/loop a sprint, or when a project root contains a sprints/ directory.",
+      "description": "Run or resume the Sprint Loops Book v2 workflow via the installed plugin command /sprint-loop:sprint-loop, the standalone /sprint-loop skill, or a direct request to start, continue, resume, or run a sprint loop. Filesystem or documentation presence alone is not an activation signal.",
       "author": {
         "name": "crussella0129",
         "email": "crussella0129@gmail.com"
       },
       "category": "workflow",
-      "homepage": "https://github.com/crussella0129/sprint-loops",
+      "homepage": "https://github.com/crussella0129/Animus_Sprint_Loops",
       "source": "./claude-code"
     }
   ]

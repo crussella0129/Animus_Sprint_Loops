@@ -321,3 +321,9 @@
 - **Completed:** 2026-08-02T03:50:19Z
 - **Files modified:** `README.md`, `ROADMAP.md`, `{claude-code,antigravity-ide,open-harnesses}/README.md`, `tools/operator-docs.test.sh`, task ledgers
 - **Commit:** `5bf757b`
+
+## T-118 (sprint 14)
+- **Description:** Extended Book parity from byte-synchronized shared assets to explicit required inventories, hidden-file and physical-entry checks, and semantic adapter contracts for Book v2 anchors, authority roles, native boundaries, remote safety, and legacy-authority rejection. Updated Claude plugin metadata and retained compatibility shims for the T-120 runner transition.
+- **Completed:** 2026-08-02T20:35:25Z
+- **Files modified:** `.claude-plugin/{marketplace.json}`, `claude-code/.claude-plugin/plugin.json`, `tools/{check-bundle-sync.sh,check-bundle-sync.test.sh,check-adapter-semantics.sh,check-adapter-semantics.test.sh,check-merge-policy.sh,check-merge-policy.test.sh}`, task ledgers
+- **Commit:** `d345724`
