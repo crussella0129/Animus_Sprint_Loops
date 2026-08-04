@@ -7,5 +7,4 @@
 - [ ] T-107 (backlog): launch-time E2E harness for picker count + auto-trigger survival — touches: tools/, .github/workflows/ci.yml
 - [ ] T-108 (backlog): record confidence before→after in sprint-meta at Loop close — touches: {4 bundles}/scripts/update-confidence.sh, phases/06, schemas/sprint-meta.md
 - [ ] T-109 (backlog): dev-branch working model — at Init (sprint 0), establish/verify a long-lived work branch ("dev" or user-named) alongside main; sprints develop on it and each sprint's PR targets main; at launch, elicit approve-merge vs auto-merge unless the initial prompt already specified it (user request, s11) — touches: {4 bundles}/scripts/init-sprint.sh, phases/01+06, claude-code SKILL.md, schemas/sprint-meta.md
-- [ ] T-119 (sprint 14): migrate this repository into its own Book — touches: docs, legacy root state, .gitignore
 - [ ] T-120 (sprint 14): register Book verification in the canonical deterministic guard suite — touches: run-guards.sh, fixtures, CI registration
