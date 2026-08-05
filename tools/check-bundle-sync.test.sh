@@ -12,6 +12,17 @@ TMPDIRS=()
 cleanup() { for d in "${TMPDIRS[@]:-}"; do [ -n "$d" ] && rm -rf "$d"; done; }
 trap cleanup EXIT
 
+# Windows git-bash without developer mode cannot create a real symlink (`ln -s`
+# copies instead), so the symlink-rejection fixture below skips there. POSIX CI
+# (Ubuntu/macOS) always runs it.
+can_symlink() {
+  local d ok=1
+  d=$(mktemp -d) || return 1
+  if ln -s target "$d/link" 2>/dev/null && [ -L "$d/link" ]; then ok=0; fi
+  rm -rf "$d"
+  return "$ok"
+}
+
 mkfix() { # copy the mapped subtrees into a temp root
   T=$(mktemp -d)
   TMPDIRS+=("$T")
@@ -122,10 +133,14 @@ mkfix; printf '# hidden drift\n' > "$T/codex-cli/skills/sprint-loops/scripts/.ro
 expect_fail "hidden extra helper" 'EXTRA: codex-cli/skills/sprint-loops/scripts/.rogue-helper.sh (absent from reference open-harnesses/scripts/)'
 
 # Flat set 2: expected entries may not be symlinks
-mkfix
-rm "$T/codex-cli/skills/sprint-loops/scripts/check-book.sh"
-ln -s book-paths.sh "$T/codex-cli/skills/sprint-loops/scripts/check-book.sh"
-expect_fail "symlinked shared helper" 'SYMLINK: codex-cli/skills/sprint-loops/scripts/check-book.sh'
+if can_symlink; then
+  mkfix
+  rm "$T/codex-cli/skills/sprint-loops/scripts/check-book.sh"
+  ln -s book-paths.sh "$T/codex-cli/skills/sprint-loops/scripts/check-book.sh"
+  expect_fail "symlinked shared helper" 'SYMLINK: codex-cli/skills/sprint-loops/scripts/check-book.sh'
+else
+  echo "SKIP symlinked shared helper (symlinks unsupported on this host)"
+fi
 
 # Flat set 3: directories and other non-regular entries are rejected, not walked
 mkfix; mkdir "$T/antigravity-ide/skills/sprint-loop/schemas/rogue-directory"

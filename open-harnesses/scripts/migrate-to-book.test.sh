@@ -9,6 +9,19 @@ trap 'rm -rf "$TMP_ROOT"' EXIT HUP INT TERM
 
 pass() { printf '  PASS  %s\n' "$1"; }
 die() { printf '  FAIL  %s: %s\n' "$1" "$2" >&2; exit 1; }
+skip() { printf '  SKIP  %s: %s\n' "$1" "$2"; }
+
+# Some hosts (notably Windows git-bash without developer mode) cannot create a
+# real symbolic link — `ln -s` silently copies instead. The symlink/alias
+# refusal fixtures below need a genuine symlink to exercise the guard, so they
+# skip where the capability is absent. POSIX CI (Ubuntu/macOS) always runs them.
+can_symlink() {
+  cs_dir=$(mktemp -d "${TMPDIR:-/tmp}/sl-cap.XXXXXX") || return 1
+  cs_ok=1
+  if ln -s target "$cs_dir/link" 2>/dev/null && [ -L "$cs_dir/link" ]; then cs_ok=0; fi
+  rm -rf "$cs_dir"
+  return "$cs_ok"
+}
 
 write_meta() {
   meta_path=$1 sprint_number=$2 status=$3
@@ -187,28 +200,36 @@ done
 pass test_migrate_conflict_refuses
 pass test_router_conflict_refuses
 
-O="$TMP_ROOT/outside"; B="$TMP_ROOT/unsafe"; mkdir -p "$O/s0" "$B"
-printf 'outside bytes\n' > "$O/s0/state.txt"
-ln -s "$O" "$B/sprints"
-outside_before=$(cksum "$O/s0/state.txt")
-if (cd "$B" && bash "$MIGRATE" >out 2>err); then die test_migrate_invalid_path_refuses_before_mutation 'symlink accepted'; fi
-grep -Fq 'unsafe migration path: symlink or alias' "$B/err" || die test_migrate_invalid_path_refuses_before_mutation 'diagnostic missing'
-[ "$outside_before" = "$(cksum "$O/s0/state.txt")" ] || die test_migrate_invalid_path_refuses_before_mutation 'outside target changed'
-[ ! -e "$B/docs" ] && [ ! -e "$B/.sprint-loop-migration" ] || die test_migrate_invalid_path_refuses_before_mutation 'fixture mutated before refusal'
-pass test_migrate_invalid_path_refuses_before_mutation
-
-N="$TMP_ROOT/nested-alias"; NO="$TMP_ROOT/nested-outside"
-mkdir -p "$N/sprints/s0/artifacts" "$NO"
-printf 'nested outside bytes\n' > "$NO/state.txt"
-ln -s "$NO" "$N/sprints/s0/artifacts/external"
-if (cd "$N" && bash "$MIGRATE" >out 2>err); then
-  die test_migrate_nested_alias_refuses 'nested symlink accepted'
+if can_symlink; then
+  O="$TMP_ROOT/outside"; B="$TMP_ROOT/unsafe"; mkdir -p "$O/s0" "$B"
+  printf 'outside bytes\n' > "$O/s0/state.txt"
+  ln -s "$O" "$B/sprints"
+  outside_before=$(cksum "$O/s0/state.txt")
+  if (cd "$B" && bash "$MIGRATE" >out 2>err); then die test_migrate_invalid_path_refuses_before_mutation 'symlink accepted'; fi
+  grep -Fq 'unsafe migration path: symlink or alias' "$B/err" || die test_migrate_invalid_path_refuses_before_mutation 'diagnostic missing'
+  [ "$outside_before" = "$(cksum "$O/s0/state.txt")" ] || die test_migrate_invalid_path_refuses_before_mutation 'outside target changed'
+  [ ! -e "$B/docs" ] && [ ! -e "$B/.sprint-loop-migration" ] || die test_migrate_invalid_path_refuses_before_mutation 'fixture mutated before refusal'
+  pass test_migrate_invalid_path_refuses_before_mutation
+else
+  skip test_migrate_invalid_path_refuses_before_mutation 'symlinks unsupported on this host'
 fi
-grep -Fq 'unsafe migration path: symlink or alias beneath' "$N/err" ||
-  die test_migrate_nested_alias_refuses 'nested alias diagnostic missing'
-[ ! -e "$N/docs" ] && [ ! -e "$N/.sprint-loop-migration" ] ||
-  die test_migrate_nested_alias_refuses 'nested alias fixture mutated'
-pass test_migrate_nested_alias_refuses
+
+if can_symlink; then
+  N="$TMP_ROOT/nested-alias"; NO="$TMP_ROOT/nested-outside"
+  mkdir -p "$N/sprints/s0/artifacts" "$NO"
+  printf 'nested outside bytes\n' > "$NO/state.txt"
+  ln -s "$NO" "$N/sprints/s0/artifacts/external"
+  if (cd "$N" && bash "$MIGRATE" >out 2>err); then
+    die test_migrate_nested_alias_refuses 'nested symlink accepted'
+  fi
+  grep -Fq 'unsafe migration path: symlink or alias beneath' "$N/err" ||
+    die test_migrate_nested_alias_refuses 'nested alias diagnostic missing'
+  [ ! -e "$N/docs" ] && [ ! -e "$N/.sprint-loop-migration" ] ||
+    die test_migrate_nested_alias_refuses 'nested alias fixture mutated'
+  pass test_migrate_nested_alias_refuses
+else
+  skip test_migrate_nested_alias_refuses 'symlinks unsupported on this host'
+fi
 
 H="$TMP_ROOT/hardlink-alias"
 mkdir -p "$H/sprints/s0"
@@ -223,22 +244,26 @@ grep -Fq 'unsafe migration path: hard-linked file beneath' "$H/err" ||
   die test_migrate_hardlink_refuses 'hardlink fixture mutated'
 pass test_migrate_hardlink_refuses
 
-DO="$TMP_ROOT/docs-outside"; DA="$TMP_ROOT/docs-alias"
-mkdir -p "$DO" "$DA"
-printf 'outside docs bytes\n' > "$DO/guide.md"
-printf 'legacy decision\n' > "$DA/decisions.md"
-ln -s "$DO" "$DA/docs"
-docs_outside_before=$(cksum "$DO/guide.md")
-if (cd "$DA" && bash "$MIGRATE" >out 2>err); then
-  die test_migrate_book_target_alias_refuses 'symlinked Book target accepted'
+if can_symlink; then
+  DO="$TMP_ROOT/docs-outside"; DA="$TMP_ROOT/docs-alias"
+  mkdir -p "$DO" "$DA"
+  printf 'outside docs bytes\n' > "$DO/guide.md"
+  printf 'legacy decision\n' > "$DA/decisions.md"
+  ln -s "$DO" "$DA/docs"
+  docs_outside_before=$(cksum "$DO/guide.md")
+  if (cd "$DA" && bash "$MIGRATE" >out 2>err); then
+    die test_migrate_book_target_alias_refuses 'symlinked Book target accepted'
+  fi
+  grep -Fq 'unsafe migration path: symlink or alias: docs' "$DA/err" ||
+    die test_migrate_book_target_alias_refuses 'Book target alias diagnostic missing'
+  [ "$docs_outside_before" = "$(cksum "$DO/guide.md")" ] ||
+    die test_migrate_book_target_alias_refuses 'outside Book target changed'
+  [ ! -e "$DA/.sprint-loop-migration" ] ||
+    die test_migrate_book_target_alias_refuses 'Book target alias created a transaction'
+  pass test_migrate_book_target_alias_refuses
+else
+  skip test_migrate_book_target_alias_refuses 'symlinks unsupported on this host'
 fi
-grep -Fq 'unsafe migration path: symlink or alias: docs' "$DA/err" ||
-  die test_migrate_book_target_alias_refuses 'Book target alias diagnostic missing'
-[ "$docs_outside_before" = "$(cksum "$DO/guide.md")" ] ||
-  die test_migrate_book_target_alias_refuses 'outside Book target changed'
-[ ! -e "$DA/.sprint-loop-migration" ] ||
-  die test_migrate_book_target_alias_refuses 'Book target alias created a transaction'
-pass test_migrate_book_target_alias_refuses
 
 I="$TMP_ROOT/ignored-book"
 mkdir -p "$I"

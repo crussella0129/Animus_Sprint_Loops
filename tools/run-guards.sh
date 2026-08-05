@@ -40,7 +40,7 @@ done
 
 EXTRA_DIR="${RUN_GUARDS_EXTRA_SUITES:-}"
 
-SUITES=(selftest merge-policy merge-policy-test plugin-manifest bundle-sync bundle-sync-test shellcheck)
+SUITES=(selftest merge-policy merge-policy-test plugin-manifest bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs shellcheck)
 if [ -n "$EXTRA_DIR" ]; then
   for f in "$EXTRA_DIR"/*.sh; do
     [ -f "$f" ] || continue
@@ -56,7 +56,15 @@ suite_cmd() {
     plugin-manifest)   bash tools/check-plugin-manifest.sh ;;
     bundle-sync)       bash tools/check-bundle-sync.sh ;;
     bundle-sync-test)  bash tools/check-bundle-sync.test.sh ;;
-    shellcheck)        shellcheck -S warning claude-code/skills/sprint-loop/scripts/*.sh tools/*.sh ;;
+    adapter-semantics)      bash tools/check-adapter-semantics.sh ;;
+    adapter-semantics-test) bash tools/check-adapter-semantics.test.sh ;;
+    operator-docs)     bash tools/operator-docs.test.sh ;;
+    shellcheck)        shellcheck -S warning \
+                         claude-code/skills/sprint-loop/scripts/*.sh \
+                         claude-code/install.sh claude-code/tests/*.sh \
+                         codex-cli/install.sh codex-cli/tests/*.sh \
+                         open-harnesses/install.sh \
+                         tools/*.sh ;;
     extra:*)           bash "$EXTRA_DIR/${1#extra:}" ;;
   esac
 }
@@ -69,7 +77,14 @@ suite_script_hash() {
     plugin-manifest)   cat tools/check-plugin-manifest.sh ;;
     bundle-sync)       cat tools/check-bundle-sync.sh ;;
     bundle-sync-test)  cat tools/check-bundle-sync.test.sh ;;
-    shellcheck)        cat claude-code/skills/sprint-loop/scripts/*.sh tools/*.sh ;;
+    adapter-semantics)      cat tools/check-adapter-semantics.sh ;;
+    adapter-semantics-test) cat tools/check-adapter-semantics.test.sh ;;
+    operator-docs)     cat tools/operator-docs.test.sh ;;
+    shellcheck)        cat claude-code/skills/sprint-loop/scripts/*.sh \
+                         claude-code/install.sh claude-code/tests/*.sh \
+                         codex-cli/install.sh codex-cli/tests/*.sh \
+                         open-harnesses/install.sh \
+                         tools/*.sh ;;
     extra:*)           cat "$EXTRA_DIR/${1#extra:}" ;;
   esac | hash_stdin
 }

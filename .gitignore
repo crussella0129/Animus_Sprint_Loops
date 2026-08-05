@@ -1,11 +1,9 @@
-# >>> sprint-loops >>>
-# This repo is the skill's source AND its own dogfood target. Unlike downstream
-# projects (which init-sprint.sh sets up to ignore sprints/), this repo
-# intentionally TRACKS sprints/s0+ — the worked examples are the showcase.
-# The marker line above makes init-sprint.sh treat the .gitignore as already
-# configured, so it won't append the sprints/-ignoring block here.
-*.tmp
-/guards-report.ndjson
+# Project-owned ignores (outside the sprint-loops marker so the scaffold never
+# rewrites them). OS-junk files that predate the Book migration.
 .DS_Store
 Thumbs.db
+# >>> sprint-loops >>>
+# The Book is tracked. Ignore only transient helper output.
+*.tmp
+/guards-report.ndjson
 # <<< sprint-loops <<<
