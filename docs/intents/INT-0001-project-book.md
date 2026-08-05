@@ -2,12 +2,12 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0001
-- **State:** active
+- **State:** realized
 - **Work evidence:** [Sprint 14 build plan](../sprints/s14/sprint-plans/build-plan.md), [Sprint 14 test plan](../sprints/s14/sprint-plans/test-plan.md)
-- **Completion evidence:** none
-- **Code evidence:** none
+- **Completion evidence:** [T-119 & T-120 completion](../work/completed-tasks.md)
+- **Code evidence:** [Book path contract](../../open-harnesses/scripts/book-paths.sh), [migration helper](../../open-harnesses/scripts/migrate-to-book.sh), [Book validator](../../open-harnesses/scripts/check-book.sh)
 - **Test evidence:** [Sprint 14 test report](../sprints/s14/sprint-tests/test-report.md)
-- **Documentation evidence:** none
+- **Documentation evidence:** [Book intent schema](../../open-harnesses/schemas/intent.md), [root README](../../README.md)
 
 ## Intent
 Replace the scattered root-level Sprint Loops state — `sprints/`,
@@ -89,3 +89,7 @@ a mutable pointer.
   policy (T-114–T-118).
 - 2026-08-03: this repository was migrated to its own Book (T-119); canonical
   Book verification registration (T-120) is in progress to complete the arc.
+- 2026-08-05: `active → realized` — T-119 and T-120 completed; the sprint 14
+  guard suite concluded `success` on the Ubuntu/macOS CI matrix (head
+  `96bb374`), confirming Book validation, migration/routing, parity, adapter
+  semantics, operator-doc contracts, and shellcheck all green with determinism.

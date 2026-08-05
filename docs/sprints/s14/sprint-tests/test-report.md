@@ -12,11 +12,11 @@ Verification provenance for [INT-0001](../../../intents/INT-0001-project-book.md
 | [INT-0001](../../../intents/INT-0001-project-book.md) | one writable authority; split-brain refused | T-119 `test_repository_has_single_authority` (`book-only`); `test_migrate_conflict_refuses` | pass | — |
 | [INT-0001](../../../intents/INT-0001-project-book.md) | every harness resolves the same Book paths/routing | `check-bundle-sync.sh` byte-identity; `check-adapter-semantics.sh` | pass | — |
 | [INT-0001](../../../intents/INT-0001-project-book.md) | legacy migrates losslessly (pre/post hash 1:1) | T-119 `test_historical_import_is_lossless` (146/146, 0 mismatch) | pass | — |
-| [INT-0001](../../../intents/INT-0001-project-book.md) | canonical suite runs Book validation etc. locally and in CI | T-120 `test_run_guards_includes_book`; `test_repository_full_guard_suite` | pass (local); CI pending push | — |
+| [INT-0001](../../../intents/INT-0001-project-book.md) | canonical suite runs Book validation etc. locally and in CI | T-120 `test_run_guards_includes_book`; `test_repository_full_guard_suite` | pass (CI green, Ubuntu + macOS) | — |
 
-`INT-0001` remains `active`. Realization is staged for the Loop phase once
-completion evidence (T-119/T-120 in `completed-tasks.md`) plus code/test/doc
-evidence are attached.
+`INT-0001` is `realized`: T-119 and T-120 completion evidence plus code, test,
+and documentation evidence are attached, and the sprint 14 guard suite concluded
+`success` on the CI matrix.
 
 ## Summary
 - Unit tests: T-119 6/6, T-120 4/4 pass; T-110–T-118 suites pass via the
@@ -26,21 +26,19 @@ evidence are attached.
 - E2E tests: repository-behavior green locally except the documented
   Windows-only `selftest` exception; Codex launch-time discovery deferred to a
   human checkpoint.
-- CI status: **pending push** (Ubuntu + macOS matrix). Local canonical
-  confirmations: **9/10 suites PASS, all `determinism: ok`**.
+- CI status: **green** (Ubuntu + macOS matrix). On CI (POSIX awk), all **10/10
+  suites PASS**; the local Windows-only `selftest` CRLF exception is absent.
 
 ## CI Confirmation
-- **Head SHA:** `fc8dd728527ff9594f5d9671fb3c1e0362bc79df`
-- **CI run:** pending — the sprint head has not yet been pushed (first
-  outward-facing action; awaiting operator decision on push/PR strategy).
-- **Conclusion:** pending
-- **Confirmations:** local canonical run — selftest `FAIL(det:ok, Windows-gawk
-  CRLF only)`, merge-policy `PASS`, merge-policy-test `PASS`, plugin-manifest
-  `PASS`, bundle-sync `PASS`, bundle-sync-test `PASS`, adapter-semantics `PASS`,
-  adapter-semantics-test `PASS`, operator-docs `PASS`, shellcheck `PASS` — all
-  `determinism: ok`.
-- **To finalize:** push the sprint head, then record the CI conclusion on this
-  SHA (authoritative) here before any merge.
+- **Head SHA:** `96bb3744ad9e47f3c1d109c75eac4e33e71ebd30` (sprint-14 tip)
+- **CI run:** [guards #30971977981](https://github.com/crussella0129/Animus_Sprint_Loops/actions/runs/30971977981)
+  (pull_request) and `#30971976637` (push), workflow `guards`.
+- **Conclusion:** `success` (both runs; Ubuntu + macOS legs).
+- **Confirmations:** the CI legs ran the identical `tools/run-guards.sh
+  --determinism` entry point and passed all suites with determinism. Local
+  canonical run (Windows git-bash) recorded 9/10 `PASS`, all `determinism: ok`,
+  with the single `selftest` CRLF exception attributable to Windows GNU awk
+  `\r`-stripping (green on CI, backlog T-121).
 
 ## Failures
 - `selftest` → chained `runtime-helpers` CRLF-preservation assertions fail
