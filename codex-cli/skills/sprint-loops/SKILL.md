@@ -55,6 +55,6 @@ Local work remains bounded by the user's request, the active phase, and the
 Book's intent authority. Never change Codex sandbox, approval, or permission
 settings to make a phase proceed; surface an unavailable capability instead.
 
-Push, merge, release, force-push, delete, and material scope expansion require an explicit request or a declared preauthorized-remote profile.
+Push, merge, release, force-push, delete, and material scope expansion require an explicit request or a declared preauthorized-remote profile. The remote profile is declared per `schemas/remote-profile.md` and drives the one-PR/MR-per-sprint `work -> base` checkpoint (human-approve by default); the substrate gate `scripts/check-substrate.sh` establishes and verifies it, and the skill creates no per-sprint branch.
 
 Use subagents for bounded, disjoint read/review work; keep one integrating writer in a shared workspace. Parallel writers require explicit isolated worktrees.

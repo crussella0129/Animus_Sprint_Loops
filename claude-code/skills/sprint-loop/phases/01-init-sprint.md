@@ -1,5 +1,21 @@
 # Phase 01 — Initialize Sprint
 
+## Substrate gate (first action)
+
+Before routing or initializing anything, run the installed bundle's
+`scripts/check-substrate.sh` from the project root. It reports one of:
+
+- `substrate-complete` — Book, ledgers, the `base`/`work` (and optional `bump`)
+  branches, and a resolvable remote profile all exist. Proceed with Init below.
+- `substrate-absent` — a fresh project. Run **Sprint 0 deploy**,
+  `scripts/deploy-substrate.sh` (idempotent), which creates the Book, the
+  `main`/`dev`/(optional `bump`) branches, the ledgers, the remote profile (see
+  `schemas/remote-profile.md`), and the first sprint. The skill creates **no
+  per-sprint branch** — sprints work on `work`/`dev`.
+- `substrate-partial:<diagnostic>` — resolve the named missing element (migrate a
+  legacy Book, declare the remote profile, or create the missing branch) before
+  continuing.
+
 ## Outcome
 
 Create or extend one tracked Book schema v2 and initialize the next numbered

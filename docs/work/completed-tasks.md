@@ -374,3 +374,10 @@
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{sync-work-branch.sh,sync-work-branch.test.sh}`, task ledgers
 - **Commit:** `3500f214e419ced59f71e22c06825c39a68bbdf5`
+
+## T-127 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Rewired the phase and adapter docs onto the substrate layer. `01-init-sprint.md` (byte-synced claude↔codex) gains a **Substrate gate (first action)** section: run `check-substrate.sh` first → `substrate-complete` proceeds, `substrate-absent` runs Sprint 0 `deploy-substrate.sh`, `substrate-partial:<diag>` resolves the named gap; the skill creates no per-sprint branch. Both (divergent) `06-loop-phase.md` docs gain a **Remote checkpoint** section: open exactly one `work→base` PR/MR via `remote-adapter.sh open-pr` (per `schemas/remote-profile.md`), at most one per sprint, never merged under `human-approve`, no per-sprint branch, with `sync-work-branch.sh` resyncing `work` after a merge. `SKILL.md` (claude + codex) now reference the remote-profile schema, the one-PR/MR-per-sprint checkpoint, and the substrate gate; the antigravity workflow and open-harnesses particle 08 got parallel integrations. The substrate/bootstrap contract now lives in the skill, not an external repo. Bundle-sync parity, adapter-semantics, and operator-docs all green. (Folded the Sprint 0 contract into `01-init` rather than a separate phase file to keep the synced-phase parity map unchanged.)
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{claude,codex} phases/{01-init-sprint,06-loop-phase}.md`, `{claude,codex} SKILL.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/08-loop-phase.md`, task ledgers
+- **Commit:** PENDING

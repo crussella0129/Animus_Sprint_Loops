@@ -79,4 +79,4 @@ auto-accept, and `/loop` affect orchestration only: none enlarges authority,
 changes active permissions, bypasses a phase gate, or validates unverifiable
 evidence. Do not weaken permission or security controls to keep a loop moving.
 
-Push, merge, release, force-push, delete, and material scope expansion require an explicit request or a declared preauthorized-remote profile.
+Push, merge, release, force-push, delete, and material scope expansion require an explicit request or a declared preauthorized-remote profile. The remote profile is declared per `schemas/remote-profile.md` and drives the one-PR/MR-per-sprint `work -> base` checkpoint (human-approve by default); the substrate gate `scripts/check-substrate.sh` establishes and verifies it, and the skill creates no per-sprint branch.
