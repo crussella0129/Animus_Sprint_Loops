@@ -70,4 +70,15 @@ PATH="$STUB_BIN:$PATH" STUB_PR_EXISTS=0 bash "$RA" --root "$P4" open-pr >/dev/nu
 grep -q 'pr merge' "$STUBLOG" && die test_merge_policy_human_approve 'merge invoked under human-approve'
 pass test_merge_policy_human_approve
 
+# test_pr_head_override — `--head bump` opens a bump->base checkpoint (the bump sprint)
+PH="$TMP_ROOT/head"; make_repo "$PH" 'provider: github
+base: main
+work: dev'
+export STUBLOG="$PH.log"; : > "$STUBLOG"
+PATH="$STUB_BIN:$PATH" STUB_PR_EXISTS=0 bash "$RA" --root "$PH" --head bump open-pr >/dev/null 2>&1 ||
+  die test_pr_head_override 'open-pr --head bump failed'
+grep -q 'pr create.*--head bump' "$STUBLOG" || die test_pr_head_override 'did not open a bump-head PR'
+grep -q 'pr create.*--head dev' "$STUBLOG" && die test_pr_head_override 'used dev head despite --head bump'
+pass test_pr_head_override
+
 printf 'remote-adapter selftest: all fixtures passed\n'

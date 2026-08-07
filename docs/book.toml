@@ -1,0 +1,15 @@
+# View the Project Book as a rendered book with mdBook (https://rust-lang.github.io/mdBook/):
+#   cargo install mdbook   # or: brew install mdbook
+#   mdbook serve docs      # live preview at http://localhost:3000
+#   mdbook build docs      # static HTML into docs/book/ (git-ignored)
+# `src = "."` points mdBook at this directory, so it reads docs/SUMMARY.md as the
+# table of contents. This file is inert configuration; it is not Book state and
+# the validators ignore it.
+[book]
+title = "Animus Sprint Loops — Project Book"
+authors = ["crussella0129"]
+language = "en"
+src = "."
+
+[output.html]
+git-repository-url = "https://github.com/crussella0129/Animus_Sprint_Loops"

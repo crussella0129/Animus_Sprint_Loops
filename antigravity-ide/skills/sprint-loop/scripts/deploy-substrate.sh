@@ -41,11 +41,15 @@ if [ "$(bash "$SCRIPT_DIR/check-substrate.sh" --root "$ROOT" 2>/dev/null)" = sub
 fi
 
 CREATED_BOOK=0; CREATED_PROFILE=0; CREATED_SPRINT=""; CREATED_GITDIR=0
-CREATED_BRANCHES=""; COMMITTED=0
+CREATED_BRANCHES=""; CREATED_UPDATER=""; COMMITTED=0
 
 rollback() {
   [ "$COMMITTED" -eq 1 ] && return 0
   for _b in $CREATED_BRANCHES; do git -C "$ROOT" branch -D "$_b" >/dev/null 2>&1 || true; done
+  if [ -n "$CREATED_UPDATER" ]; then
+    rm -f "$CREATED_UPDATER"
+    rmdir "$(dirname "$CREATED_UPDATER")" 2>/dev/null || true
+  fi
   [ -n "$CREATED_SPRINT" ] && rm -rf "$CREATED_SPRINT"
   [ "$CREATED_PROFILE" -eq 1 ] && rm -f "$PROFILE"
   [ "$CREATED_BOOK" -eq 1 ] && rm -rf "$BOOK_ROOT"
@@ -87,6 +91,41 @@ WORK=$(printf '%s\n' "$prof" | sed -n 's/^WORK=//p')
 BUMP=$(printf '%s\n' "$prof" | sed -n 's/^BUMP=//p')
 maybe_fail profile
 
+# 2b. Dependency-updater config for the bump workflow (create-if-absent, bump-gated).
+# github -> Dependabot; gitlab/generic -> Renovate; local-only -> none. A fresh
+# project has no manifests, so the config is a starter (github-actions / recommended).
+if [ "$BUMP" != none ]; then
+  case "$PROVIDER" in
+    github)
+      updater="$ROOT/.github/dependabot.yml"
+      if [ ! -f "$updater" ]; then
+        mkdir -p "$ROOT/.github"
+        {
+          printf '# Dependabot opens dependency-update PRs against the bump branch (never main/dev).\n'
+          printf '# github-actions is the starter ecosystem; add npm/pip/cargo/... as the project grows.\n'
+          printf 'version: 2\nupdates:\n'
+          printf '  - package-ecosystem: "github-actions"\n    directory: "/"\n'
+          printf '    schedule:\n      interval: "weekly"\n'
+          printf '    target-branch: "%s"\n' "$BUMP"
+        } > "$updater"
+        CREATED_UPDATER="$updater"
+      fi ;;
+    gitlab|generic)
+      updater="$ROOT/renovate.json"
+      if [ ! -f "$updater" ]; then
+        {
+          printf '{\n'
+          printf '  "$schema": "https://docs.renovatebot.com/renovate-schema.json",\n'
+          printf '  "extends": ["config:recommended"],\n'
+          printf '  "baseBranches": ["%s"]\n' "$BUMP"
+          printf '}\n'
+        } > "$updater"
+        CREATED_UPDATER="$updater"
+      fi ;;
+  esac
+fi
+maybe_fail updater
+
 # 3. Git repo + branches.
 if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   git -C "$ROOT" init -q || fail "git init failed"
@@ -94,6 +133,7 @@ if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 if ! git -C "$ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
   git -C "$ROOT" add -A -- docs >/dev/null 2>&1 || true
+  [ -n "$CREATED_UPDATER" ] && git -C "$ROOT" add -A -- "$CREATED_UPDATER" >/dev/null 2>&1 || true
   git -C "$ROOT" -c user.email=sprint-loops@local -c user.name=sprint-loops \
     commit -q --allow-empty -m "sprint-0: substrate" || fail "initial commit failed"
 fi
