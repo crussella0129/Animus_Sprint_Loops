@@ -6,7 +6,7 @@
 - **Work evidence:** [Sprint 15 build plan](../sprints/s15/sprint-plans/build-plan.md), [Sprint 15 test plan](../sprints/s15/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
-- **Test evidence:** none
+- **Test evidence:** [Sprint 15 test report](../sprints/s15/sprint-tests/test-report.md)
 - **Documentation evidence:** none
 
 ## Intent
