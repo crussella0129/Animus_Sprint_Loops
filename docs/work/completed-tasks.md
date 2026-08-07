@@ -366,4 +366,4 @@
 - **Description:** Added `remote-adapter.sh` — the provider-agnostic sprint checkpoint. Driven by the resolved profile, it opens exactly one `work→base` PR/MR via `gh` (GitHub) or `glab` (GitLab), and never merges (merging is the human-approve boundary). `pr-exists` queries the provider for an open `work→base` PR/MR; `open-pr` refuses to open a second when one exists, is a no-op under `local-only`, and falls back to pushing `work` + printing the compare URL when the provider CLI is absent/unauthenticated or `provider: generic`. Fixtures (`remote-adapter.test.sh`, 4/4 green) stub `gh` on `PATH` and back the push with a local bare repo: open-once (exactly one `pr create`, no `pr merge`), refuse-second (existing PR → no create + "already" message), generic fallback (prints "manually" URL, exit 0), and human-approve-never-merges. Propagated ×4; shellcheck clean; bundle-sync parity green.
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{remote-adapter.sh,remote-adapter.test.sh}`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `14dd38625ebce3da6563ee319c4dfe4d8925772c`
