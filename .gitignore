@@ -2,6 +2,8 @@
 # rewrites them). OS-junk files that predate the Book migration.
 .DS_Store
 Thumbs.db
+# Rendered mdBook output (generated from the tracked docs/ Book source).
+docs/book/
 # >>> sprint-loops >>>
 # The Book is tracked. Ignore only transient helper output.
 *.tmp
