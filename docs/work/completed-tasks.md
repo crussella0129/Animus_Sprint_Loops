@@ -346,3 +346,10 @@
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, `{4 bundles}/schemas/remote-profile.md`, `docs/intents/INT-0002-substrate-and-branch-model.md`, task ledgers
 - **Commit:** `842594c37d3a2f9f3d6f11f9a3483c513637daa3`
+
+## T-123 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added `check-substrate.sh` — the deterministic gate that runs in front of phase routing. It composes the Book leg (`book_layout_state` + `check-book`), ledger presence (`tasks.md`/`completed-tasks.md`), the resolved remote profile, and `git show-ref` branch presence for `base`/`work` (and `bump` when enabled), printing exactly one of `substrate-complete` (exit 0), `substrate-absent` (fresh: no Book and no profile), or `substrate-partial:<diagnostic>` naming each missing element. Read-only (no repository mutation; `current-phase.sh` untouched). Fixtures (`check-substrate.test.sh`, 7/7 green): complete, absent, partial-no-branches (names `branch:dev`), partial-no-profile, read-only (working-tree + `current-phase.sh` unchanged), complete-without-bump (bump disabled → not required), and local-only-complete (no remote required). Propagated ×4; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh}`, task ledgers
+- **Commit:** PENDING
