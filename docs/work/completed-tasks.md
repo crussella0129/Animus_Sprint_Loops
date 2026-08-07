@@ -373,4 +373,4 @@
 - **Description:** Added `sync-work-branch.sh` — the boundary resync that brings `base` into `work` (fast-forward or merge) so `work`/`dev` inherits everything on `base`/`main` (notably `bump` dependency fixes) with `base` as the single confluence. It refuses when the tracked working tree is dirty (`git status --porcelain --untracked-files=no`), writes only `work` (asserts `base` is byte-unchanged before/after), and aborts + refuses on a merge conflict rather than leaving a half-merged state. Fixtures (`sync-work-branch.test.sh`, 3/3 green): brings-base-into-work (`main` head becomes an ancestor of `dev`), refuses-dirty (modified tracked file → refusal, `dev` unchanged), writes-only-work (`main` ref unchanged). Propagated ×4; shellcheck clean; bundle-sync parity green.
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{sync-work-branch.sh,sync-work-branch.test.sh}`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `3500f214e419ced59f71e22c06825c39a68bbdf5`
