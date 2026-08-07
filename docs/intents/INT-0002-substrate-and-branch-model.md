@@ -98,3 +98,5 @@ already references finally have a schema.
   project owner.
 - 2026-08-06: `proposed → planned` — the sprint 15 build and test plans
   (T-122–T-129) were drafted around this intent and linked as Work evidence.
+- 2026-08-06: `planned → active` — Sprint 15 Build began implementing the
+  substrate layer (starting with T-122, the remote-profile contract).

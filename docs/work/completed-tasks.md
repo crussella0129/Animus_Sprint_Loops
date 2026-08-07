@@ -339,3 +339,10 @@
 - **Completed:** 2026-08-04T00:00:00Z
 - **Files modified:** `tools/run-guards.sh`, `{4 bundles}/scripts/migrate-to-book.test.sh`, `tools/check-bundle-sync.test.sh`, task ledgers
 - **Commit:** `b240e2374c001bdd8ba7596d43ebd03a72cb76a5`
+
+## T-122 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added the Book-tracked **remote-profile** contract — the schema (`schemas/remote-profile.md`) plus `remote-profile.sh`, which resolves and validates `provider` (github|gitlab|generic|local-only), `base`, `work`, `bump` (optional → `none`), and `mergePolicy` (default `human-approve`) from a fenced key/value block in `docs/work/remote-profile.md` guarded by a `sprint-loop-remote-profile-v1` marker. Missing file, missing marker, missing required field, unknown provider, or unknown mergePolicy each fail with a specific diagnostic; `local-only` validates with no remote requirement. Fixtures (`remote-profile.test.sh`): resolve-all + field-query, reject-malformed (missing file / unknown provider / missing base / missing marker with exact diagnostics), and local-only defaults — 3/3 green. Propagated byte-identically ×4 bundles; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, `{4 bundles}/schemas/remote-profile.md`, `docs/intents/INT-0002-substrate-and-branch-model.md`, task ledgers
+- **Commit:** PENDING
