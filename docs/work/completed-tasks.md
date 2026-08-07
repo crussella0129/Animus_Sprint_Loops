@@ -353,3 +353,10 @@
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh}`, task ledgers
 - **Commit:** `d02577be2942701e88c3903fa68ed0d568330762`
+
+## T-124 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added `deploy-substrate.sh` — the idempotent, transactional Sprint 0 bootstrap. It brings a project to `substrate-complete` by creating only what is missing: the Book scaffold + first sprint (via `init-sprint.sh`), the remote profile (written from `--provider/--base/--work/--bump/--merge-policy` flags, defaulting to `local-only`/`main`/`dev`/no-bump/`human-approve`), and the `base`/`work`/(`bump`) branches (from an initial commit when the repo is unborn). It short-circuits to a no-op when `check-substrate` already reports complete, refuses `legacy-only`/`conflict` layouts with a diagnostic (migration, not deploy), and verifies `substrate-complete` before committing. Failure or signal before commit triggers a rollback trap that deletes exactly the branches/sprint/profile/Book/`.git` this run created (tracked via `CREATED_*` flags); a `DEPLOY_SUBSTRATE_FAIL_AFTER` test seam injects failures. Fixtures (`deploy-substrate.test.sh`, 4/4 green): fresh→complete (+branch assertions), idempotent re-run (state snapshot unchanged), rollback-on-injected-failure (no `docs/`/`.git` left behind), and refuse-conflict. Propagated ×4; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{deploy-substrate.sh,deploy-substrate.test.sh}`, task ledgers
+- **Commit:** PENDING
