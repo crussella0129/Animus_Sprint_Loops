@@ -146,10 +146,22 @@ printing the compare URL, so the model works on every host.
 
 ## Dependency updates — the `bump` branch
 
-Dependency bumps land on `bump`, never on `main` or `dev` directly. If an updated
-dependency reddens CI, the compatibility fix is made on `bump`, then pull/merge
--requested to `main`; `dev` inherits it at the next boundary resync. To wire this
-up:
+Dependency bumps flow through `bump`, never onto `main` or `dev` directly:
+
+1. The updater (Dependabot/Renovate) opens update pull/merge requests against
+   `bump`.
+2. CI runs on `bump`. If an update reddens CI, the compatibility fix is made on
+   `bump` — the "bump sprint", which is sometimes nothing at all.
+3. Once `bump` is green, open the checkpoint with `remote-adapter.sh open-pr
+   --head bump`: a human-approved `bump → main` pull/merge request.
+4. After it merges, `dev` inherits the update at the next sprint boundary via
+   `sync-work-branch.sh`. `main` stays the single confluence.
+
+**Sprint 0 deploy scaffolds the updater config for you** (create-if-absent, only
+when `bump` is enabled): `github → .github/dependabot.yml`, `gitlab` / `generic
+→ renovate.json` (`baseBranches: ["bump"]`), `local-only → none`. It is a starter
+(`github-actions` / `config:recommended`) — add your project's ecosystems. To
+wire it up on an existing project:
 
 - **GitHub (Dependabot).** This repo ships
   [`.github/dependabot.yml`](.github/dependabot.yml) targeting `bump`. Enable
