@@ -7,6 +7,6 @@
 - **Model:** Claude Opus 4.8
 - **Exit status:** in-progress
 - **Token count:** (filled at Loop Phase if observable)
-- **Summary:** (one-line description of sprint goal, filled after Plan Phase)
-- **Intents:** (filled after Plan Phase)
+- **Summary:** Add a first-class Sprint Loops substrate layer — a deterministic substrate gate that routes to a skill-owned Sprint 0 deploy, a long-lived `main`/`dev`/`bump` branch model (no per-sprint branches), and provider-agnostic one-PR/MR-per-sprint `dev→main` checkpoints with human-approved merges (INT-0002, T-122–T-129).
+- **Intents:** [INT-0002](../../intents/INT-0002-substrate-and-branch-model.md) — planned
 - **Completion evidence:** (filled at Loop Phase)

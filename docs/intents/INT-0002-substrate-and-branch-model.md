@@ -2,8 +2,8 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0002
-- **State:** proposed
-- **Work evidence:** none
+- **State:** planned
+- **Work evidence:** [Sprint 15 build plan](../sprints/s15/sprint-plans/build-plan.md), [Sprint 15 test plan](../sprints/s15/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
 - **Test evidence:** none
@@ -96,3 +96,5 @@ already references finally have a schema.
   goal; design decisions (long-lived `dev` with post-merge resync; GitHub +
   GitLab + generic providers; human-approved `dev→main` merges) locked with the
   project owner.
+- 2026-08-06: `proposed → planned` — the sprint 15 build and test plans
+  (T-122–T-129) were drafted around this intent and linked as Work evidence.
