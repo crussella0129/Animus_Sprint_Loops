@@ -394,4 +394,4 @@
 - **Description:** Dogfooded the substrate layer by retrofitting this repository. Declared `docs/work/remote-profile.md` (provider `github`, base `main`, work `dev`, bump `bump`, `mergePolicy: human-approve`) and created the `dev` and `bump` branches from `main`, pushed to `origin`. `check-substrate.sh .` now reports **`substrate-complete`** and the profile resolves to the declared fields. Pre/post inventory: **before** = branches {`main`,`sprint-14`,`sprint-15`}, no profile; **after** = the same plus `dev`+`bump` branches (local + `origin`) and the new `docs/work/remote-profile.md` — the only additions; the Book, ledgers, and existing history are unchanged, and routing is unaffected (`current-phase` still tracks the in-progress sprint). Wiring Dependabot (`.github/dependabot.yml`) to the `bump` branch and configuring `main` branch protection are the operator's follow-ups.
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `docs/work/remote-profile.md` (new); repository branches `dev`, `bump` (created + pushed to origin)
-- **Commit:** PENDING
+- **Commit:** `258c1decf46734bff2e1fe9cc28d672f8f3ccdec`
