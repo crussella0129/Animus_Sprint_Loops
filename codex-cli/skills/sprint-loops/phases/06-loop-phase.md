@@ -49,6 +49,25 @@ bash "<skill-root>/scripts/close-sprint.sh" <success|failed> "<one-line completi
 Use `success` only for a test report with an accepted final critique; use
 `failed` only with failure-report provenance.
 
+## Remote checkpoint
+
+After the sprint is closed and the Book validates, open exactly one checkpoint —
+the reversible boundary between `work` and the corpus:
+
+- Run the installed bundle's `scripts/remote-adapter.sh open-pr` from the project
+  root. Driven by the remote profile (`schemas/remote-profile.md`), it opens
+  **one** `work -> base` PR/MR (e.g. `dev -> main`) via the declared provider,
+  or — when the provider is `generic`/`local-only` or its CLI is absent — pushes
+  `work` and prints the compare URL.
+- It opens **at most one PR/MR per sprint**: a re-run detects the existing open
+  one and does not open a second.
+- **The skill does not merge.** Under `mergePolicy: human-approve` (the default)
+  it leaves the PR/MR open and stops for a human to approve — merging to `base`
+  is the human-verification checkpoint.
+- **No per-sprint branch is ever created.** Sprints accumulate on `work`; after a
+  merge to `base`, `scripts/sync-work-branch.sh` brings `base` back into `work`
+  at the boundary so `work` inherits corpus/`bump` changes.
+
 ## Authority
 
 Intent chapters remain semantic authority; work ledgers record executable

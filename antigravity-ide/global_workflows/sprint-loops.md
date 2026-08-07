@@ -119,6 +119,14 @@ bash "<skill-root>/scripts/current-phase.sh"
 Exit when validation passes and the final command reports
 `ready-for-next-sprint`.
 
+Then open exactly one `work -> base` PR/MR with
+`scripts/remote-adapter.sh open-pr`, driven by the remote profile
+(`schemas/remote-profile.md`): at most one per sprint, never merged under
+`mergePolicy: human-approve`, and **no per-sprint branch** is created. After a
+merge to `base`, `scripts/sync-work-branch.sh` resyncs `work`. Bootstrap and
+routing begin at the substrate gate `scripts/check-substrate.sh`
+(`substrate-absent` runs `scripts/deploy-substrate.sh`).
+
 ## Authority
 
 Always Proceed and auto-accept are interaction preferences only. They do not

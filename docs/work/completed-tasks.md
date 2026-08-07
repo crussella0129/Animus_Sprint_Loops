@@ -339,3 +339,59 @@
 - **Completed:** 2026-08-04T00:00:00Z
 - **Files modified:** `tools/run-guards.sh`, `{4 bundles}/scripts/migrate-to-book.test.sh`, `tools/check-bundle-sync.test.sh`, task ledgers
 - **Commit:** `b240e2374c001bdd8ba7596d43ebd03a72cb76a5`
+
+## T-122 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added the Book-tracked **remote-profile** contract — the schema (`schemas/remote-profile.md`) plus `remote-profile.sh`, which resolves and validates `provider` (github|gitlab|generic|local-only), `base`, `work`, `bump` (optional → `none`), and `mergePolicy` (default `human-approve`) from a fenced key/value block in `docs/work/remote-profile.md` guarded by a `sprint-loop-remote-profile-v1` marker. Missing file, missing marker, missing required field, unknown provider, or unknown mergePolicy each fail with a specific diagnostic; `local-only` validates with no remote requirement. Fixtures (`remote-profile.test.sh`): resolve-all + field-query, reject-malformed (missing file / unknown provider / missing base / missing marker with exact diagnostics), and local-only defaults — 3/3 green. Propagated byte-identically ×4 bundles; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, `{4 bundles}/schemas/remote-profile.md`, `docs/intents/INT-0002-substrate-and-branch-model.md`, task ledgers
+- **Commit:** `842594c37d3a2f9f3d6f11f9a3483c513637daa3`
+
+## T-123 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added `check-substrate.sh` — the deterministic gate that runs in front of phase routing. It composes the Book leg (`book_layout_state` + `check-book`), ledger presence (`tasks.md`/`completed-tasks.md`), the resolved remote profile, and `git show-ref` branch presence for `base`/`work` (and `bump` when enabled), printing exactly one of `substrate-complete` (exit 0), `substrate-absent` (fresh: no Book and no profile), or `substrate-partial:<diagnostic>` naming each missing element. Read-only (no repository mutation; `current-phase.sh` untouched). Fixtures (`check-substrate.test.sh`, 7/7 green): complete, absent, partial-no-branches (names `branch:dev`), partial-no-profile, read-only (working-tree + `current-phase.sh` unchanged), complete-without-bump (bump disabled → not required), and local-only-complete (no remote required). Propagated ×4; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh}`, task ledgers
+- **Commit:** `d02577be2942701e88c3903fa68ed0d568330762`
+
+## T-124 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added `deploy-substrate.sh` — the idempotent, transactional Sprint 0 bootstrap. It brings a project to `substrate-complete` by creating only what is missing: the Book scaffold + first sprint (via `init-sprint.sh`), the remote profile (written from `--provider/--base/--work/--bump/--merge-policy` flags, defaulting to `local-only`/`main`/`dev`/no-bump/`human-approve`), and the `base`/`work`/(`bump`) branches (from an initial commit when the repo is unborn). It short-circuits to a no-op when `check-substrate` already reports complete, refuses `legacy-only`/`conflict` layouts with a diagnostic (migration, not deploy), and verifies `substrate-complete` before committing. Failure or signal before commit triggers a rollback trap that deletes exactly the branches/sprint/profile/Book/`.git` this run created (tracked via `CREATED_*` flags); a `DEPLOY_SUBSTRATE_FAIL_AFTER` test seam injects failures. Fixtures (`deploy-substrate.test.sh`, 4/4 green): fresh→complete (+branch assertions), idempotent re-run (state snapshot unchanged), rollback-on-injected-failure (no `docs/`/`.git` left behind), and refuse-conflict. Propagated ×4; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{deploy-substrate.sh,deploy-substrate.test.sh}`, task ledgers
+- **Commit:** `b1c5e259cacea28fb9d7303cbc6b22953fdc43f1`
+
+## T-125 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added `remote-adapter.sh` — the provider-agnostic sprint checkpoint. Driven by the resolved profile, it opens exactly one `work→base` PR/MR via `gh` (GitHub) or `glab` (GitLab), and never merges (merging is the human-approve boundary). `pr-exists` queries the provider for an open `work→base` PR/MR; `open-pr` refuses to open a second when one exists, is a no-op under `local-only`, and falls back to pushing `work` + printing the compare URL when the provider CLI is absent/unauthenticated or `provider: generic`. Fixtures (`remote-adapter.test.sh`, 4/4 green) stub `gh` on `PATH` and back the push with a local bare repo: open-once (exactly one `pr create`, no `pr merge`), refuse-second (existing PR → no create + "already" message), generic fallback (prints "manually" URL, exit 0), and human-approve-never-merges. Propagated ×4; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{remote-adapter.sh,remote-adapter.test.sh}`, task ledgers
+- **Commit:** `14dd38625ebce3da6563ee319c4dfe4d8925772c`
+
+## T-126 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Added `sync-work-branch.sh` — the boundary resync that brings `base` into `work` (fast-forward or merge) so `work`/`dev` inherits everything on `base`/`main` (notably `bump` dependency fixes) with `base` as the single confluence. It refuses when the tracked working tree is dirty (`git status --porcelain --untracked-files=no`), writes only `work` (asserts `base` is byte-unchanged before/after), and aborts + refuses on a merge conflict rather than leaving a half-merged state. Fixtures (`sync-work-branch.test.sh`, 3/3 green): brings-base-into-work (`main` head becomes an ancestor of `dev`), refuses-dirty (modified tracked file → refusal, `dev` unchanged), writes-only-work (`main` ref unchanged). Propagated ×4; shellcheck clean; bundle-sync parity green.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{4 bundles}/scripts/{sync-work-branch.sh,sync-work-branch.test.sh}`, task ledgers
+- **Commit:** `3500f214e419ced59f71e22c06825c39a68bbdf5`
+
+## T-127 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Rewired the phase and adapter docs onto the substrate layer. `01-init-sprint.md` (byte-synced claude↔codex) gains a **Substrate gate (first action)** section: run `check-substrate.sh` first → `substrate-complete` proceeds, `substrate-absent` runs Sprint 0 `deploy-substrate.sh`, `substrate-partial:<diag>` resolves the named gap; the skill creates no per-sprint branch. Both (divergent) `06-loop-phase.md` docs gain a **Remote checkpoint** section: open exactly one `work→base` PR/MR via `remote-adapter.sh open-pr` (per `schemas/remote-profile.md`), at most one per sprint, never merged under `human-approve`, no per-sprint branch, with `sync-work-branch.sh` resyncing `work` after a merge. `SKILL.md` (claude + codex) now reference the remote-profile schema, the one-PR/MR-per-sprint checkpoint, and the substrate gate; the antigravity workflow and open-harnesses particle 08 got parallel integrations. The substrate/bootstrap contract now lives in the skill, not an external repo. Bundle-sync parity, adapter-semantics, and operator-docs all green. (Folded the Sprint 0 contract into `01-init` rather than a separate phase file to keep the synced-phase parity map unchanged.)
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `{claude,codex} phases/{01-init-sprint,06-loop-phase}.md`, `{claude,codex} SKILL.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/08-loop-phase.md`, task ledgers
+- **Commit:** `5e4af8865a5c42e448c7bda008f4fc83b5fe0857`
+
+## T-128 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Registered the substrate layer in the canonical guard system. `tools/run-guards.sh` gains 5 suites — `remote-profile`, `check-substrate`, `deploy-substrate`, `remote-adapter`, `sync-work-branch` — in `SUITES`, `suite_cmd`, and `suite_script_hash` (registration-completeness verified: 15/15 suites resolve in all three); the existing `shellcheck` glob already covers the new scripts. `tools/check-bundle-sync.sh` `REQUIRED_SCRIPTS` gains the 10 new shared files so a missing/extra/divergent copy fails parity with the specific asset. `tools/check-adapter-semantics.sh` gains `check_profile_contract` (each adapter must reference `schemas/remote-profile.md` and carry the "no per-sprint branch" commitment), wired for Claude/Codex/Antigravity; `check-adapter-semantics.test.sh` gains two non-vacuous negatives (omit the profile reference → fail; drop the no-per-sprint-branch commitment → fail), each asserting its exact diagnostic. Verified: shellcheck clean; adapter-semantics baseline satisfied; all 5 new suites green via their registered copies; bundle-sync parity green. (No bundle-script changes — propagation happened per-task in T-122–T-126.)
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `tools/{run-guards.sh,check-bundle-sync.sh,check-adapter-semantics.sh,check-adapter-semantics.test.sh}`, task ledgers
+- **Commit:** `061a85d447450f2563e6b3b7be313a7598932289`
+
+## T-129 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Dogfooded the substrate layer by retrofitting this repository. Declared `docs/work/remote-profile.md` (provider `github`, base `main`, work `dev`, bump `bump`, `mergePolicy: human-approve`) and created the `dev` and `bump` branches from `main`, pushed to `origin`. `check-substrate.sh .` now reports **`substrate-complete`** and the profile resolves to the declared fields. Pre/post inventory: **before** = branches {`main`,`sprint-14`,`sprint-15`}, no profile; **after** = the same plus `dev`+`bump` branches (local + `origin`) and the new `docs/work/remote-profile.md` — the only additions; the Book, ledgers, and existing history are unchanged, and routing is unaffected (`current-phase` still tracks the in-progress sprint). Wiring Dependabot (`.github/dependabot.yml`) to the `bump` branch and configuring `main` branch protection are the operator's follow-ups.
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `docs/work/remote-profile.md` (new); repository branches `dev`, `bump` (created + pushed to origin)
+- **Commit:** `258c1decf46734bff2e1fe9cc28d672f8f3ccdec`

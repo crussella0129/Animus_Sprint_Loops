@@ -40,7 +40,7 @@ done
 
 EXTRA_DIR="${RUN_GUARDS_EXTRA_SUITES:-}"
 
-SUITES=(selftest merge-policy merge-policy-test plugin-manifest bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs shellcheck)
+SUITES=(selftest merge-policy merge-policy-test plugin-manifest bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs remote-profile check-substrate deploy-substrate remote-adapter sync-work-branch shellcheck)
 if [ -n "$EXTRA_DIR" ]; then
   for f in "$EXTRA_DIR"/*.sh; do
     [ -f "$f" ] || continue
@@ -59,6 +59,11 @@ suite_cmd() {
     adapter-semantics)      bash tools/check-adapter-semantics.sh ;;
     adapter-semantics-test) bash tools/check-adapter-semantics.test.sh ;;
     operator-docs)     bash tools/operator-docs.test.sh ;;
+    remote-profile)    bash claude-code/skills/sprint-loop/scripts/remote-profile.test.sh ;;
+    check-substrate)   bash claude-code/skills/sprint-loop/scripts/check-substrate.test.sh ;;
+    deploy-substrate)  bash claude-code/skills/sprint-loop/scripts/deploy-substrate.test.sh ;;
+    remote-adapter)    bash claude-code/skills/sprint-loop/scripts/remote-adapter.test.sh ;;
+    sync-work-branch)  bash claude-code/skills/sprint-loop/scripts/sync-work-branch.test.sh ;;
     shellcheck)        shellcheck -S warning \
                          claude-code/skills/sprint-loop/scripts/*.sh \
                          claude-code/install.sh claude-code/tests/*.sh \
@@ -80,6 +85,11 @@ suite_script_hash() {
     adapter-semantics)      cat tools/check-adapter-semantics.sh ;;
     adapter-semantics-test) cat tools/check-adapter-semantics.test.sh ;;
     operator-docs)     cat tools/operator-docs.test.sh ;;
+    remote-profile)    cat claude-code/skills/sprint-loop/scripts/remote-profile.test.sh ;;
+    check-substrate)   cat claude-code/skills/sprint-loop/scripts/check-substrate.test.sh ;;
+    deploy-substrate)  cat claude-code/skills/sprint-loop/scripts/deploy-substrate.test.sh ;;
+    remote-adapter)    cat claude-code/skills/sprint-loop/scripts/remote-adapter.test.sh ;;
+    sync-work-branch)  cat claude-code/skills/sprint-loop/scripts/sync-work-branch.test.sh ;;
     shellcheck)        cat claude-code/skills/sprint-loop/scripts/*.sh \
                          claude-code/install.sh claude-code/tests/*.sh \
                          codex-cli/install.sh codex-cli/tests/*.sh \

@@ -122,6 +122,16 @@ check_version_anchor() {
   fi
 }
 
+check_profile_contract() {
+  local adapter=$1 rel=$2 corpus
+  [ -f "$ROOT/$rel" ] || return 0
+  corpus=$(normalize_files "$rel")
+  matches "$corpus" 'remote-profile' ||
+    report "$adapter: missing remote-profile schema reference at $rel"
+  matches "$corpus" 'no per-sprint branch' ||
+    report "$adapter: missing the no-per-sprint-branch commitment at $rel"
+}
+
 check_positive_role() {
   local adapter=$1 role=$2 corpus=$3 positive negative
   case "$role" in
@@ -522,6 +532,10 @@ check_adapter_surfaces open-harnesses "${OPEN_ACTIVE[@]}"
 check_version_anchor claude "claude-code/skills/sprint-loop/SKILL.md" 'Book schema v2 keeps semantic intent'
 check_version_anchor codex "codex-cli/skills/sprint-loops/SKILL.md" 'Sprint Loops Book v2 workflow'
 check_version_anchor antigravity "antigravity-ide/global_workflows/sprint-loops.md" 'contains `schema-version: 2`'
+
+check_profile_contract claude "claude-code/skills/sprint-loop/SKILL.md"
+check_profile_contract codex "codex-cli/skills/sprint-loops/SKILL.md"
+check_profile_contract antigravity "antigravity-ide/global_workflows/sprint-loops.md"
 check_version_anchor open-harnesses "open-harnesses/particles/00-overview.md" 'canonical Project Book is docs/ using schema v2'
 
 check_role_anchor claude "claude-code/skills/sprint-loop/phases/00-overview.md"
