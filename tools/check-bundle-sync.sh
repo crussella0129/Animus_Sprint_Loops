@@ -51,6 +51,16 @@ REQUIRED_SCRIPTS=(
   runtime-helpers.test.sh
   selftest.sh
   update-confidence.sh
+  check-substrate.sh
+  check-substrate.test.sh
+  deploy-substrate.sh
+  deploy-substrate.test.sh
+  remote-adapter.sh
+  remote-adapter.test.sh
+  remote-profile.sh
+  remote-profile.test.sh
+  sync-work-branch.sh
+  sync-work-branch.test.sh
 )
 REQUIRED_SCHEMAS=(
   agent-tasks.md

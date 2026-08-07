@@ -464,5 +464,15 @@ printf 'The old root stored sprints/ and allowed merge to proceed autonomously.\
   "$T/historical-notes/legacy.md"
 expect_pass "canonical Book paths and inactive history do not false-positive"
 
+new_case
+mutate "$T/claude-code/skills/sprint-loop/SKILL.md" 'schemas/remote-profile.md' 'schemas/none.md'
+expect_fail "adapter omits remote-profile reference" \
+  '^adapter-semantics: claude: missing remote-profile schema reference'
+
+new_case
+mutate "$T/codex-cli/skills/sprint-loops/SKILL.md" 'no per-sprint branch' 'a per-sprint branch'
+expect_fail "adapter drops the no-per-sprint-branch commitment" \
+  '^adapter-semantics: codex: missing the no-per-sprint-branch commitment'
+
 printf 'adapter-semantics fixture test: %s/%s behaved\n' "$PASSED" "$TOTAL"
 [ "$PASSED" -eq "$TOTAL" ]

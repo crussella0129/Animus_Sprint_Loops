@@ -381,3 +381,10 @@
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `{claude,codex} phases/{01-init-sprint,06-loop-phase}.md`, `{claude,codex} SKILL.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/08-loop-phase.md`, task ledgers
 - **Commit:** `5e4af8865a5c42e448c7bda008f4fc83b5fe0857`
+
+## T-128 (sprint 15)
+- **Intent:** [INT-0002](../intents/INT-0002-substrate-and-branch-model.md)
+- **Description:** Registered the substrate layer in the canonical guard system. `tools/run-guards.sh` gains 5 suites — `remote-profile`, `check-substrate`, `deploy-substrate`, `remote-adapter`, `sync-work-branch` — in `SUITES`, `suite_cmd`, and `suite_script_hash` (registration-completeness verified: 15/15 suites resolve in all three); the existing `shellcheck` glob already covers the new scripts. `tools/check-bundle-sync.sh` `REQUIRED_SCRIPTS` gains the 10 new shared files so a missing/extra/divergent copy fails parity with the specific asset. `tools/check-adapter-semantics.sh` gains `check_profile_contract` (each adapter must reference `schemas/remote-profile.md` and carry the "no per-sprint branch" commitment), wired for Claude/Codex/Antigravity; `check-adapter-semantics.test.sh` gains two non-vacuous negatives (omit the profile reference → fail; drop the no-per-sprint-branch commitment → fail), each asserting its exact diagnostic. Verified: shellcheck clean; adapter-semantics baseline satisfied; all 5 new suites green via their registered copies; bundle-sync parity green. (No bundle-script changes — propagation happened per-task in T-122–T-126.)
+- **Completed:** 2026-08-06T00:00:00Z
+- **Files modified:** `tools/{run-guards.sh,check-bundle-sync.sh,check-adapter-semantics.sh,check-adapter-semantics.test.sh}`, task ledgers
+- **Commit:** PENDING
