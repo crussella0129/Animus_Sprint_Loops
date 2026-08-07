@@ -2,12 +2,12 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0002
-- **State:** planned
+- **State:** realized
 - **Work evidence:** [Sprint 15 build plan](../sprints/s15/sprint-plans/build-plan.md), [Sprint 15 test plan](../sprints/s15/sprint-plans/test-plan.md)
-- **Completion evidence:** none
-- **Code evidence:** none
+- **Completion evidence:** [T-122–T-129 completion](../work/completed-tasks.md)
+- **Code evidence:** [substrate check](../../open-harnesses/scripts/check-substrate.sh), [Sprint 0 deploy](../../open-harnesses/scripts/deploy-substrate.sh), [remote adapter](../../open-harnesses/scripts/remote-adapter.sh), [boundary resync](../../open-harnesses/scripts/sync-work-branch.sh)
 - **Test evidence:** [Sprint 15 test report](../sprints/s15/sprint-tests/test-report.md)
-- **Documentation evidence:** none
+- **Documentation evidence:** [remote-profile schema](../../open-harnesses/schemas/remote-profile.md), [root README](../../README.md)
 
 ## Intent
 Give Sprint Loops a first-class **substrate layer** so the branch topology,
@@ -100,3 +100,7 @@ already references finally have a schema.
   (T-122–T-129) were drafted around this intent and linked as Work evidence.
 - 2026-08-06: `planned → active` — Sprint 15 Build began implementing the
   substrate layer (starting with T-122, the remote-profile contract).
+- 2026-08-07: `active → realized` — T-122–T-129 completed; the sprint 15 guard
+  suite (including the five new substrate suites and the adapter-semantics
+  contract) concluded `success` on the Ubuntu/macOS CI matrix (head `97e11eb`),
+  and this repository was retrofitted to `substrate-complete`.

@@ -26,18 +26,19 @@ is green.
 - Integration: pass (headline: live repo retrofit → `substrate-complete`).
 - E2E: substrate/guard behavior green locally except the documented Windows-only
   `selftest` CRLF exception; the `dev→main` merge is a human checkpoint.
-- CI status: **pending push** (Ubuntu + macOS matrix).
+- CI status: **green** (Ubuntu + macOS matrix). On CI (POSIX awk) all 15 suites
+  pass, including `selftest`; the local Windows-only CRLF exception is absent.
 
 ## CI Confirmation
-- **Head SHA:** `8fbf8cf21824c6553897fe47099250a4c477af5d` (sprint-15 tip)
-- **CI run:** pending — the sprint-15 branch has not yet been pushed.
-- **Conclusion:** pending
-- **Confirmations:** local canonical `run-guards.sh --determinism` — the five new
-  substrate suites, `adapter-semantics`(+`-test`), `bundle-sync`, `merge-policy`,
-  `plugin-manifest`, `operator-docs` green and `determinism: ok`; the sole local
-  exception is `selftest`'s Windows-gawk CRLF quirk (backlog T-121).
-- **To finalize:** push the sprint head, then record the CI conclusion on this
-  SHA (authoritative) here before any merge.
+- **Head SHA:** `97e11eb` (sprint-15 tip — the loop-close commit)
+- **CI run:** [guards #31146484027](https://github.com/crussella0129/Animus_Sprint_Loops/actions/runs/31146484027)
+  (pull_request) and `#31146481431` (push), workflow `guards`.
+- **Conclusion:** `success` (both runs; Ubuntu + macOS legs).
+- **Confirmations:** the CI legs ran the identical `tools/run-guards.sh
+  --determinism` entry point and passed all 15 suites — including the five new
+  substrate suites, `adapter-semantics`(+`-test`, 47/47), and `selftest` — with
+  determinism. The local Windows run matched except `selftest`'s gawk CRLF quirk
+  (backlog T-121).
 
 ## Failures
 - `selftest` → chained `runtime-helpers` CRLF assertions fail **only under
