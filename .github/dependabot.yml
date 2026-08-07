@@ -12,6 +12,3 @@ updates:
     target-branch: "bump"
     commit-message:
       prefix: "bump"
-    labels:
-      - "dependencies"
-      - "bump"
