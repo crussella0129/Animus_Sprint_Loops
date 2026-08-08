@@ -415,4 +415,4 @@
 - **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
 - **Completed:** 2026-08-08T05:06:41Z
 - **Files modified:** `{4 bundles}/scripts/{remote-adapter.sh,remote-adapter.test.sh,sync-work-branch.sh,sync-work-branch.test.sh}`, `{claude,codex}/phases/{01-init-sprint.md,06-loop-phase.md}`, `open-harnesses/particles/08-loop-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `076365d27f73aa84b5850c601370774e187553f0`
