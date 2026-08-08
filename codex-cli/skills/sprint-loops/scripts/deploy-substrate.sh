@@ -1,24 +1,22 @@
 #!/usr/bin/env bash
 # Idempotent Sprint 0 deploy: bring a project to substrate-complete.
 # Creates only what is missing — Book scaffold + first sprint, remote profile,
-# and base/work/(bump) branches — then verifies. Transactional: any failure or
+# and base/work branches — then verifies. Transactional: any failure or
 # signal before commit rolls back every artifact this run created.
 # Usage: deploy-substrate.sh [--root <dir>] [--provider p] [--base b] [--work w]
-#                            [--bump b | --no-bump] [--merge-policy m]
+#                            [--merge-policy m]
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC2034 # Consumed by the sourced path contract.
 SPRINT_LOOP_PROJECT_ROOT="${SPRINT_LOOP_PROJECT_ROOT:-.}"
-PROVIDER=local-only; BASE=main; WORK=dev; BUMP=none; MERGE_POLICY=human-approve
+PROVIDER=local-only; BASE=main; WORK=dev; MERGE_POLICY=human-approve
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --root) SPRINT_LOOP_PROJECT_ROOT="$2"; shift 2 ;;
     --provider) PROVIDER="$2"; shift 2 ;;
     --base) BASE="$2"; shift 2 ;;
     --work) WORK="$2"; shift 2 ;;
-    --bump) BUMP="$2"; shift 2 ;;
-    --no-bump) BUMP=none; shift ;;
     --merge-policy) MERGE_POLICY="$2"; shift 2 ;;
     *) echo "deploy-substrate: unknown argument $1" >&2; exit 2 ;;
   esac
@@ -34,11 +32,6 @@ case "$(book_layout_state)" in
 esac
 
 PROFILE=$(book_join_root docs/work/remote-profile.md)
-
-if [ "$(bash "$SCRIPT_DIR/check-substrate.sh" --root "$ROOT" 2>/dev/null)" = substrate-complete ]; then
-  echo "deploy-substrate: already substrate-complete; nothing to do"
-  exit 0
-fi
 
 CREATED_BOOK=0; CREATED_PROFILE=0; CREATED_SPRINT=""; CREATED_GITDIR=0
 CREATED_BRANCHES=""; CREATED_UPDATER=""; COMMITTED=0
@@ -78,57 +71,55 @@ maybe_fail book
 if [ ! -f "$PROFILE" ]; then
   mkdir -p "$(dirname "$PROFILE")"
   {
-    printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v1 -->\n\n```\n'
+    printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v2 -->\n\n```\n'
     printf 'provider: %s\nbase: %s\nwork: %s\n' "$PROVIDER" "$BASE" "$WORK"
-    [ "$BUMP" != none ] && printf 'bump: %s\n' "$BUMP"
     printf 'mergePolicy: %s\n```\n' "$MERGE_POLICY"
   } > "$PROFILE"
   CREATED_PROFILE=1
 fi
 prof=$(bash "$SCRIPT_DIR/remote-profile.sh" --root "$ROOT") || fail "invalid remote profile"
+PROVIDER=$(printf '%s\n' "$prof" | sed -n 's/^PROVIDER=//p')
 BASE=$(printf '%s\n' "$prof" | sed -n 's/^BASE=//p')
 WORK=$(printf '%s\n' "$prof" | sed -n 's/^WORK=//p')
-BUMP=$(printf '%s\n' "$prof" | sed -n 's/^BUMP=//p')
+MERGE_POLICY=$(printf '%s\n' "$prof" | sed -n 's/^MERGEPOLICY=//p')
 maybe_fail profile
 
-# 2b. Dependency-updater config for the bump workflow (create-if-absent, bump-gated).
+# 2b. Dependency-updater config (create-if-absent, work-targeted).
 # github -> Dependabot; gitlab/generic -> Renovate; local-only -> none. A fresh
 # project has no manifests, so the config is a starter (github-actions / recommended).
-if [ "$BUMP" != none ]; then
-  case "$PROVIDER" in
-    github)
-      updater="$ROOT/.github/dependabot.yml"
-      if [ ! -f "$updater" ]; then
-        mkdir -p "$ROOT/.github"
-        {
-          printf '# Dependabot opens dependency-update PRs against the bump branch (never main/dev).\n'
-          printf '# github-actions is the starter ecosystem; add npm/pip/cargo/... as the project grows.\n'
-          printf 'version: 2\nupdates:\n'
-          printf '  - package-ecosystem: "github-actions"\n    directory: "/"\n'
-          printf '    schedule:\n      interval: "weekly"\n'
-          printf '    target-branch: "%s"\n' "$BUMP"
-        } > "$updater"
-        CREATED_UPDATER="$updater"
-      fi ;;
-    gitlab|generic)
-      updater="$ROOT/renovate.json"
-      if [ ! -f "$updater" ]; then
-        {
-          printf '{\n'
-          printf '  "$schema": "https://docs.renovatebot.com/renovate-schema.json",\n'
-          printf '  "extends": ["config:recommended"],\n'
-          printf '  "baseBranches": ["%s"]\n' "$BUMP"
-          printf '}\n'
-        } > "$updater"
-        CREATED_UPDATER="$updater"
-      fi ;;
-  esac
-fi
+case "$PROVIDER" in
+  github)
+    updater="$ROOT/.github/dependabot.yml"
+    if [ ! -f "$updater" ]; then
+      mkdir -p "$ROOT/.github"
+      {
+        printf '# Dependabot opens scheduled version-update PRs against the work branch.\n'
+        printf '# Merge only at sprint boundaries when green; add ecosystems as the project grows.\n'
+        printf 'version: 2\nupdates:\n'
+        printf '  - package-ecosystem: "github-actions"\n    directory: "/"\n'
+        printf '    schedule:\n      interval: "weekly"\n'
+        printf '    target-branch: "%s"\n' "$WORK"
+      } > "$updater"
+      CREATED_UPDATER="$updater"
+    fi ;;
+  gitlab|generic)
+    updater="$ROOT/renovate.json"
+    if [ ! -f "$updater" ]; then
+      {
+        printf '{\n'
+        printf '  "$schema": "https://docs.renovatebot.com/renovate-schema.json",\n'
+        printf '  "extends": ["config:recommended"],\n'
+        printf '  "baseBranchPatterns": ["%s"]\n' "$WORK"
+        printf '}\n'
+      } > "$updater"
+      CREATED_UPDATER="$updater"
+    fi ;;
+esac
 maybe_fail updater
 
 # 3. Git repo + branches.
 if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
-  git -C "$ROOT" init -q || fail "git init failed"
+  git -C "$ROOT" init -q -b "$BASE" || fail "git init failed"
   CREATED_GITDIR=1
 fi
 if ! git -C "$ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
@@ -138,7 +129,6 @@ if ! git -C "$ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
     commit -q --allow-empty -m "sprint-0: substrate" || fail "initial commit failed"
 fi
 branch_list="$BASE $WORK"
-[ "$BUMP" != none ] && branch_list="$branch_list $BUMP"
 # shellcheck disable=SC2086 # branch names are single tokens by construction.
 for br in $branch_list; do
   if ! git -C "$ROOT" show-ref --verify --quiet "refs/heads/$br"; then
@@ -154,5 +144,5 @@ result=$(bash "$SCRIPT_DIR/check-substrate.sh" --root "$ROOT" 2>/dev/null) || tr
 
 COMMITTED=1
 trap - EXIT HUP INT TERM
-printf 'deploy-substrate: substrate-complete (provider=%s base=%s work=%s bump=%s)\n' \
-  "$PROVIDER" "$BASE" "$WORK" "$BUMP"
+printf 'deploy-substrate: substrate-complete (provider=%s base=%s work=%s mergePolicy=%s)\n' \
+  "$PROVIDER" "$BASE" "$WORK" "$MERGE_POLICY"

@@ -127,6 +127,15 @@ merge to `base`, `scripts/sync-work-branch.sh` resyncs `work`. Bootstrap and
 routing begin at the substrate gate `scripts/check-substrate.sh`
 (`substrate-absent` runs `scripts/deploy-substrate.sh`).
 
+Hosted-updater PRs targeting `work` are sprint-boundary intake, not another
+branch topology. Never merge them during an active sprint. Merge only when the
+request is current and green and the remote-authority boundary permits it; keep
+red intake unmerged and repair its head until green. If the provider prevents
+head repair, use an ordinary dependency-only sprint to reproduce and fix the
+update on `work`, then supersede the unmergeable updater PR. It uses the same
+`work -> base` checkpoint as every other sprint, with no checkpoint or sprint
+subtype.
+
 ## Authority
 
 Always Proceed and auto-accept are interaction preferences only. They do not

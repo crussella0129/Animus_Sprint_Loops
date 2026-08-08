@@ -36,20 +36,15 @@ build_baseline() {
   TMPDIRS+=("$BASE")
   local rel
   for rel in \
-    ".claude-plugin/marketplace.json" \
-    "claude-code/.claude-plugin/plugin.json" \
-    "claude-code/README.md" \
-    "claude-code/skills/sprint-loop/SKILL.md" \
-    "claude-code/skills/sprint-loop/phases" \
-    "codex-cli/README.md" \
-    "codex-cli/skills/sprint-loops/AGENTS.md.fragment" \
-    "codex-cli/skills/sprint-loops/SKILL.md" \
-    "codex-cli/skills/sprint-loops/phases" \
-    "antigravity-ide/README.md" \
-    "antigravity-ide/global_workflows/sprint-loops.md" \
-    "antigravity-ide/skills/sprint-loop/SKILL.md" \
-    "open-harnesses/README.md" \
-    "open-harnesses/particles"; do
+    "README.md" \
+    ".github/dependabot.yml" \
+    ".github/workflows/ci.yml" \
+    "docs/work/remote-profile.md" \
+    ".claude-plugin" \
+    "claude-code" \
+    "codex-cli" \
+    "antigravity-ide" \
+    "open-harnesses"; do
     copy_surface "$rel"
   done
 }
@@ -123,6 +118,64 @@ expect_fail() {
 build_baseline
 T=$BASE
 expect_pass "baseline active surfaces pass"
+
+new_case
+printf '\nRetired dependency branch: BuMp.\n' >> \
+  "$T/claude-code/skills/sprint-loop/SKILL.md"
+expect_fail "retired branch term in adapter" \
+  "^adapter-semantics: retired branch model term 'bump' at claude-code/skills/sprint-loop/SKILL\.md:[0-9]+$"
+
+new_case
+printf '\nRetired dependency branch: bump.\n' >> \
+  "$T/codex-cli/skills/sprint-loops/schemas/remote-profile.md"
+expect_fail "retired branch term in schema" \
+  "^adapter-semantics: retired branch model term 'bump' at codex-cli/skills/sprint-loops/schemas/remote-profile\.md:[0-9]+$"
+
+new_case
+printf '\n# Retired dependency branch: BUMP_BRANCH.\n' >> \
+  "$T/open-harnesses/scripts/remote-profile.sh"
+expect_fail "retired branch term in script" \
+  "^adapter-semantics: retired branch model term 'bump' at open-harnesses/scripts/remote-profile\.sh:[0-9]+$"
+
+new_case
+printf '\n# Retired dependency branch: bumpBranch.\n' >> \
+  "$T/codex-cli/install.sh"
+expect_fail "retired camel-case branch identifier in installer" \
+  "^adapter-semantics: retired branch model term 'bump' at codex-cli/install\.sh:[0-9]+$"
+
+new_case
+printf '\nRetired dependency branch: bump.\n' >> \
+  "$T/codex-cli/skills/sprint-loops/phases/01-init-sprint.md"
+expect_fail "retired branch term in phase" \
+  "^adapter-semantics: retired branch model term 'bump' at codex-cli/skills/sprint-loops/phases/01-init-sprint\.md:[0-9]+$"
+
+new_case
+printf '\nRetired dependency branch: bump.\n' >> "$T/README.md"
+expect_fail "retired branch term in operator guide" \
+  "^adapter-semantics: retired branch model term 'bump' at README\.md:[0-9]+$"
+
+new_case
+printf '\nRetired dependency branch: bump.\n' >> \
+  "$T/docs/work/remote-profile.md"
+expect_fail "retired branch term in live profile" \
+  "^adapter-semantics: retired branch model term 'bump' at docs/work/remote-profile\.md:[0-9]+$"
+
+new_case
+printf '\n# Retired dependency branch: bump.\n' >> \
+  "$T/.github/dependabot.yml"
+expect_fail "retired branch term in updater config" \
+  "^adapter-semantics: retired branch model term 'bump' at \.github/dependabot\.yml:[0-9]+$"
+
+new_case
+printf '\nSpeedbumps, bumpers, and bumping are unrelated terms.\n' >> "$T/README.md"
+expect_pass "retired branch scan uses a case-insensitive whole word"
+
+new_case
+mkdir -p "$T/docs/sprints/s99" "$T/docs/work" "$T/.git/logs"
+printf 'Historical branch: bump.\n' > "$T/docs/sprints/s99/history.md"
+printf 'Completed branch: bump.\n' > "$T/docs/work/completed-tasks.md"
+printf 'Git history branch: bump.\n' > "$T/.git/logs/HEAD"
+expect_pass "finalized Book and Git history remain outside active surfaces"
 
 new_case
 rm -f -- "$T/open-harnesses/particles/08-loop-phase.md"

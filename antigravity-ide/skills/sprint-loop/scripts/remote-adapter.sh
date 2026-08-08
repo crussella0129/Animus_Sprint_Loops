@@ -9,13 +9,12 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC2034 # Consumed by the sourced path contract.
 SPRINT_LOOP_PROJECT_ROOT="${SPRINT_LOOP_PROJECT_ROOT:-.}"
-TITLE=""; BODY=""; ACTION=""; HEAD_OVERRIDE=""
+TITLE=""; BODY=""; ACTION=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --root) SPRINT_LOOP_PROJECT_ROOT="$2"; shift 2 ;;
     --title) TITLE="$2"; shift 2 ;;
     --body) BODY="$2"; shift 2 ;;
-    --head) HEAD_OVERRIDE="$2"; shift 2 ;;
     pr-exists|open-pr) ACTION="$1"; shift ;;
     *) echo "remote-adapter: unknown argument $1" >&2; exit 2 ;;
   esac
@@ -29,8 +28,6 @@ prof=$(bash "$SCRIPT_DIR/remote-profile.sh" --root "$ROOT") ||
 provider=$(printf '%s\n' "$prof" | sed -n 's/^PROVIDER=//p')
 base=$(printf '%s\n' "$prof" | sed -n 's/^BASE=//p')
 work=$(printf '%s\n' "$prof" | sed -n 's/^WORK=//p')
-# --head overrides the PR head branch (e.g. `--head bump` for a bump->base checkpoint).
-[ -n "$HEAD_OVERRIDE" ] && work="$HEAD_OVERRIDE"
 
 pr_exists() {
   case "$provider" in

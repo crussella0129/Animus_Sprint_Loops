@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0002
-- **State:** realized
+- **State:** superseded
 - **Work evidence:** [Sprint 15 build plan](../sprints/s15/sprint-plans/build-plan.md), [Sprint 15 test plan](../sprints/s15/sprint-plans/test-plan.md)
 - **Completion evidence:** [T-122–T-129 completion](../work/completed-tasks.md)
 - **Code evidence:** [substrate check](../../open-harnesses/scripts/check-substrate.sh), [Sprint 0 deploy](../../open-harnesses/scripts/deploy-substrate.sh), [remote adapter](../../open-harnesses/scripts/remote-adapter.sh), [boundary resync](../../open-harnesses/scripts/sync-work-branch.sh)
@@ -104,3 +104,9 @@ already references finally have a schema.
   suite (including the five new substrate suites and the adapter-semantics
   contract) concluded `success` on the Ubuntu/macOS CI matrix (head `97e11eb`),
   and this repository was retrofitted to `substrate-complete`.
+- 2026-08-08: `realized → superseded` — [INT-0003](INT-0003-dependency-updates-on-work.md)
+  retains the substrate, long-lived `work → base` checkpoint, and boundary
+  resync while replacing the dedicated dependency branch. Live Dependabot
+  behavior and PRs #7/#8 showed that the updater proposes PRs rather than
+  writing its target branch, invalidating the concurrency premise for the
+  third branch.

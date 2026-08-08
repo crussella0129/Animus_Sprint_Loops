@@ -3,6 +3,7 @@
 - [Intents](intents/README.md)
 - [INT-0001 — Project Book](intents/INT-0001-project-book.md)
 - [INT-0002 — Substrate & branch model](intents/INT-0002-substrate-and-branch-model.md)
+- [INT-0003 — Dependency updates on work](intents/INT-0003-dependency-updates-on-work.md)
 - [Tasks](work/tasks.md)
 - [Completed tasks](work/completed-tasks.md)
 - [Sprint 0](sprints/s0/sprint-meta.md)
@@ -21,3 +22,4 @@
 - [Sprint 8](sprints/s8/sprint-meta.md)
 - [Sprint 9](sprints/s9/sprint-meta.md)
 - [Sprint 15](sprints/s15/sprint-meta.md)
+- [Sprint 16](sprints/s16/sprint-meta.md)

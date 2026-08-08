@@ -395,3 +395,45 @@
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `docs/work/remote-profile.md` (new); repository branches `dev`, `bump` (created + pushed to origin)
 - **Commit:** `258c1decf46734bff2e1fe9cc28d672f8f3ccdec`
+
+## T-130 (sprint 16)
+- **Description:** Replaced the Book-tracked remote-profile contract with strict v2 across all four bundles. The schema now declares only `provider`, `base`, `work`, and optional/defaulted `mergePolicy`; the resolver emits and queries only those fields, rejects the v1 marker with a migration diagnostic, rejects unknown profile keys instead of silently ignoring them, and rejects unsupported field queries. Expanded fixtures cover exact four-field output, legacy-marker rejection, unknown-key rejection, unknown-query rejection, required-field/provider diagnostics, and local-only defaults. Verified the canonical fixture suite, shellcheck, diff hygiene, and byte-identical bundle parity.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T04:56:08Z
+- **Files modified:** `docs/intents/INT-0003-dependency-updates-on-work.md`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, task ledgers
+- **Commit:** `d70ae202e5a5b218d2eaf802686b9603f20dd558`
+
+## T-131 (sprint 16)
+- **Description:** Simplified the substrate gate and transactional Sprint 0 deploy to the profile's `base`/`work` topology across all four bundles. The gate now requires only those two configured refs. Deploy creates only base/work on a fresh repository, scaffolds Dependabot or current Renovate `baseBranchPatterns` against `work` for hosted providers, creates no updater for local-only, rebinds behavior from the resolved profile, and preserves create-if-absent/no-clobber semantics. Expanded fixtures prove exact fresh branch set, hosted target routing, idempotency, fresh rollback cleanup, byte/ref preservation of seeded pre-existing state under rollback, conflict refusal, GitHub/GitLab/generic/local variants, and no-clobber behavior. Targeted suites, shellcheck, diff hygiene, and bundle parity passed.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T05:01:39Z
+- **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh,deploy-substrate.sh,deploy-substrate.test.sh}`, task ledgers
+- **Commit:** `b647ee31c0e81180502653e6f133e86ea846d313`
+
+## T-132 (sprint 16)
+- **Description:** Removed the caller-supplied checkpoint-head override from the provider adapter, leaving the remote profile's `work → base` path as the only corpus checkpoint. Updated adapter fixtures to prove one open, existing-checkpoint refusal, generic fallback, human-approve non-merge, and override rejection before provider invocation. Generalized boundary resync semantics while retaining positive ancestry, dirty refusal, and base-immutability coverage. Rewired Claude, Codex, Open Harnesses, and Antigravity contracts to require hosted-updater intake only between sprints: merge only when current/green and authorized; keep red PRs unmerged and repair until green; if the provider head cannot be repaired, use an ordinary dependency-only sprint and supersede the PR, with no checkpoint/sprint subtype. Targeted adapter/resync suites, static four-adapter contract checks, shellcheck, adapter semantics, bundle parity, and active-distribution scans passed.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T05:06:41Z
+- **Files modified:** `{4 bundles}/scripts/{remote-adapter.sh,remote-adapter.test.sh,sync-work-branch.sh,sync-work-branch.test.sh}`, `{claude,codex}/phases/{01-init-sprint.md,06-loop-phase.md}`, `open-harnesses/particles/08-loop-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`, task ledgers
+- **Commit:** `076365d27f73aa84b5850c601370774e187553f0`
+
+## T-133 (sprint 16)
+- **Description:** Migrated this repository onto the v2 two-branch model. The live profile now declares only `main`/`dev`; Dependabot targets `dev` with ordinary `deps` commits; CI runs on pull requests to either corpus branch; and the Actions v7 upgrades formerly isolated on the retired path are preserved. Replaced the operator guide with one boundary-intake rule: accept a current green updater PR between sprints, repair red updates without merging, or use an ordinary dependency-only sprint when the provider head cannot be repaired. Documented GitHub's default-branch security-update exception and the required resync. Verified the source resolver and substrate gate, operator-doc fixtures, exact config anchors, diff parity with `origin/bump` for the preserved Actions payload, diff hygiene, and absence of the retired term on the edited active surfaces.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T05:09:09Z
+- **Files modified:** `docs/work/remote-profile.md`, `.github/dependabot.yml`, `.github/workflows/ci.yml`, `README.md`, task ledgers
+- **Commit:** `5c4456caa54d65c25c3345cbde0adaf179002443`
+
+## T-134 (sprint 16)
+- **Description:** Added a positive-inventory regression guard over the complete active Claude, Codex, Antigravity, and Open Harness distributions plus the root operator guide, live remote profile, Dependabot configuration, and CI workflow. It rejects the retired branch-model term case-insensitively, including underscore and camel-case identifiers, with repository-relative path/line diagnostics while leaving finalized Book and Git history outside the scan. Expanded the isolated mutation matrix to prove failures independently in adapter, schema, script, installer, phase, operator-guide, live-profile, and updater-config surfaces; prove embedded ordinary words remain safe; and prove historical exclusions are deliberate. The final matrix passed 57/57, independent review found no acceptance gap, bundle parity passed, shellcheck passed, and the canonical two-pass runner recorded 15/15 suites with matching deterministic evidence.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T06:34:32Z
+- **Files modified:** `tools/check-adapter-semantics.sh`, `tools/check-adapter-semantics.test.sh`, task ledgers
+- **Commit:** `184e376a4acfba7a5a34ab110815f615864d0e32`
+
+## T-135 (sprint 16)
+- **Description:** Reinstalled the revised Codex bundle to the native Windows user scope with the exact transactional installer published in `codex-cli/README.md`. Verified the source and installed trees have the same 49 relative files and SHA-256 hashes, and that no install lock, staging directory, backup directory, or ownership marker remains. Executed the installed router against this Book (`build` before task-ledger completion) and the installed v2 resolver against the live profile; it emitted exactly `PROVIDER=github`, `BASE=main`, `WORK=dev`, and `MERGEPOLICY=human-approve` with no retired branch output.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T06:36:58Z
+- **Files modified:** `C:/Users/charl/.agents/skills/sprint-loops` (transactional user-scope replacement), task ledgers
+- **Commit:** `0af4c726cd54c3a33ca8d3a56a94699e1339d1e5`

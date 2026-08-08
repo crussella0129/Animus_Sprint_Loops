@@ -11,7 +11,7 @@ name: guards
 on:
   push:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   guards:
@@ -21,7 +21,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install shellcheck if missing (macOS runners may not ship it)
         run: |
@@ -44,7 +44,7 @@ jobs:
 
       - name: Upload confirmations artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: guards-report-${{ matrix.os }}
           path: guards-report.ndjson

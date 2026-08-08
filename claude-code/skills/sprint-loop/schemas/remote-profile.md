@@ -9,13 +9,12 @@ configuration, not semantic intent.
 ```markdown
 # Remote Profile
 
-<!-- sprint-loop-remote-profile-v1 -->
+<!-- sprint-loop-remote-profile-v2 -->
 
 ​```
 provider: github
 base: main
 work: dev
-bump: bump
 mergePolicy: human-approve
 ​```
 ```
@@ -28,16 +27,18 @@ lines. Fields:
   or none).
 - `base` — **required**; the PR/MR-gated corpus branch (e.g. `main`).
 - `work` — **required**; the long-lived branch sprints commit to (e.g. `dev`).
-- `bump` — optional; the Dependabot target branch. Omit (or set `none`) to
-  disable the `bump` leg.
 - `mergePolicy` — optional; `human-approve` (default) or `auto-on-green`.
 
 Rules:
 
-- The `<!-- sprint-loop-remote-profile-v1 -->` marker must be present.
+- The `<!-- sprint-loop-remote-profile-v2 -->` marker must be present. Profiles
+  using an earlier marker must be rewritten to the v2 four-field shape.
 - A missing file, missing marker, missing required field, unknown `provider`, or
-  unknown `mergePolicy` is a resolution error with a specific diagnostic.
+  unknown field/value is a resolution error with a specific diagnostic; extra
+  keys are never ignored.
 - `local-only` needs only `base`/`work`; no remote or provider CLI is required,
   and the Loop performs no PR/MR.
 - The skill never creates a per-sprint branch: sprints work on `work`, and each
   sprint opens exactly one `work → base` PR/MR (unless `local-only`).
+- Hosted dependency updaters target `work`; their PRs are boundary-gated input
+  to the same ordinary sprint path, not another long-lived branch.

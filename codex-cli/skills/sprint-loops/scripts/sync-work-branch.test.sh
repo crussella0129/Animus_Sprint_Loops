@@ -20,7 +20,7 @@ make_repo() {  # <dir> — main ahead of dev by one commit; on dev
   git_c commit -q --allow-empty -m base1
   git -C "$R" checkout -q dev
   mkdir -p "$R/docs/work"
-  printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v1 -->\n\n```\nprovider: github\nbase: main\nwork: dev\n```\n' \
+  printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v2 -->\n\n```\nprovider: github\nbase: main\nwork: dev\n```\n' \
     > "$R/docs/work/remote-profile.md"
 }
 
