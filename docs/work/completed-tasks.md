@@ -430,3 +430,10 @@
 - **Completed:** 2026-08-08T06:34:32Z
 - **Files modified:** `tools/check-adapter-semantics.sh`, `tools/check-adapter-semantics.test.sh`, task ledgers
 - **Commit:** `184e376a4acfba7a5a34ab110815f615864d0e32`
+
+## T-135 (sprint 16)
+- **Description:** Reinstalled the revised Codex bundle to the native Windows user scope with the exact transactional installer published in `codex-cli/README.md`. Verified the source and installed trees have the same 49 relative files and SHA-256 hashes, and that no install lock, staging directory, backup directory, or ownership marker remains. Executed the installed router against this Book (`build` before task-ledger completion) and the installed v2 resolver against the live profile; it emitted exactly `PROVIDER=github`, `BASE=main`, `WORK=dev`, and `MERGEPOLICY=human-approve` with no retired branch output.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T06:36:58Z
+- **Files modified:** `C:/Users/charl/.agents/skills/sprint-loops` (transactional user-scope replacement), task ledgers
+- **Commit:** PENDING
