@@ -67,6 +67,22 @@ OPEN_ACTIVE=(
   "open-harnesses/particles/08-loop-phase.md"
 )
 
+# These are the active, user-facing and executable branch-model surfaces. The
+# finalized Book under docs/sprints/, completed-task history, Git/PR history,
+# and this guard's own regression vocabulary are intentionally outside this
+# inventory.
+BRANCH_MODEL_ACTIVE=(
+  "README.md"
+  ".github/dependabot.yml"
+  ".github/workflows/ci.yml"
+  "docs/work/remote-profile.md"
+  ".claude-plugin"
+  "claude-code"
+  "codex-cli"
+  "antigravity-ide"
+  "open-harnesses"
+)
+
 report() {
   printf 'adapter-semantics: %s\n' "$*" >&2
   FAILED=1
@@ -110,6 +126,39 @@ check_adapter_surfaces() {
   local adapter=$1
   shift
   check_surface_set "$adapter" "$@" || true
+}
+
+check_retired_branch_model() {
+  local rel path output
+  local active_files=()
+
+  for rel in "${BRANCH_MODEL_ACTIVE[@]}"; do
+    path="$ROOT/$rel"
+    if [ -f "$path" ]; then
+      active_files+=("$path")
+    elif [ -d "$path" ]; then
+      while IFS= read -r path; do
+        active_files+=("$path")
+      done < <(find "$path" -type f -print | LC_ALL=C sort)
+    else
+      report "branch-model: missing active surface: $rel"
+    fi
+  done
+
+  output=$(LC_ALL=C awk -v root="$ROOT/" '
+    {
+      text = tolower($0)
+      if (text ~ /(^|[^[:alnum:]])bump([^[:alnum:]]|$)/ ||
+          text ~ /(^|[^[:alnum:]])bump[_-]?branch([^[:alnum:]]|$)/) {
+        rel = substr(FILENAME, length(root) + 1)
+        printf "adapter-semantics: retired branch model term \047bump\047 at %s:%d\n", rel, FNR
+      }
+    }
+  ' "${active_files[@]}")
+  if [ -n "$output" ]; then
+    printf '%s\n' "$output" >&2
+    FAILED=1
+  fi
 }
 
 check_version_anchor() {
@@ -528,6 +577,7 @@ check_adapter_surfaces claude "${CLAUDE_ACTIVE[@]}"
 check_adapter_surfaces codex "${CODEX_ACTIVE[@]}"
 check_adapter_surfaces antigravity "${ANTIGRAVITY_ACTIVE[@]}"
 check_adapter_surfaces open-harnesses "${OPEN_ACTIVE[@]}"
+check_retired_branch_model
 
 check_version_anchor claude "claude-code/skills/sprint-loop/SKILL.md" 'Book schema v2 keeps semantic intent'
 check_version_anchor codex "codex-cli/skills/sprint-loops/SKILL.md" 'Sprint Loops Book v2 workflow'

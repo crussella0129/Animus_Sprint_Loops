@@ -423,3 +423,10 @@
 - **Completed:** 2026-08-08T05:09:09Z
 - **Files modified:** `docs/work/remote-profile.md`, `.github/dependabot.yml`, `.github/workflows/ci.yml`, `README.md`, task ledgers
 - **Commit:** `5c4456caa54d65c25c3345cbde0adaf179002443`
+
+## T-134 (sprint 16)
+- **Description:** Added a positive-inventory regression guard over the complete active Claude, Codex, Antigravity, and Open Harness distributions plus the root operator guide, live remote profile, Dependabot configuration, and CI workflow. It rejects the retired branch-model term case-insensitively, including underscore and camel-case identifiers, with repository-relative path/line diagnostics while leaving finalized Book and Git history outside the scan. Expanded the isolated mutation matrix to prove failures independently in adapter, schema, script, installer, phase, operator-guide, live-profile, and updater-config surfaces; prove embedded ordinary words remain safe; and prove historical exclusions are deliberate. The final matrix passed 57/57, independent review found no acceptance gap, bundle parity passed, shellcheck passed, and the canonical two-pass runner recorded 15/15 suites with matching deterministic evidence.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T06:34:32Z
+- **Files modified:** `tools/check-adapter-semantics.sh`, `tools/check-adapter-semantics.test.sh`, task ledgers
+- **Commit:** PENDING
