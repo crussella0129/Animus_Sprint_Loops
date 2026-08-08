@@ -402,3 +402,10 @@
 - **Completed:** 2026-08-08T04:56:08Z
 - **Files modified:** `docs/intents/INT-0003-dependency-updates-on-work.md`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, task ledgers
 - **Commit:** `d70ae202e5a5b218d2eaf802686b9603f20dd558`
+
+## T-131 (sprint 16)
+- **Description:** Simplified the substrate gate and transactional Sprint 0 deploy to the profile's `base`/`work` topology across all four bundles. The gate now requires only those two configured refs. Deploy creates only base/work on a fresh repository, scaffolds Dependabot or current Renovate `baseBranchPatterns` against `work` for hosted providers, creates no updater for local-only, rebinds behavior from the resolved profile, and preserves create-if-absent/no-clobber semantics. Expanded fixtures prove exact fresh branch set, hosted target routing, idempotency, fresh rollback cleanup, byte/ref preservation of seeded pre-existing state under rollback, conflict refusal, GitHub/GitLab/generic/local variants, and no-clobber behavior. Targeted suites, shellcheck, diff hygiene, and bundle parity passed.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T05:01:39Z
+- **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh,deploy-substrate.sh,deploy-substrate.test.sh}`, task ledgers
+- **Commit:** PENDING

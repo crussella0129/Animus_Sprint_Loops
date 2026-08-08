@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deterministic Sprint Loops substrate check — runs in front of phase routing.
 # Prints exactly one of:
-#   substrate-complete            (Book + ledgers + branches + profile all present)
+#   substrate-complete            (Book + ledgers + base/work + profile present)
 #   substrate-absent              (no Book and no profile — a fresh project)
 #   substrate-partial:<diagnostic> (some present; names what is missing)
 # Read-only. Exit 0 only for substrate-complete.
@@ -22,12 +22,11 @@ ROOT="$SPRINT_LOOP_PROJECT_ROOT"
 book_state=$(book_layout_state)
 
 # Resolve the remote profile (best-effort; drives branch names).
-profile_ok=0; base=""; work=""; bump="none"
+profile_ok=0; base=""; work=""
 if profile_out=$(bash "$SCRIPT_DIR/remote-profile.sh" --root "$ROOT" 2>/dev/null); then
   profile_ok=1
   base=$(printf '%s\n' "$profile_out" | sed -n 's/^BASE=//p')
   work=$(printf '%s\n' "$profile_out" | sed -n 's/^WORK=//p')
-  bump=$(printf '%s\n' "$profile_out" | sed -n 's/^BUMP=//p')
 fi
 
 # Fresh project: neither Book nor profile present at all.
@@ -56,9 +55,6 @@ elif ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
 else
   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$base" || missing="$missing branch:$base"
   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$work" || missing="$missing branch:$work"
-  if [ "$bump" != none ]; then
-    git -C "$ROOT" show-ref --verify --quiet "refs/heads/$bump" || missing="$missing branch:$bump"
-  fi
 fi
 
 missing="${missing# }"
