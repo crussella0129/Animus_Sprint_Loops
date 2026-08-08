@@ -98,6 +98,8 @@ pass test_deploy_refuses_conflict
 G="$TMP_ROOT/gitlab"; mkdir -p "$G"
 bash "$DS" --root "$G" --provider gitlab --base main --work dev >/dev/null 2>&1 ||
   die test_deploy_updater_variants 'gitlab deploy failed'
+[ "$(branch_set "$G")" = 'dev main' ] ||
+  die test_deploy_updater_variants "unexpected GitLab branches: $(branch_set "$G")"
 [ -f "$G/renovate.json" ] || die test_deploy_updater_variants 'no Renovate config for gitlab'
 grep -q '"baseBranchPatterns": \["dev"\]' "$G/renovate.json" ||
   die test_deploy_updater_variants 'GitLab Renovate does not target work'
@@ -107,6 +109,8 @@ grep -q '"baseBranchPatterns": \["dev"\]' "$G/renovate.json" ||
 N="$TMP_ROOT/generic"; mkdir -p "$N"
 bash "$DS" --root "$N" --provider generic --base main --work dev >/dev/null 2>&1 ||
   die test_deploy_updater_variants 'generic deploy failed'
+[ "$(branch_set "$N")" = 'dev main' ] ||
+  die test_deploy_updater_variants "unexpected generic branches: $(branch_set "$N")"
 grep -q '"baseBranchPatterns": \["dev"\]' "$N/renovate.json" ||
   die test_deploy_updater_variants 'generic Renovate does not target work'
 
@@ -125,6 +129,14 @@ bash "$DS" --root "$E" --provider github --base main --work dev >/dev/null 2>&1 
   die test_deploy_no_clobber 'existing-config deploy failed'
 [ "$before_cfg" = "$(cksum "$E/.github/dependabot.yml")" ] ||
   die test_deploy_no_clobber 'clobbered an existing dependabot.yml'
+
+R="$TMP_ROOT/existing-renovate"; mkdir -p "$R"
+printf '{"extends":["project-owned"]}\n' > "$R/renovate.json"
+before_renovate=$(cksum "$R/renovate.json")
+bash "$DS" --root "$R" --provider generic --base main --work dev >/dev/null 2>&1 ||
+  die test_deploy_no_clobber 'existing-Renovate deploy failed'
+[ "$before_renovate" = "$(cksum "$R/renovate.json")" ] ||
+  die test_deploy_no_clobber 'clobbered an existing renovate.json'
 pass test_deploy_no_clobber
 
 printf 'deploy-substrate selftest: all fixtures passed\n'

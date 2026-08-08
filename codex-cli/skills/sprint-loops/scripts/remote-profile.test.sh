@@ -27,7 +27,10 @@ printf '%s\n' "$out" | grep -qx 'PROVIDER=github' || die test_profile_resolves_f
 printf '%s\n' "$out" | grep -qx 'BASE=main' || die test_profile_resolves_fields 'base'
 printf '%s\n' "$out" | grep -qx 'WORK=dev' || die test_profile_resolves_fields 'work'
 printf '%s\n' "$out" | grep -qx 'MERGEPOLICY=human-approve' || die test_profile_resolves_fields 'mergePolicy'
-[ "$(bash "$RP" --root "$P" work)" = dev ] || die test_profile_resolves_fields 'field query'
+[ "$(bash "$RP" --root "$P" provider)" = github ] || die test_profile_resolves_fields 'provider field query'
+[ "$(bash "$RP" --root "$P" base)" = main ] || die test_profile_resolves_fields 'base field query'
+[ "$(bash "$RP" --root "$P" work)" = dev ] || die test_profile_resolves_fields 'work field query'
+[ "$(bash "$RP" --root "$P" mergePolicy)" = human-approve ] || die test_profile_resolves_fields 'mergePolicy field query'
 pass test_profile_resolves_fields
 
 # test_profile_rejects_malformed
