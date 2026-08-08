@@ -409,3 +409,10 @@
 - **Completed:** 2026-08-08T05:01:39Z
 - **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh,deploy-substrate.sh,deploy-substrate.test.sh}`, task ledgers
 - **Commit:** `b647ee31c0e81180502653e6f133e86ea846d313`
+
+## T-132 (sprint 16)
+- **Description:** Removed the caller-supplied checkpoint-head override from the provider adapter, leaving the remote profile's `work → base` path as the only corpus checkpoint. Updated adapter fixtures to prove one open, existing-checkpoint refusal, generic fallback, human-approve non-merge, and override rejection before provider invocation. Generalized boundary resync semantics while retaining positive ancestry, dirty refusal, and base-immutability coverage. Rewired Claude, Codex, Open Harnesses, and Antigravity contracts to require hosted-updater intake only between sprints: merge only when current/green and authorized; keep red PRs unmerged and repair until green; if the provider head cannot be repaired, use an ordinary dependency-only sprint and supersede the PR, with no checkpoint/sprint subtype. Targeted adapter/resync suites, static four-adapter contract checks, shellcheck, adapter semantics, bundle parity, and active-distribution scans passed.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T05:06:41Z
+- **Files modified:** `{4 bundles}/scripts/{remote-adapter.sh,remote-adapter.test.sh,sync-work-branch.sh,sync-work-branch.test.sh}`, `{claude,codex}/phases/{01-init-sprint.md,06-loop-phase.md}`, `open-harnesses/particles/08-loop-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`, task ledgers
+- **Commit:** PENDING

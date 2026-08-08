@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Boundary resync: bring `base` into `work` (fast-forward or merge) so `work`
-# inherits everything on `base` (e.g. bump/dependency fixes). Writes only
+# inherits every accepted corpus change on `base`. Writes only
 # `work`; `base` stays the single confluence. Refuses on a dirty tracked tree.
 # Usage: sync-work-branch.sh [--root <dir>]
 set -uo pipefail

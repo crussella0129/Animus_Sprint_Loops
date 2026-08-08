@@ -5,16 +5,32 @@
 Before routing or initializing anything, run the installed bundle's
 `scripts/check-substrate.sh` from the project root. It reports one of:
 
-- `substrate-complete` — Book, ledgers, the `base`/`work` (and optional `bump`)
-  branches, and a resolvable remote profile all exist. Proceed with Init below.
+- `substrate-complete` — Book, ledgers, the configured `base`/`work` branches,
+  and a resolvable remote profile all exist. Proceed with Init below.
 - `substrate-absent` — a fresh project. Run **Sprint 0 deploy**,
   `scripts/deploy-substrate.sh` (idempotent), which creates the Book, the
-  `main`/`dev`/(optional `bump`) branches, the ledgers, the remote profile (see
+  `main`/`dev` branches, the ledgers, the remote profile (see
   `schemas/remote-profile.md`), and the first sprint. The skill creates **no
   per-sprint branch** — sprints work on `work`/`dev`.
 - `substrate-partial:<diagnostic>` — resolve the named missing element (migrate a
   legacy Book, declare the remote profile, or create the missing branch) before
   continuing.
+
+## Dependency-update intake (sprint boundary only)
+
+Hosted updaters propose PRs/MRs against the profile's `work` branch; opening a
+request does not mutate `work`. Inspect those requests only between sprints,
+before new sprint writes begin—never merge updater intake during an active
+sprint.
+
+- Merge an updater PR into `work` only when it is current and green in CI, and the
+  adapter's remote-authority boundary permits the merge.
+- Keep a red updater PR unmerged and repair its PR head until green.
+- If the provider does not permit repairing that head, run an ordinary
+  dependency-only sprint that reproduces and fixes the update on `work`, then
+  supersede the unmergeable updater PR. It uses the same plan, evidence, and
+  `work → base` checkpoint as every other sprint; there is no checkpoint or
+  sprint subtype.
 
 ## Outcome
 

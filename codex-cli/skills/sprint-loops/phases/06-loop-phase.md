@@ -66,7 +66,7 @@ the reversible boundary between `work` and the corpus:
   is the human-verification checkpoint.
 - **No per-sprint branch is ever created.** Sprints accumulate on `work`; after a
   merge to `base`, `scripts/sync-work-branch.sh` brings `base` back into `work`
-  at the boundary so `work` inherits corpus/`bump` changes.
+  at the boundary so `work` inherits the accepted corpus state.
 
 ## Authority
 
