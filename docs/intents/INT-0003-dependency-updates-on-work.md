@@ -5,9 +5,9 @@
 - **State:** active
 - **Work evidence:** [T-130–T-135 build plan](../sprints/s16/sprint-plans/build-plan.md#execution-sequence)
 - **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **Code evidence:** [T-130–T-135 completed records](../work/completed-tasks.md#t-130-sprint-16)
+- **Test evidence:** [Sprint 16 test report](../sprints/s16/sprint-tests/test-report.md)
+- **Documentation evidence:** [Dependency updates on work](../../README.md#dependency-updates-on-work)
 
 ## Intent
 Keep Sprint Loops on one long-lived integration path: `work` is the only branch
@@ -109,3 +109,7 @@ without changing the protocol.
   path, live repository migration, regression enforcement, and Codex delivery.
 - 2026-08-08: `planned → active` — Build began with T-130, the strict
   remote-profile v2 contract and resolver.
+- 2026-08-08: implementation and pre-checkpoint verification completed —
+  T-130–T-135, the installed Codex delivery, and the hosted Ubuntu/macOS guard
+  matrix are green. The intent remains `active` until the human-approved
+  checkpoint unlocks M-001 and the final remote-topology assertions.
