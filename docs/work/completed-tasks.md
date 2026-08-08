@@ -436,4 +436,4 @@
 - **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
 - **Completed:** 2026-08-08T06:36:58Z
 - **Files modified:** `C:/Users/charl/.agents/skills/sprint-loops` (transactional user-scope replacement), task ledgers
-- **Commit:** PENDING
+- **Commit:** `0af4c726cd54c3a33ca8d3a56a94699e1339d1e5`
