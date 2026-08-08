@@ -401,4 +401,4 @@
 - **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
 - **Completed:** 2026-08-08T04:56:08Z
 - **Files modified:** `docs/intents/INT-0003-dependency-updates-on-work.md`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `d70ae202e5a5b218d2eaf802686b9603f20dd558`
