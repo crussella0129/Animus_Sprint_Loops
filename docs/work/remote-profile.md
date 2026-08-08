@@ -1,11 +1,10 @@
 # Remote Profile
 
-<!-- sprint-loop-remote-profile-v1 -->
+<!-- sprint-loop-remote-profile-v2 -->
 
 ```
 provider: github
 base: main
 work: dev
-bump: bump
 mergePolicy: human-approve
 ```

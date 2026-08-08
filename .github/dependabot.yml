@@ -1,14 +1,14 @@
-# Dependabot keeps dependencies current by opening PRs against the `bump`
-# branch (never `main` or `dev` directly). If a bump reddens CI, the fix is made
-# on `bump`, then PR'd to `main`; `dev` inherits it at the next sprint boundary
-# via `sync-work-branch.sh`. This repo's only machine-updatable dependencies are
-# its GitHub Actions; add ecosystems (npm, pip, cargo, …) here as a project grows.
+# Dependabot opens scheduled version-update PRs against `dev`; opening a PR
+# does not write the branch. Review only at sprint boundaries: merge when
+# current and green, otherwise repair the PR until green (or reproduce it in an
+# ordinary dependency-only sprint). The accepted update rides the next normal
+# `dev` -> `main` sprint checkpoint. Add ecosystems as the project grows.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    target-branch: "bump"
+    target-branch: "dev"
     commit-message:
-      prefix: "bump"
+      prefix: "deps"

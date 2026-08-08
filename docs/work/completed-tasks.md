@@ -416,3 +416,10 @@
 - **Completed:** 2026-08-08T05:06:41Z
 - **Files modified:** `{4 bundles}/scripts/{remote-adapter.sh,remote-adapter.test.sh,sync-work-branch.sh,sync-work-branch.test.sh}`, `{claude,codex}/phases/{01-init-sprint.md,06-loop-phase.md}`, `open-harnesses/particles/08-loop-phase.md`, `antigravity-ide/global_workflows/sprint-loops.md`, task ledgers
 - **Commit:** `076365d27f73aa84b5850c601370774e187553f0`
+
+## T-133 (sprint 16)
+- **Description:** Migrated this repository onto the v2 two-branch model. The live profile now declares only `main`/`dev`; Dependabot targets `dev` with ordinary `deps` commits; CI runs on pull requests to either corpus branch; and the Actions v7 upgrades formerly isolated on the retired path are preserved. Replaced the operator guide with one boundary-intake rule: accept a current green updater PR between sprints, repair red updates without merging, or use an ordinary dependency-only sprint when the provider head cannot be repaired. Documented GitHub's default-branch security-update exception and the required resync. Verified the source resolver and substrate gate, operator-doc fixtures, exact config anchors, diff parity with `origin/bump` for the preserved Actions payload, diff hygiene, and absence of the retired term on the edited active surfaces.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T05:09:09Z
+- **Files modified:** `docs/work/remote-profile.md`, `.github/dependabot.yml`, `.github/workflows/ci.yml`, `README.md`, task ledgers
+- **Commit:** PENDING

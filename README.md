@@ -35,7 +35,7 @@ reports.
 
 - On a brand-new project it reports `substrate-absent` and runs **Sprint 0
   deploy** (`deploy-substrate.sh`), which creates the `docs/` Book, the `main` /
-  `dev` / optional `bump` branches, the work ledgers, a remote profile
+  `dev` branches, the work ledgers, a remote profile
   ([`schemas/remote-profile.md`](open-harnesses/schemas/remote-profile.md)), and
   the first sprint.
 - On an established project it reports `substrate-complete` and hands off to
@@ -133,7 +133,6 @@ Sprint Loops uses a small, long-lived branch topology declared per project in a
 | --- | --- |
 | `main` | The official corpus. Reached only by a reviewed pull/merge request. |
 | `dev` | Where sprints commit and push at any time. |
-| `bump` | The dependency-update target (see below); optional. |
 
 The skill never creates a per-sprint branch. Each sprint opens **exactly one
 `dev → main`** pull/merge request as a reversible checkpoint, and — because the
@@ -144,36 +143,41 @@ the corpus. The provider is resolved from the profile: `github` drives `gh`,
 `gitlab` drives `glab`, and any other remote falls back to pushing `dev` and
 printing the compare URL, so the model works on every host.
 
-## Dependency updates — the `bump` branch
+## Dependency updates on `work`
 
-Dependency bumps flow through `bump`, never onto `main` or `dev` directly:
+Scheduled dependency-version updates use the same integration path as every
+other sprint. The updater (Dependabot or Renovate) opens a PR/MR against the
+profile's `work` branch (`dev` here); opening that request does not mutate
+`work`. Handle updater intake only between sprints, before new sprint writes
+begin:
 
-1. The updater (Dependabot/Renovate) opens update pull/merge requests against
-   `bump`.
-2. CI runs on `bump`. If an update reddens CI, the compatibility fix is made on
-   `bump` — the "bump sprint", which is sometimes nothing at all.
-3. Once `bump` is green, open the checkpoint with `remote-adapter.sh open-pr
-   --head bump`: a human-approved `bump → main` pull/merge request.
-4. After it merges, `dev` inherits the update at the next sprint boundary via
-   `sync-work-branch.sh`. `main` stays the single confluence.
+1. If the updater PR is current and green in CI, merge it into `work` when the
+   remote profile authorizes the merge.
+2. If it is red, leave it unmerged and repair its PR head until green.
+3. If the provider prevents repairing that head, run an ordinary
+   dependency-only sprint that reproduces and fixes the update on `work`, then
+   supersede the unmergeable updater PR.
+4. The accepted update rides the next ordinary `work → base` sprint checkpoint
+   (`dev → main` here). It uses the same plans, evidence, tests, and PR as any
+   other sprint—there is no dependency checkpoint or sprint subtype.
 
-**Sprint 0 deploy scaffolds the updater config for you** (create-if-absent, only
-when `bump` is enabled): `github → .github/dependabot.yml`, `gitlab` / `generic
-→ renovate.json` (`baseBranches: ["bump"]`), `local-only → none`. It is a starter
-(`github-actions` / `config:recommended`) — add your project's ecosystems. To
-wire it up on an existing project:
+Project CI must run for PRs targeting `work`; this repository's guard workflow
+covers both `dev` and `main` PR bases.
 
-- **GitHub (Dependabot).** This repo ships
-  [`.github/dependabot.yml`](.github/dependabot.yml) targeting `bump`. Enable
-  Dependabot under the repository's **Settings → Code security** (on by default
-  for public repos). Add ecosystems (`npm`, `pip`, `cargo`, …) beside the
-  `github-actions` entry as the project grows.
-- **GitLab / other hosts (Renovate).** GitLab has no native Dependabot; use
-  [Renovate](https://docs.renovatebot.com/) with a `renovate.json` that sets
-  `"baseBranches": ["bump"]` so update requests open against `bump`. Renovate
-  also runs on GitHub, Bitbucket, and Gitea if you want one tool everywhere.
-- **No hosted updater.** Push dependency changes to `bump` by hand and request
-  them into `main` — the branch model is identical either way.
+**Sprint 0 deploy scaffolds the updater config create-if-absent:** GitHub gets
+`.github/dependabot.yml` with `target-branch` set to `work`; GitLab and generic
+hosts get `renovate.json` using Renovate's current `baseBranchPatterns` option;
+`local-only` gets no hosted-updater file. Existing configs are never clobbered.
+This repository's [Dependabot configuration](.github/dependabot.yml) targets
+`dev`; add ecosystems (`npm`, `pip`, `cargo`, …) beside `github-actions` as the
+project grows.
+
+GitHub has one provider-level exception: Dependabot security-update PRs target
+the default branch even when scheduled version updates use `target-branch`
+([GitHub options reference](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#target-branch)).
+After an authorized security update reaches `main`, run
+`sync-work-branch.sh` at the boundary so `dev` inherits it. This host constraint
+does not create another Sprint Loops branch or sprint type.
 
 ## Verify this repository
 
