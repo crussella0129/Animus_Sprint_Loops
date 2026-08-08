@@ -408,4 +408,4 @@
 - **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
 - **Completed:** 2026-08-08T05:01:39Z
 - **Files modified:** `{4 bundles}/scripts/{check-substrate.sh,check-substrate.test.sh,deploy-substrate.sh,deploy-substrate.test.sh}`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `b647ee31c0e81180502653e6f133e86ea846d313`
