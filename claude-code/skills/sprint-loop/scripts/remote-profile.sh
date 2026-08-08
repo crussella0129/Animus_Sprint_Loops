@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Resolve and validate the Book-tracked Sprint Loops remote profile.
 # Usage: remote-profile.sh [--root <dir>] [<field>]
-#   <field> in provider|base|work|bump|mergePolicy prints one value;
+#   <field> in provider|base|work|mergePolicy prints one value;
 #   with no field, prints all resolved values as KEY=VALUE lines.
 set -euo pipefail
 
@@ -22,8 +22,11 @@ PROFILE=$(book_join_root docs/work/remote-profile.md)
 FIELD="${1:-}"
 
 [ -f "$PROFILE" ] || fail "no remote profile at $PROFILE"
-grep -qF '<!-- sprint-loop-remote-profile-v1 -->' "$PROFILE" ||
-  fail "remote profile missing the sprint-loop-remote-profile-v1 marker"
+if grep -qF '<!-- sprint-loop-remote-profile-v1 -->' "$PROFILE"; then
+  fail "remote profile uses an unsupported schema marker; migrate to sprint-loop-remote-profile-v2"
+fi
+grep -qF '<!-- sprint-loop-remote-profile-v2 -->' "$PROFILE" ||
+  fail "remote profile missing the sprint-loop-remote-profile-v2 marker"
 
 # Parse key: value lines inside the first fenced code block only.
 parse_profile() {
@@ -38,14 +41,14 @@ parse_profile() {
   ' "$PROFILE"
 }
 
-provider=""; base=""; work=""; bump=""; merge_policy=""
+provider=""; base=""; work=""; merge_policy=""
 while IFS='=' read -r pkey pval; do
   case "$pkey" in
     provider) provider=$pval ;;
     base) base=$pval ;;
     work) work=$pval ;;
-    bump) bump=$pval ;;
     mergePolicy) merge_policy=$pval ;;
+    *) fail "unknown profile field '$pkey' (expected provider|base|work|mergePolicy)" ;;
   esac
 done < <(parse_profile)
 
@@ -56,7 +59,6 @@ case "$provider" in
 esac
 [ -n "$base" ] || fail "profile missing required field: base"
 [ -n "$work" ] || fail "profile missing required field: work"
-[ -n "$bump" ] || bump=none
 [ -n "$merge_policy" ] || merge_policy=human-approve
 case "$merge_policy" in
   human-approve|auto-on-green) ;;
@@ -64,12 +66,11 @@ case "$merge_policy" in
 esac
 
 case "$FIELD" in
-  "") printf 'PROVIDER=%s\nBASE=%s\nWORK=%s\nBUMP=%s\nMERGEPOLICY=%s\n' \
-        "$provider" "$base" "$work" "$bump" "$merge_policy" ;;
+  "") printf 'PROVIDER=%s\nBASE=%s\nWORK=%s\nMERGEPOLICY=%s\n' \
+        "$provider" "$base" "$work" "$merge_policy" ;;
   provider) printf '%s\n' "$provider" ;;
   base) printf '%s\n' "$base" ;;
   work) printf '%s\n' "$work" ;;
-  bump) printf '%s\n' "$bump" ;;
   mergePolicy) printf '%s\n' "$merge_policy" ;;
-  *) fail "unknown field '$FIELD' (expected provider|base|work|bump|mergePolicy)" ;;
+  *) fail "unknown field '$FIELD' (expected provider|base|work|mergePolicy)" ;;
 esac

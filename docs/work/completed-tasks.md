@@ -395,3 +395,10 @@
 - **Completed:** 2026-08-06T00:00:00Z
 - **Files modified:** `docs/work/remote-profile.md` (new); repository branches `dev`, `bump` (created + pushed to origin)
 - **Commit:** `258c1decf46734bff2e1fe9cc28d672f8f3ccdec`
+
+## T-130 (sprint 16)
+- **Description:** Replaced the Book-tracked remote-profile contract with strict v2 across all four bundles. The schema now declares only `provider`, `base`, `work`, and optional/defaulted `mergePolicy`; the resolver emits and queries only those fields, rejects the v1 marker with a migration diagnostic, rejects unknown profile keys instead of silently ignoring them, and rejects unsupported field queries. Expanded fixtures cover exact four-field output, legacy-marker rejection, unknown-key rejection, unknown-query rejection, required-field/provider diagnostics, and local-only defaults. Verified the canonical fixture suite, shellcheck, diff hygiene, and byte-identical bundle parity.
+- **Intent:** [INT-0003](../intents/INT-0003-dependency-updates-on-work.md)
+- **Completed:** 2026-08-08T04:56:08Z
+- **Files modified:** `docs/intents/INT-0003-dependency-updates-on-work.md`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/{remote-profile.sh,remote-profile.test.sh}`, task ledgers
+- **Commit:** PENDING

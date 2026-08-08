@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0003
-- **State:** planned
+- **State:** active
 - **Work evidence:** [T-130–T-135 build plan](../sprints/s16/sprint-plans/build-plan.md#execution-sequence)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -107,3 +107,5 @@ without changing the protocol.
 - 2026-08-08: `proposed → planned` — Sprint 16 tasks T-130–T-135 cover the
   strict profile contract, two-branch substrate/deploy behavior, one checkpoint
   path, live repository migration, regression enforcement, and Codex delivery.
+- 2026-08-08: `planned → active` — Build began with T-130, the strict
+  remote-profile v2 contract and resolver.
