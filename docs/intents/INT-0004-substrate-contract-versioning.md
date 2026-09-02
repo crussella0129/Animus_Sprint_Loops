@@ -2,12 +2,12 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0004
-- **State:** active
+- **State:** realized
 - **Work evidence:** [T-137–T-142 build plan](../sprints/s17/sprint-plans/build-plan.md#execution-sequence), [Sprint 17 test plan](../sprints/s17/sprint-plans/test-plan.md)
-- **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **Completion evidence:** [T-137–T-142 completion records](../work/completed-tasks.md#t-137-sprint-17)
+- **Code evidence:** [substrate version accessor](../../open-harnesses/scripts/book-paths.sh), [substrate states](../../open-harnesses/scripts/check-substrate.sh), [convergence entrypoint](../../open-harnesses/scripts/deploy-substrate.sh), [bundle identity](../../open-harnesses/scripts/bundle-version.sh), [manifest agreement guard](../../tools/check-plugin-manifest.sh)
+- **Test evidence:** [Sprint 17 test report](../sprints/s17/sprint-tests/test-report.md), [Sprint 17 E2E record](../sprints/s17/sprint-tests/e2e-tests.md)
+- **Documentation evidence:** [Convergence: spin-up and upgrade are one command](../../README.md#convergence-spin-up-and-upgrade-are-one-command), [sprint-meta schema](../../open-harnesses/schemas/sprint-meta.md), [Init phase contract](../../claude-code/skills/sprint-loop/phases/01-init-sprint.md)
 
 ## Intent
 Make spin-up and upgrade the same operation, and make "which contract is this
@@ -115,3 +115,14 @@ foundation to put first.
 - 2026-09-02: `planned → active` — Build began with T-137, the substrate
   contract version constant and the `book_substrate_version()` accessor in the
   shared path contract.
+- 2026-09-02: `active → realized` — T-137–T-142 delivered the version
+  accessor, the outdated and ahead substrate states, the convergence
+  entrypoint with its stamp/`--check`/ahead-refusal, in-bundle identity with
+  manifest agreement, the per-sprint bundle-version record, and the adapter
+  contracts. Every acceptance criterion has an executed named test; guards run
+  33662373769 concluded `success` on both CI legs for head `21deff42`; and this
+  repository converged its own substrate from contract version 1 to 2 with a
+  one-line diff and a byte-identical re-run. Two deferred test concerns
+  (rollback injection breadth, and a misleading determinism label in the guard
+  runner's console summary) are carried forward as backlog rather than left
+  implicit.

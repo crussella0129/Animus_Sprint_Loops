@@ -1,5 +1,7 @@
 # Sprint 17 Integration Tests
 
+- **Tested head SHA:** `21deff426d216754902aee82a4ae14512df10fb2`
+
 Composed behavior across tasks, where a defect would appear only when two or
 more of them are present together.
 

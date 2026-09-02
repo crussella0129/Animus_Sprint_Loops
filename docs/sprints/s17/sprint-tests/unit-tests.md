@@ -1,5 +1,7 @@
 # Sprint 17 Unit Tests
 
+- **Tested head SHA:** `21deff426d216754902aee82a4ae14512df10fb2`
+
 Every EARS clause in the locked build plan maps to at least one named fixture.
 Suite names are the canonical runner's suite identifiers.
 
