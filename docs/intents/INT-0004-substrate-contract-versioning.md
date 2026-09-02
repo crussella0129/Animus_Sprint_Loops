@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0004
-- **State:** planned
+- **State:** active
 - **Work evidence:** [T-137–T-142 build plan](../sprints/s17/sprint-plans/build-plan.md#execution-sequence), [Sprint 17 test plan](../sprints/s17/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -112,3 +112,6 @@ foundation to put first.
   entrypoint with its stamp and `--check` mode, in-bundle identity with manifest
   agreement, the per-sprint bundle-version record, and the adapter contracts
   that route an outdated substrate to convergence.
+- 2026-09-02: `planned → active` — Build began with T-137, the substrate
+  contract version constant and the `book_substrate_version()` accessor in the
+  shared path contract.

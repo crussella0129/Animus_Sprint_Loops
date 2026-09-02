@@ -462,4 +462,52 @@ run_script "$F" update-confidence.sh pass >/dev/null
 [ ! -e "$F/confidence.txt" ] || fail "legacy confidence authority created"
 pass
 
+# T-137: substrate contract version accessor. Sourcing the path contract is the
+# only way to exercise it, so each assertion runs in its own subshell.
+substrate_version() {
+  ( cd "$1" && SPRINT_LOOP_PROJECT_ROOT=. . "$SCRIPT_DIR/book-paths.sh" && book_substrate_version )
+}
+marker_is_v2() {
+  ( cd "$1" && SPRINT_LOOP_PROJECT_ROOT=. . "$SCRIPT_DIR/book-paths.sh" && book_marker_is_v2 )
+}
+write_marker() { printf '%s' "$2" > "$1/docs/.sprint-loop-book"; }
+
+# test_substrate_version_absent_is_one
+init_fixture substrate-version
+MARKER="$F/docs/.sprint-loop-book"
+grep -qFx 'schema-version: 2' "$MARKER" || fail "fixture marker is not the plain v2 marker"
+[ "$(substrate_version "$F")" = 1 ] || fail "an unstamped marker must read as contract version 1"
+pass
+
+# test_substrate_version_reads_stamped_value + test_marker_v2_survives_version_key
+write_marker "$F" 'schema-version: 2
+substrate-version: 2
+'
+[ "$(substrate_version "$F")" = 2 ] || fail "stamped substrate version was not read back"
+marker_is_v2 "$F" || fail "book_marker_is_v2 broke on a marker carrying substrate-version"
+write_marker "$F" 'schema-version: 2
+substrate-version: 11
+'
+[ "$(substrate_version "$F")" = 11 ] || fail "multi-digit substrate version was not read back"
+pass
+
+# test_substrate_version_rejects_malformed
+write_marker "$F" 'schema-version: 2
+substrate-version: two
+'
+expect_failure 'entry: docs/.sprint-loop-book' substrate_version "$F"
+write_marker "$F" 'schema-version: 2
+substrate-version: 0
+'
+expect_failure 'entry: docs/.sprint-loop-book' substrate_version "$F"
+write_marker "$F" 'schema-version: 2
+substrate-version: 2
+substrate-version: 3
+'
+expect_failure 'entry: docs/.sprint-loop-book' substrate_version "$F"
+write_marker "$F" 'schema-version: 2
+'
+[ "$(substrate_version "$F")" = 1 ] || fail "restored marker no longer reads as version 1"
+pass
+
 echo "runtime-helpers.test: $COUNT Book runtime fixtures passed"

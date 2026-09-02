@@ -437,3 +437,10 @@
 - **Completed:** 2026-08-08T06:36:58Z
 - **Files modified:** `C:/Users/charl/.agents/skills/sprint-loops` (transactional user-scope replacement), task ledgers
 - **Commit:** `0af4c726cd54c3a33ca8d3a56a94699e1339d1e5`
+
+## T-137 (sprint 17)
+- **Description:** Added the substrate contract version to the shared Book path contract in all four bundles: `BOOK_SUBSTRATE_CONTRACT_VERSION=2` (the version this bundle implements), a `BOOK_SUBSTRATE_VERSION_DIAGNOSTIC` constant, and `book_substrate_version()`, which prints `1` for a marker carrying no `substrate-version` entry, prints the stamped value when exactly one well-formed positive-integer entry is present, and refuses a malformed, zero, non-numeric, or repeated entry with a diagnostic naming the marker path. `book_marker_is_v2()` is unchanged and verified to still accept a stamped marker, which is the technical basis for the sprint's backwards-compatibility claim. Fixtures added to `runtime-helpers.test.sh` in all four bundles; verified 3/3 in a focused harness because the suite aborts earlier on backlog defect T-121, a Windows-only CRLF detection failure present identically at HEAD.
+- **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
+- **Completed:** 2026-09-02T16:31:00Z
+- **Files modified:** `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
+- **Commit:** PENDING
