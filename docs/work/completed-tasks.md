@@ -465,3 +465,10 @@
 - **Completed:** 2026-09-02T17:20:00Z
 - **Files modified:** `{4 bundles}/scripts/bundle-version.sh`, `tools/check-plugin-manifest.sh`, `tools/check-plugin-manifest.test.sh`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, `claude-code/.claude-plugin/plugin.json`, task ledgers
 - **Commit:** `612439de0a1fc1345695df0ea78b73cea1269e5d`
+
+## T-141 (sprint 17)
+- **Description:** New sprint records now name the bundle that ran them. `init-sprint.sh` reads the co-located `bundle-version.sh` and writes `- **Bundle version:**` after `Model`, degrading to `unknown` rather than failing if the helper is unavailable; the `sprint-meta.md` schema documents the field and states explicitly that records predating it remain valid. `test_init_records_bundle_version` in `book-routing.test.sh` asserts exactly one such field matching the helper's output, in a fixture that has no plugin manifest at all — the manual-install mode from research F7. The existing `runtime-helpers.test.sh` close fixture now also strips `Bundle version`, making it a genuine pre-sprint-17 record, and asserts close neither requires nor invents the field. Verified in a focused harness (init records it; a legacy record closes successfully without it) because the full suite aborts earlier on backlog defect T-121. Also normalized a literal newline that a tooling quirk had introduced into a `printf` in `book-routing.test.sh` during T-138.
+- **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
+- **Completed:** 2026-09-02T17:34:00Z
+- **Files modified:** `{4 bundles}/scripts/init-sprint.sh`, `{4 bundles}/schemas/sprint-meta.md`, `{4 bundles}/scripts/book-routing.test.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
+- **Commit:** PENDING

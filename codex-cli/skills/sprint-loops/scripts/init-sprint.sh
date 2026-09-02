@@ -126,6 +126,9 @@ mkdir -p "$D/sprint-research" "$D/sprint-plans" "$D/sprint-tests"
 
 TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 MODEL=${SPRINT_MODEL:-unknown}
+# Record which bundle ran the sprint. The plugin cache pins a commit, so an
+# unrecorded bundle version is only recoverable by inspecting a cache path.
+BUNDLE_VERSION=$(bash "$SCRIPT_DIR/bundle-version.sh" 2>/dev/null) || BUNDLE_VERSION=unknown
 cat > "$D/sprint-meta.md" <<EOF
 # Sprint $N Meta
 
@@ -134,6 +137,7 @@ cat > "$D/sprint-meta.md" <<EOF
 - **Start timestamp:** $TS
 - **End timestamp:** (filled at Loop Phase)
 - **Model:** $MODEL
+- **Bundle version:** $BUNDLE_VERSION
 - **Exit status:** in-progress
 - **Token count:** (filled at Loop Phase if observable)
 - **Summary:** (one-line description of sprint goal, filled after Plan Phase)

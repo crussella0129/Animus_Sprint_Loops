@@ -407,7 +407,7 @@ pass
 
 init_fixture close
 META="$F/docs/sprints/s0/sprint-meta.md"
-awk '!/Book schema version/ && !/Completion evidence/' "$META" > "$F/meta.tmp"
+awk '!/Book schema version/ && !/Completion evidence/ && !/Bundle version/' "$META" > "$F/meta.tmp"
 mv "$F/meta.tmp" "$META"
 printf '# Research\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
 printf 'Finalized - DO NOT EDIT\n\n# Build\n' > "$F/docs/sprints/s0/sprint-plans/build-plan.md"
@@ -441,6 +441,10 @@ expect_failure 'original Book and index restored' \
 rm "$F/.git/hooks/pre-commit"
 run_script "$F" close-sprint.sh success 'tests: sprint-tests\test-report.md; commits: HEAD' >/dev/null
 grep -qF -- '- **Exit status:** success' "$META" || fail "close status missing"
+# test_legacy_sprint_meta_closes_without_bundle_version: the fixture above
+# strips Bundle version, so a sprint record predating the field still closes.
+grep -qF -- '- **Bundle version:**' "$META" &&
+  fail "close invented a Bundle version field on a legacy record"
 grep -qF -- '- **Completion evidence:** tests: sprint-tests\test-report.md; commits: HEAD' "$META" || fail "completion evidence missing"
 awk 'substr($0, length($0), 1) != "\r" { exit 1 }' "$META" ||
   fail "close did not preserve uniform CRLF"
