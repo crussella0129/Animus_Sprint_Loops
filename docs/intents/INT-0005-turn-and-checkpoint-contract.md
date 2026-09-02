@@ -27,9 +27,15 @@ impossible.
    contract states committal as part of its Exit evidence.
 4. **Work-branch guard.** `commit-task.sh` and `close-sprint.sh` refuse to
    commit while `HEAD` is not the profile's `work` branch, and
-   `check-substrate.sh` reports the wrong-branch condition by name. A
+   `check-substrate.sh` reports the wrong-branch condition by name as a distinct
+   state — branch position is a session property, so folding it into the
+   missing-element list would misreport a complete substrate as incomplete. A
    create-if-absent local pre-commit hook covers hosts with no server-side
    protection; server-side protection belongs to INT-0006.
+
+Every gate here binds only at or above the substrate contract version that
+introduces it ([INT-0004](INT-0004-substrate-contract-versioning.md)), so an
+un-converged project behaves exactly as it does today.
 
 The checkpoint URL is recorded back into sprint metadata so a later sprint can
 distinguish its own checkpoint from the previous one without querying the
@@ -95,9 +101,27 @@ main` repeated fifteen times indexes nothing.
 - Antigravity does not call `finalize-plan.sh` and will not inherit these gates
   until its translation layer invokes the helpers. That decision is a
   prerequisite for claiming the contract holds across adapters.
+- The checkpoint gate invalidates every existing `remote-adapter.test.sh`
+  fixture: all five build a git repo and a remote profile with no Book at all,
+  and under a phase gate each is refused as `uninitialized`. They must gain a
+  closed-sprint Book while keeping the assertion each was written to make. This
+  is a mechanical cost of the gate, not a defect in the fixtures.
+- The local pre-commit hook is separable from the rest of this intent and may
+  land in a later sprint than the gates. Once `commit-task.sh` refuses on the
+  wrong branch, the first Build task already catches the observed failure; the
+  hook only extends coverage to commits made outside the helpers, and it writes
+  to an untracked location that is never cloned and may be redirected by
+  `core.hooksPath`. This intent therefore stays `active` across more than one
+  sprint rather than being claimed as realized on a partial delivery.
 
 ## Transition history
 - 2026-09-02: created as `proposed` — derived from operator feedback items 1.a
   through 1.d and 2.a, covering premature checkpoints, unformatted checkpoint
   titles, evidence that passes while untracked, and a full sprint accidentally
   executed on the base branch.
+- 2026-09-02: revised during Sprint 18 Research — recorded that the checkpoint
+  gate invalidates all five existing adapter fixtures until they gain a
+  closed-sprint Book, scoped the local pre-commit hook as separable and
+  potentially later than the gates, made the version-conditioning requirement
+  explicit, and stated why the wrong-branch condition is a distinct substrate
+  state rather than a missing element. State remains `proposed`.
