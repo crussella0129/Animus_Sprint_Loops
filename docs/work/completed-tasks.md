@@ -485,4 +485,4 @@
 - **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
 - **Completed:** 2026-09-02T19:12:00Z
 - **Files modified:** `{4 bundles}/scripts/check-tracked.sh`, `{4 bundles}/scripts/check-tracked.test.sh`, `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `10fbbc8bdf835e8996a56da2f8a93f3d9f99888d`
