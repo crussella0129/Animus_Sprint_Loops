@@ -444,3 +444,10 @@
 - **Completed:** 2026-09-02T16:31:00Z
 - **Files modified:** `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
 - **Commit:** `a3e10e3324a36f7408e952277dd59c7442525aa4`
+
+## T-138 (sprint 17)
+- **Description:** Taught `check-substrate.sh` two contract-version states in all four bundles: `substrate-outdated:<book>-><bundle>` when the substrate is structurally complete but behind this bundle, and `substrate-ahead:<book>-><bundle>` when it is stamped past this bundle, which is refused rather than converged backwards. Both exit non-zero; exit 0 remains reserved for `substrate-complete`. A malformed stamp joins the `missing` list as `book-substrate-version`, preserving the precedence rule that a broken substrate outranks a stale one. The three existing complete-path fixtures were converged with a `stamp` helper driven by the bundle constant rather than a hardcoded number, and six fixtures were added covering outdated, complete-after-stamp, ahead, malformed, partial-outranks-version, and read-onlyness of the new states: 12/12 pass. The backwards-compatibility claim is now asserted directly in `book-routing.test.sh` by `test_routing_unchanged_for_unstamped_book`, which proves an unstamped Book routes normally and that routing never writes the stamp.
+- **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
+- **Completed:** 2026-09-02T16:44:00Z
+- **Files modified:** `{4 bundles}/scripts/check-substrate.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, `{4 bundles}/scripts/book-routing.test.sh`, task ledgers
+- **Commit:** PENDING

@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # Deterministic Sprint Loops substrate check — runs in front of phase routing.
 # Prints exactly one of:
-#   substrate-complete            (Book + ledgers + base/work + profile present)
+#   substrate-complete            (Book + ledgers + base/work + profile present,
+#                                  stamped at this bundle's contract version)
 #   substrate-absent              (no Book and no profile — a fresh project)
 #   substrate-partial:<diagnostic> (some present; names what is missing)
-# Read-only. Exit 0 only for substrate-complete.
+#   substrate-outdated:<book>-><bundle> (complete, but behind this bundle)
+#   substrate-ahead:<book>-><bundle>    (complete, but stamped ahead of it)
+# A broken substrate outranks a stale one: substrate-partial is reported before
+# either version state. Read-only. Exit 0 only for substrate-complete.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -45,6 +49,17 @@ case "$book_state" in
   conflict) missing="$missing book-split-brain" ;;
 esac
 
+# Resolve the Book's substrate contract version. A malformed stamp is a broken
+# substrate, not a stale one, so it joins the missing list rather than becoming
+# a version state.
+book_version=""
+if [ "$book_state" = book-only ]; then
+  book_version=$(book_substrate_version 2>/dev/null) || {
+    missing="$missing book-substrate-version"
+    book_version=""
+  }
+fi
+
 [ -f "$BOOK_TASKS_FILE" ] || missing="$missing tasks-ledger"
 [ -f "$BOOK_COMPLETED_TASKS_FILE" ] || missing="$missing completed-ledger"
 
@@ -58,9 +73,21 @@ else
 fi
 
 missing="${missing# }"
-if [ -z "$missing" ]; then
-  echo substrate-complete
-  exit 0
+if [ -n "$missing" ]; then
+  printf 'substrate-partial:%s\n' "$missing"
+  exit 1
 fi
-printf 'substrate-partial:%s\n' "$missing"
-exit 1
+
+# Structurally complete. Everything below is a contract-version difference:
+# behind this bundle is convergeable, ahead of it is refused (converging
+# backwards would silently downgrade the project).
+if [ "$book_version" -lt "$BOOK_SUBSTRATE_CONTRACT_VERSION" ]; then
+  printf 'substrate-outdated:%s->%s\n' "$book_version" "$BOOK_SUBSTRATE_CONTRACT_VERSION"
+  exit 1
+fi
+if [ "$book_version" -gt "$BOOK_SUBSTRATE_CONTRACT_VERSION" ]; then
+  printf 'substrate-ahead:%s->%s\n' "$book_version" "$BOOK_SUBSTRATE_CONTRACT_VERSION"
+  exit 1
+fi
+echo substrate-complete
+exit 0

@@ -108,4 +108,19 @@ if (cd "$C" && bash "$SCRIPT_DIR/current-phase.sh" >out 2>err); then die test_ro
 grep -qF 'split-brain state: writable Book and legacy Sprint Loops layouts coexist' "$C/err" || die test_router_conflict_refuses 'diagnostic missing'
 pass test_router_conflict_refuses
 
+# test_routing_unchanged_for_unstamped_book — the substrate contract version is
+# invisible to routing. Every fixture above runs against Books that are never
+# stamped; this asserts that directly rather than leaving it implied, because it
+# is the backwards-compatibility claim of the substrate-version contract.
+U="$TMP_ROOT/unstamped"; mkdir -p "$U"
+(cd "$U" && git init -q && SPRINT_MODEL=selftest bash "$SCRIPT_DIR/init-sprint.sh" >/dev/null)
+grep -q 'substrate-version' "$U/docs/.sprint-loop-book" &&
+  die test_routing_unchanged_for_unstamped_book 'fixture marker is stamped'
+assert_phase "$U" research test_routing_unchanged_for_unstamped_book
+printf 'x
+' > "$U/docs/sprints/s0/sprint-research/research-report.md"
+assert_phase "$U" plan test_routing_unchanged_for_unstamped_book_plan
+grep -q 'substrate-version' "$U/docs/.sprint-loop-book" &&
+  die test_routing_unchanged_for_unstamped_book 'routing stamped the marker'
+
 echo 'book-routing selftest: all fixtures passed'
