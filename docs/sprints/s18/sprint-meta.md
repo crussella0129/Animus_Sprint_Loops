@@ -8,6 +8,6 @@
 - **Bundle version:** 0.17.0
 - **Exit status:** in-progress
 - **Token count:** (filled at Loop Phase if observable)
-- **Summary:** (one-line description of sprint goal, filled after Plan Phase)
-- **Intents:** (filled after Plan Phase)
+- **Summary:** Make the turn and checkpoint contract mechanical — refuse a checkpoint before the sprint closes, compose its title from the Book, refuse uncommitted phase evidence, and refuse writes from the wrong branch.
+- **Intents:** [INT-0005](../../intents/INT-0005-turn-and-checkpoint-contract.md) — planned
 - **Completion evidence:** (filled at Loop Phase)
