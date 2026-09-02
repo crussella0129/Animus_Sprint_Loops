@@ -210,4 +210,31 @@ fi
   die test_converge_rolls_back_stamp 'marker not restored after rollback'
 pass test_converge_rolls_back_stamp
 
+# test_deploy_leaves_fresh_project_on_work — a fresh deploy creates the branches
+# itself, so it must end on the work branch; otherwise its own verification
+# reports substrate-misplaced and rolls the whole deploy back.
+W="$TMP_ROOT/fresh-position"; mkdir -p "$W"
+bash "$DS" --root "$W" --provider github --base main --work dev >/dev/null 2>&1 ||
+  die test_deploy_leaves_fresh_project_on_work 'fresh deploy failed'
+[ "$(git -C "$W" rev-parse --abbrev-ref HEAD)" = dev ] ||
+  die test_deploy_leaves_fresh_project_on_work "ended on $(git -C "$W" rev-parse --abbrev-ref HEAD), expected dev"
+[ "$(bash "$CS" --root "$W" 2>/dev/null)" = substrate-complete ] ||
+  die test_deploy_leaves_fresh_project_on_work "not complete: $(bash "$CS" --root "$W" 2>/dev/null)"
+pass test_deploy_leaves_fresh_project_on_work
+
+# test_converge_refuses_from_base_branch — an existing project keeps its own
+# checkout; convergence refuses rather than moving the operator's branch.
+git -C "$W" checkout -q main
+before_pos=$(snap "$W")
+if bash "$DS" --root "$W" >/dev/null 2>"$W.err"; then
+  die test_converge_refuses_from_base_branch 'converged from the base branch'
+fi
+grep -q 'switch to dev before converging' "$W.err" ||
+  die test_converge_refuses_from_base_branch "no position diagnostic: $(cat "$W.err")"
+[ "$before_pos" = "$(snap "$W")" ] ||
+  die test_converge_refuses_from_base_branch 'refusal mutated the project'
+[ "$(git -C "$W" rev-parse --abbrev-ref HEAD)" = main ] ||
+  die test_converge_refuses_from_base_branch 'refusal moved the operator branch'
+pass test_converge_refuses_from_base_branch
+
 printf 'deploy-substrate selftest: all fixtures passed\n'

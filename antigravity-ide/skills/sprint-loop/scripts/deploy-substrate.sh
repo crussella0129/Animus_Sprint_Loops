@@ -101,6 +101,8 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
   exit 1
 fi
 
+DEPLOY_ORIGINAL_HEAD=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+SWITCHED_BRANCH=0
 CREATED_BOOK=0; CREATED_PROFILE=0; CREATED_SPRINT=""; CREATED_GITDIR=0
 CREATED_BRANCHES=""; CREATED_UPDATER=""; COMMITTED=0
 STAMPED=0; PRIOR_MARKER=""
@@ -108,6 +110,9 @@ STAMPED=0; PRIOR_MARKER=""
 rollback() {
   [ "$COMMITTED" -eq 1 ] && return 0
   [ "$STAMPED" -eq 1 ] && printf '%s\n' "$PRIOR_MARKER" > "$BOOK_MARKER"
+  if [ "$SWITCHED_BRANCH" -eq 1 ] && [ -n "$DEPLOY_ORIGINAL_HEAD" ]; then
+    git -C "$ROOT" checkout -q "$DEPLOY_ORIGINAL_HEAD" >/dev/null 2>&1 || true
+  fi
   for _b in $CREATED_BRANCHES; do git -C "$ROOT" branch -D "$_b" >/dev/null 2>&1 || true; done
   if [ -n "$CREATED_UPDATER" ]; then
     rm -f "$CREATED_UPDATER"
@@ -153,6 +158,17 @@ BASE=$(printf '%s\n' "$prof" | sed -n 's/^BASE=//p')
 WORK=$(printf '%s\n' "$prof" | sed -n 's/^WORK=//p')
 MERGE_POLICY=$(printf '%s\n' "$prof" | sed -n 's/^MERGEPOLICY=//p')
 maybe_fail profile
+
+# Position. Convergence writes, so it must not run from the base branch of a
+# project that already has one. A fresh deploy is exempt: it creates the
+# branches itself and checks out work below.
+if git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1 &&
+   git -C "$ROOT" show-ref --verify --quiet "refs/heads/$WORK"; then
+  deploy_head=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+  if [ "$deploy_head" != "$WORK" ]; then
+    fail "HEAD is $deploy_head but the work branch is $WORK; switch to $WORK before converging"
+  fi
+fi
 
 # 2b. Dependency-updater config (create-if-absent, work-targeted).
 # github -> Dependabot; gitlab/generic -> Renovate; local-only -> none. A fresh
@@ -237,6 +253,15 @@ for br in $branch_list; do
     CREATED_BRANCHES="$CREATED_BRANCHES $br"
   fi
 done
+
+# Leave a freshly created project on its work branch. Sprints happen on work,
+# and the substrate gate reports any other position as misplaced.
+if [ -n "$CREATED_BRANCHES" ] || [ "$CREATED_GITDIR" -eq 1 ]; then
+  if [ "$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")" != "$WORK" ]; then
+    git -C "$ROOT" checkout -q "$WORK" || fail "cannot check out the work branch $WORK"
+    SWITCHED_BRANCH=1
+  fi
+fi
 maybe_fail branches
 
 # 4. Verify.
