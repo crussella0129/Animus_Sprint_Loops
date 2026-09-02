@@ -471,4 +471,4 @@
 - **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
 - **Completed:** 2026-09-02T17:34:00Z
 - **Files modified:** `{4 bundles}/scripts/init-sprint.sh`, `{4 bundles}/schemas/sprint-meta.md`, `{4 bundles}/scripts/book-routing.test.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `8885841e1b70f0184ca3390cbbe87aaa738ba48a`
