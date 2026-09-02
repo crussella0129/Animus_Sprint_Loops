@@ -68,6 +68,7 @@ continuing.
 - Linked intents are `active` (or explicitly `deferred` with transition
   history) and retain valid Work evidence.
 - Project sanity checks pass at each completed task boundary.
+- The phase's exit artifacts are committed; the installed `scripts/check-tracked.sh` helper reports a clean Book.
 - The installed `current-phase.sh` helper reports `test`.
 
 When complete, read `phases/05-test-phase.md`.

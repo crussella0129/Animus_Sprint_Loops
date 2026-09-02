@@ -144,7 +144,7 @@ version:
 
 ```text
 schema-version: 2
-substrate-version: 2
+substrate-version: 3
 ```
 
 A Book with no `substrate-version` line is contract version 1, and every helper
@@ -164,6 +164,23 @@ sprint records the bundle that ran it in `sprint-meta.md`, from the bundle's own
 `scripts/bundle-version.sh`; the plugin cache pins a commit, so run
 `/plugin update sprint-loop` to pick up a newly merged bundle before the next
 sprint.
+
+## One sprint per turn, one titled checkpoint per sprint
+
+From substrate contract version 3, the turn and checkpoint contract is
+mechanical rather than advisory:
+
+| Rule | What enforces it |
+| --- | --- |
+| A checkpoint belongs to a finished sprint | `remote-adapter.sh open-pr` refuses unless the router reports `ready-for-next-sprint` |
+| Checkpoints are titled `Sprint <N>: <description>` | the title is composed from the sprint record's `Summary`; a supplied title must match that shape or it is refused |
+| Phase evidence means committed evidence | `check-tracked.sh`, called by `finalize-plan.sh` and `close-sprint.sh` |
+| Sprints happen on the work branch | `commit-task.sh` and `close-sprint.sh` refuse from any other branch, and the substrate gate reports `substrate-misplaced:<head>-><work>` before routing |
+
+Each gate binds only at or above the contract version that introduced it, so a
+project that has not converged behaves exactly as it did before. The
+`Checkpoint` field in the sprint record holds the opened URL, committed with the
+close, so a later sprint can tell its own checkpoint from the previous one.
 
 ## Branch model and checkpoints
 

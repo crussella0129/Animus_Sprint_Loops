@@ -514,3 +514,10 @@
 - **Completed:** 2026-09-02T20:14:00Z
 - **Files modified:** `{4 bundles}/scripts/remote-adapter.sh`, `{4 bundles}/scripts/remote-adapter.test.sh`, `{4 bundles}/schemas/sprint-meta.md`, task ledgers
 - **Commit:** `7d2125636cc84f5d6a9498825d20b04842515244`
+
+## T-151 (sprint 18)
+- **Description:** Added the Turn Contract to every adapter's Loop surface and a committed-evidence line to the Exit evidence of phases 02, 04, 05, and 06 in both byte-parity bundles. The contract names exactly four legal stop points — a blocking product ambiguity, a claim needing human judgment, an explicit abort, and the human-approve merge boundary — and states plainly that it is advisory, because no helper runs when a turn simply ends. That honesty is the point: it then names what *is* enforced, so a reader is not left believing the substrate can prevent an early stop when it can only refuse the artifacts one leaves behind. Phase 06 also documents the contract-3 checkpoint gate, the composed title, and the committed `Checkpoint` record. The README gained a table mapping each rule to the helper that enforces it, and its contract-version example was corrected to 3. Two named contracts added to `operator-docs.test.sh` (6/6). `adapter-semantics` and `bundle-sync` both green.
+- **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
+- **Completed:** 2026-09-02T20:33:00Z
+- **Files modified:** `{claude-code,codex-cli}/skills/*/phases/{02,04,05,06}-*.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/08-loop-phase.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
+- **Commit:** PENDING

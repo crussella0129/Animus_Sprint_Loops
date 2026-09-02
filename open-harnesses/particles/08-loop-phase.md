@@ -15,3 +15,17 @@ Helpers: [`../scripts/close-sprint.sh`](../scripts/close-sprint.sh),
 ---
 
 Loop closed. Re-inject `01-init-sprint.md` for sprint N+1.
+
+## Turn Contract
+
+A sprint is one turn. Once a sprint is open, continue through its phases and
+stop only at one of four boundaries: a blocking product ambiguity, a claim that
+needs human judgment to verify, an explicit abort, or the merge boundary once
+the checkpoint is open under `mergePolicy: human-approve`. The contract is
+advisory — no helper runs when a turn simply ends — but the evidence a premature
+stop leaves behind is enforced: `substrate-outdated` and `substrate-misplaced`
+are reported before routing, the checkpoint is refused while the sprint is open,
+plan finalization and sprint close are refused while the Book carries
+uncommitted state, and a task commit is refused from any branch that is not the
+profile's work branch.
+

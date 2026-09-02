@@ -72,6 +72,34 @@ the reversible boundary between `work` and the corpus:
   merge to `base`, `scripts/sync-work-branch.sh` brings `base` back into `work`
   at the boundary so `work` inherits the accepted corpus state.
 
+At contract version 3 and above the checkpoint is **refused while the sprint is
+still open**, and its title is composed from the Book as `Sprint <N>: <Summary>`
+rather than supplied as free text. A title passed explicitly must match that
+shape or it is refused. The opened URL is recorded in the sprint metadata
+`Checkpoint` field and committed, so the Book is not left dirty behind the
+checkpoint.
+
+## Turn Contract
+
+A sprint is one turn. Once a sprint is open, continue through its phases without
+returning control, and stop only at one of four boundaries:
+
+1. **Blocking product ambiguity** — the desired outcome is genuinely unclear and
+   proceeding under any assumption would produce the wrong work.
+2. **An unverifiable claim** — realization depends on visual, experiential, or
+   otherwise human judgment; surface the artifact for a person instead of
+   asserting it.
+3. **An explicit abort** — the abort helper, with a one-line reason.
+4. **The merge boundary** — the checkpoint is open and `mergePolicy` is
+   `human-approve`, so a person approves the merge to base.
+
+This contract is advisory: no helper runs when a turn simply ends, so it states
+the intent rather than enforcing it. What is enforced is the evidence a
+premature stop leaves behind. The checkpoint is refused while the sprint is
+open, plan finalization and sprint close are refused while the Book carries
+uncommitted state, and a task commit is refused from any branch that is not the
+profile's work branch.
+
 ## Authority
 
 Intent chapters remain semantic authority; work ledgers record executable
@@ -82,6 +110,7 @@ sprint. The adapter-level permission and remote-action boundary in
 
 ## Exit evidence
 
+- The phase's exit artifacts are committed; the installed `scripts/check-tracked.sh` helper reports a clean Book.
 - Every advanced intent has a justified state and valid evidence links.
 - Durable reasoning and executable carry-forward work live in their canonical
   Book locations.
