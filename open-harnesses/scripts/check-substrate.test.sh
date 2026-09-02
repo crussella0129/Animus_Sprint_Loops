@@ -24,6 +24,7 @@ make_profile() {  # <dir> <body>
     "$2" > "$1/docs/work/remote-profile.md"
 }
 run() { bash "$CS" --root "$1" 2>/dev/null; }
+on_work() { git -C "$1" checkout -q "${2:-dev}"; }
 
 # The bundle's own contract version drives the fixtures, so a later version
 # change does not silently strand them at a hardcoded number.
@@ -35,7 +36,7 @@ stamp() {  # <dir> [version]
 }
 
 # test_substrate_two_branch_complete
-C="$TMP_ROOT/complete"; git_init_branches "$C" main dev; make_book "$C"; stamp "$C"
+C="$TMP_ROOT/complete"; git_init_branches "$C" main dev; make_book "$C"; stamp "$C"; on_work "$C"
 make_profile "$C" 'provider: github
 base: main
 work: dev'
@@ -63,7 +64,7 @@ case "$(run "$NP")" in substrate-partial:*profile*) : ;; *) die test_substrate_p
 pass test_substrate_partial_no_profile
 
 # test_substrate_is_readonly
-R="$TMP_ROOT/ro"; git_init_branches "$R" main dev; make_book "$R"; stamp "$R"
+R="$TMP_ROOT/ro"; git_init_branches "$R" main dev; make_book "$R"; stamp "$R"; on_work "$R"
 make_profile "$R" 'provider: github
 base: main
 work: dev'
@@ -76,7 +77,7 @@ after=$(snap "$R"); ph_after=$(cksum "$SCRIPT_DIR/current-phase.sh")
 pass test_substrate_is_readonly
 
 # test_substrate_local_only_complete
-LO="$TMP_ROOT/local"; git_init_branches "$LO" main dev; make_book "$LO"; stamp "$LO"
+LO="$TMP_ROOT/local"; git_init_branches "$LO" main dev; make_book "$LO"; stamp "$LO"; on_work "$LO"
 make_profile "$LO" 'provider: local-only
 base: main
 work: dev'
@@ -85,7 +86,7 @@ pass test_substrate_local_only_complete
 
 # test_substrate_outdated_when_book_behind — a complete but unstamped Book is
 # convergeable, not broken.
-OD="$TMP_ROOT/outdated"; git_init_branches "$OD" main dev; make_book "$OD"
+OD="$TMP_ROOT/outdated"; git_init_branches "$OD" main dev; make_book "$OD"; on_work "$OD"
 make_profile "$OD" 'provider: github
 base: main
 work: dev'
@@ -124,5 +125,41 @@ before_od=$(snap "$OD")
 run "$OD" >/dev/null
 [ "$before_od" = "$(snap "$OD")" ] || die test_substrate_is_readonly_for_version_states 'version-state report mutated the tree'
 pass test_substrate_is_readonly_for_version_states
+
+# test_substrate_misplaced_on_base_branch + test_substrate_complete_on_work_branch
+MP="$TMP_ROOT/misplaced"; git_init_branches "$MP" main dev; make_book "$MP"; stamp "$MP"
+make_profile "$MP" 'provider: github
+base: main
+work: dev'
+on_work "$MP" main
+[ "$(run "$MP")" = 'substrate-misplaced:main->dev' ] || die test_substrate_misplaced_on_base_branch "got '$(run "$MP")'"
+if bash "$CS" --root "$MP" >/dev/null 2>&1; then die test_substrate_misplaced_on_base_branch 'exit 0 while misplaced'; fi
+pass test_substrate_misplaced_on_base_branch
+on_work "$MP" dev
+[ "$(run "$MP")" = substrate-complete ] || die test_substrate_complete_on_work_branch "got '$(run "$MP")'"
+pass test_substrate_complete_on_work_branch
+
+# test_substrate_misplaced_is_readonly
+on_work "$MP" main
+before_mp=$(snap "$MP")
+run "$MP" >/dev/null
+[ "$before_mp" = "$(snap "$MP")" ] || die test_substrate_misplaced_is_readonly 'misplaced report mutated the tree'
+pass test_substrate_misplaced_is_readonly
+
+# test_substrate_misplaced_outranks_outdated — position outranks version,
+# because convergence writes and must not run from the base branch.
+printf 'schema-version: 2\n' > "$MP/docs/.sprint-loop-book"
+[ "$(run "$MP")" = 'substrate-misplaced:main->dev' ] || die test_substrate_misplaced_outranks_outdated "got '$(run "$MP")'"
+pass test_substrate_misplaced_outranks_outdated
+
+# test_substrate_partial_outranks_misplaced — a broken substrate outranks a
+# misplaced one.
+PM="$TMP_ROOT/partial-misplaced"; git_init_branches "$PM" main; make_book "$PM"; stamp "$PM"
+make_profile "$PM" 'provider: github
+base: main
+work: dev'
+on_work "$PM" main
+case "$(run "$PM")" in substrate-partial:*branch:dev*) : ;; *) die test_substrate_partial_outranks_misplaced "got '$(run "$PM")'";; esac
+pass test_substrate_partial_outranks_misplaced
 
 printf 'check-substrate selftest: all fixtures passed\n'

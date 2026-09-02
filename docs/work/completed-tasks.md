@@ -500,3 +500,10 @@
 - **Completed:** 2026-09-02T19:41:00Z
 - **Files modified:** `{4 bundles}/scripts/commit-task.sh`, `{4 bundles}/scripts/close-sprint.sh` (in T-147's boundary), `{4 bundles}/scripts/runtime-helpers.test.sh` (in T-147's boundary), task ledgers
 - **Commit:** `94a0b67ec2a1152d3a247e684a3061506ee7fbd7`
+
+## T-149 (sprint 18)
+- **Description:** Added `substrate-misplaced:<head>-><work>` to the substrate gate — the only helper that runs before routing, and therefore the only place a wrong-branch condition is observable before a sprint's writes begin. The substrate itself is a project property and stays complete regardless of checkout, so position is reported as its own state rather than joining the missing-element list, which would have misreported a complete substrate as incomplete. Precedence is now partial → misplaced → ahead → outdated → complete, recorded in the script header: a broken substrate outranks a misplaced one, and position outranks the version states because convergence writes and must not run from the base branch. A detached HEAD reports its short SHA. Five fixtures added, and four existing complete-path fixtures needed an explicit checkout of the work branch, because the shared `git_init_branches` helper leaves HEAD on its scratch branch — a fixture cost of the same shape as the adapter-fixture cost this sprint's research predicted for T-150. 17/17 pass.
+- **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
+- **Completed:** 2026-09-02T19:52:00Z
+- **Files modified:** `{4 bundles}/scripts/check-substrate.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, task ledgers
+- **Commit:** PENDING
