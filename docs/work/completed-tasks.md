@@ -451,3 +451,10 @@
 - **Completed:** 2026-09-02T16:44:00Z
 - **Files modified:** `{4 bundles}/scripts/check-substrate.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, `{4 bundles}/scripts/book-routing.test.sh`, task ledgers
 - **Commit:** `f57d631e9121b83830606d031d73d28bc7a364ac`
+
+## T-139 (sprint 17)
+- **Description:** Turned `deploy-substrate.sh` into the single convergence entrypoint in all four bundles. Added a contract-version stamp step that writes only when the value would change, an `--check` read-only drift report that names each pending step and exits non-zero while pending, and an ahead-Book refusal that precedes every write and the report alike. Step ordering is load-bearing twice: the stamp runs before the final verification, because once T-138 landed a complete-but-unstamped Book reports `substrate-outdated` and a stamp placed after the verify would fail convergence on exactly the projects it exists to upgrade; and it runs before the git step so a fresh deploy commits the stamped marker instead of leaving the tree dirty. Rollback captures the prior marker and restores it, extending the existing `DEPLOY_SUBSTRATE_FAIL_AFTER` seam with a `stamp` point. Six fixtures added; the pre-existing `test_deploy_idempotent` file-and-ref snapshot passes unmodified, which is the no-op proof. 14/14 pass, shellcheck clean, four-bundle parity intact.
+- **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
+- **Completed:** 2026-09-02T17:02:00Z
+- **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
+- **Commit:** PENDING
