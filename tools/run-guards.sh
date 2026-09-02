@@ -40,7 +40,7 @@ done
 
 EXTRA_DIR="${RUN_GUARDS_EXTRA_SUITES:-}"
 
-SUITES=(selftest merge-policy merge-policy-test plugin-manifest bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs remote-profile check-substrate deploy-substrate remote-adapter sync-work-branch shellcheck)
+SUITES=(selftest merge-policy merge-policy-test plugin-manifest plugin-manifest-test bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs remote-profile check-substrate deploy-substrate remote-adapter sync-work-branch shellcheck)
 if [ -n "$EXTRA_DIR" ]; then
   for f in "$EXTRA_DIR"/*.sh; do
     [ -f "$f" ] || continue
@@ -54,6 +54,7 @@ suite_cmd() {
     merge-policy)      bash tools/check-merge-policy.sh ;;
     merge-policy-test) bash tools/check-merge-policy.test.sh ;;
     plugin-manifest)   bash tools/check-plugin-manifest.sh ;;
+    plugin-manifest-test) bash tools/check-plugin-manifest.test.sh ;;
     bundle-sync)       bash tools/check-bundle-sync.sh ;;
     bundle-sync-test)  bash tools/check-bundle-sync.test.sh ;;
     adapter-semantics)      bash tools/check-adapter-semantics.sh ;;
@@ -80,6 +81,7 @@ suite_script_hash() {
     merge-policy)      cat tools/check-merge-policy.sh ;;
     merge-policy-test) cat tools/check-merge-policy.test.sh ;;
     plugin-manifest)   cat tools/check-plugin-manifest.sh ;;
+    plugin-manifest-test) cat tools/check-plugin-manifest.test.sh ;;
     bundle-sync)       cat tools/check-bundle-sync.sh ;;
     bundle-sync-test)  cat tools/check-bundle-sync.test.sh ;;
     adapter-semantics)      cat tools/check-adapter-semantics.sh ;;

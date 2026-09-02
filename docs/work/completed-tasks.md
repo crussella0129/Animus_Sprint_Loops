@@ -458,3 +458,10 @@
 - **Completed:** 2026-09-02T17:02:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
 - **Commit:** `ee5a252c490a97ce4839bc79c598baed2d2dba0c`
+
+## T-140 (sprint 17)
+- **Description:** Gave the bundle a readable identity. `scripts/bundle-version.sh` (0.17.0) ships in all four bundles and prints exactly one version line; it lives in `scripts/` rather than the plugin manifest because the manual installer copies `skills/sprint-loop/` with no `.claude-plugin/` beside it, and because `scripts/` is already covered by the parity guard and shellcheck with no new guard case. `claude-code/.claude-plugin/plugin.json` gained a matching `version`, and `check-plugin-manifest.sh` now requires the field to exist and to equal the bundle's own output, naming both values when they disagree — closing the deferred roadmap item on plugin version discipline. The guard gained a `PLUGIN_MANIFEST_ROOT` override matching the existing `BUNDLE_SYNC_ROOT`/`ADAPTER_SEMANTICS_ROOT` seams, and a new `tools/check-plugin-manifest.test.sh` proves each assertion independently on isolated fixtures: 6/6 pass, including a passing baseline. Registered as the `plugin-manifest-test` suite in the canonical runner and added to `REQUIRED_SCRIPTS`. Parity 4/4, bundle-sync fixtures 18/18, shellcheck clean.
+- **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
+- **Completed:** 2026-09-02T17:20:00Z
+- **Files modified:** `{4 bundles}/scripts/bundle-version.sh`, `tools/check-plugin-manifest.sh`, `tools/check-plugin-manifest.test.sh`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, `claude-code/.claude-plugin/plugin.json`, task ledgers
+- **Commit:** PENDING
