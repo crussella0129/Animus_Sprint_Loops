@@ -478,4 +478,4 @@
 - **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
 - **Completed:** 2026-09-02T17:58:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`, `claude-code/skills/sprint-loop/phases/01-init-sprint.md`, `codex-cli/skills/sprint-loops/phases/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/01-init-sprint.md`, `README.md`, `tools/operator-docs.test.sh`, `tools/check-plugin-manifest.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `5f85a5ba3800b69c1d9ef8594c729847d552f138`
