@@ -45,7 +45,12 @@ only makes version-conditional gating possible for the intents that follow.
   `substrate-partial:<diagnostic>`, and `substrate-outdated:<from>-><to>`.
 - Every helper that reads the marker still parses a Book carrying the new key,
   across all four bundles.
-- A closed sprint's metadata names the bundle version that ran it.
+- A Book stamped **ahead** of the running bundle's implemented version is
+  refused with a diagnostic naming both versions, and is never converged
+  backwards.
+- A closed sprint's metadata names the bundle version that ran it, in every
+  install mode — including the manual installer path, which installs the skill
+  bundle with no plugin manifest beside it.
 
 ## Rationale
 `deploy-substrate.sh` was already three quarters of an upgrade tool: it creates
@@ -86,8 +91,19 @@ foundation to put first.
 - Bundle version discipline adds a per-sprint bump obligation and a documented
   reload step, because the plugin cache pins a commit and a running loop
   otherwise keeps executing the bundle it started with.
+- Bundle identity must live inside the skill bundle itself, not only in the
+  plugin manifest: the manual installer copies `skills/sprint-loop/` without any
+  `.claude-plugin/` directory, so a manifest-only version is unreadable in that
+  install mode. That places the version file outside the directories the
+  cross-bundle parity guard currently maps, which must be resolved rather than
+  left uncovered.
 
 ## Transition history
 - 2026-09-02: created as `proposed` — derived from operator feedback that the
   spin-up and update paths should be one idempotent system, and required as the
   compatibility foundation for INT-0005 through INT-0009.
+- 2026-09-02: revised during Sprint 17 Research — added the acceptance criterion
+  for a Book stamped ahead of the running bundle, which the original chapter did
+  not cover and which converging naively would silently downgrade; and recorded
+  the install-mode consequence that forces bundle identity into the skill bundle
+  rather than the plugin manifest alone. State remains `proposed`.
