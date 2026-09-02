@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0005
-- **State:** planned
+- **State:** active
 - **Work evidence:** [T-146–T-151 build plan](../sprints/s18/sprint-plans/build-plan.md#execution-sequence), [Sprint 18 test plan](../sprints/s18/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -132,3 +132,5 @@ main` repeated fifteen times indexes nothing.
   recorded checkpoint, and the Turn Contract. The local pre-commit hook is
   deliberately not in this sprint, so this intent remains `active` after Sprint
   18 closes.
+- 2026-09-02: `planned → active` — Build began with T-146, the contract-3
+  constant and the tracked-evidence helper that every later gate calls.

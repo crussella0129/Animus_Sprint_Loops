@@ -479,3 +479,10 @@
 - **Completed:** 2026-09-02T17:58:00Z
 - **Files modified:** `claude-code/skills/sprint-loop/SKILL.md`, `claude-code/skills/sprint-loop/phases/01-init-sprint.md`, `codex-cli/skills/sprint-loops/phases/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/01-init-sprint.md`, `README.md`, `tools/operator-docs.test.sh`, `tools/check-plugin-manifest.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, task ledgers
 - **Commit:** `5f85a5ba3800b69c1d9ef8594c729847d552f138`
+
+## T-146 (sprint 18)
+- **Description:** Raised the substrate contract to version 3 and the bundle to 0.18.0 across all four bundles and the plugin manifest, then added `check-tracked.sh` — the helper every gate in this sprint calls. It reports, in one pass, every untracked and every modified path under the Book, so a single run gives the operator the whole remedy rather than the first step of it; it exits 0 on a fully committed Book, and exits 0 without a diagnostic in a project that is not a git repository, where tracked state has no meaning and the gate is inapplicable rather than failed. Seven fixtures in the new `check-tracked` suite cover clean, untracked, modified, multiple-offender, non-git, and non-Book-change cases, plus `test_contract_3_sees_stamp_2_as_behind`, which proves a Sprint-17-era Book reads as behind rather than current — the property every later gate binds on. The substrate and convergence suites needed no edits: their fixtures read the bundle constant rather than a literal, so they adapted to contract 3 on their own. Registered in `REQUIRED_SCRIPTS` and the canonical runner. This repository now correctly reports `substrate-outdated:2->3` and converges at Loop.
+- **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
+- **Completed:** 2026-09-02T19:12:00Z
+- **Files modified:** `{4 bundles}/scripts/check-tracked.sh`, `{4 bundles}/scripts/check-tracked.test.sh`, `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
+- **Commit:** PENDING

@@ -6,7 +6,7 @@
 BOOK_SCHEMA_VERSION=2
 # The substrate contract version this bundle implements. A Book marker with no
 # 'substrate-version' entry predates the stamp and is contract version 1.
-BOOK_SUBSTRATE_CONTRACT_VERSION=2
+BOOK_SUBSTRATE_CONTRACT_VERSION=3
 BOOK_SPLIT_BRAIN_DIAGNOSTIC='split-brain state: writable Book and legacy Sprint Loops layouts coexist'
 BOOK_LEGACY_ONLY_DIAGNOSTIC='legacy-only Sprint Loops layout detected; migrate to the v2 Book before writing state'
 BOOK_UNINITIALIZED_DIAGNOSTIC='Sprint Loops Book is not initialized'
