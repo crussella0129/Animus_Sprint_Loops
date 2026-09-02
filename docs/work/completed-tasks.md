@@ -450,4 +450,4 @@
 - **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
 - **Completed:** 2026-09-02T16:44:00Z
 - **Files modified:** `{4 bundles}/scripts/check-substrate.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, `{4 bundles}/scripts/book-routing.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `f57d631e9121b83830606d031d73d28bc7a364ac`
