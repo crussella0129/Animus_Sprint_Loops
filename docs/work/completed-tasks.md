@@ -464,4 +464,4 @@
 - **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
 - **Completed:** 2026-09-02T17:20:00Z
 - **Files modified:** `{4 bundles}/scripts/bundle-version.sh`, `tools/check-plugin-manifest.sh`, `tools/check-plugin-manifest.test.sh`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, `claude-code/.claude-plugin/plugin.json`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `612439de0a1fc1345695df0ea78b73cea1269e5d`
