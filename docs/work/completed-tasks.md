@@ -513,4 +513,4 @@
 - **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
 - **Completed:** 2026-09-02T20:14:00Z
 - **Files modified:** `{4 bundles}/scripts/remote-adapter.sh`, `{4 bundles}/scripts/remote-adapter.test.sh`, `{4 bundles}/schemas/sprint-meta.md`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `7d2125636cc84f5d6a9498825d20b04842515244`
