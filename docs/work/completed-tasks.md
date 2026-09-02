@@ -499,4 +499,4 @@
 - **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
 - **Completed:** 2026-09-02T19:41:00Z
 - **Files modified:** `{4 bundles}/scripts/commit-task.sh`, `{4 bundles}/scripts/close-sprint.sh` (in T-147's boundary), `{4 bundles}/scripts/runtime-helpers.test.sh` (in T-147's boundary), task ledgers
-- **Commit:** PENDING
+- **Commit:** `94a0b67ec2a1152d3a247e684a3061506ee7fbd7`
