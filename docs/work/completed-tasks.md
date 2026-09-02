@@ -457,4 +457,4 @@
 - **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
 - **Completed:** 2026-09-02T17:02:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `ee5a252c490a97ce4839bc79c598baed2d2dba0c`
