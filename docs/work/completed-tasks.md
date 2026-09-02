@@ -506,4 +506,4 @@
 - **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
 - **Completed:** 2026-09-02T19:52:00Z
 - **Files modified:** `{4 bundles}/scripts/check-substrate.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `93bc3a8cbf7b6fbdd97432fce7f58c1417df9ff8`
