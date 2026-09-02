@@ -507,3 +507,10 @@
 - **Completed:** 2026-09-02T19:52:00Z
 - **Files modified:** `{4 bundles}/scripts/check-substrate.sh`, `{4 bundles}/scripts/check-substrate.test.sh`, task ledgers
 - **Commit:** `93bc3a8cbf7b6fbdd97432fce7f58c1417df9ff8`
+
+## T-150 (sprint 18)
+- **Description:** Gated the checkpoint on a closed sprint and made its title Book-derived. At contract 3 `open-pr` refuses unless the router reports `ready-for-next-sprint` — one call that is the whole condition, since the router returns that state exactly when the sprint metadata carries a terminal `Exit status`. An aborted sprint reaches that state too and may checkpoint, which is a decision rather than an accident: abandoned work still needs a reversible boundary. With no `--title` the adapter composes `Sprint <N>: <Summary>` from the Book and refuses a Summary still left at the initialization placeholder; a supplied title is validated against `^Sprint [0-9]+: .+` and refused rather than silently rewritten. The checkpoint URL is recorded in a new `Checkpoint` metadata field, inserted after `Completion evidence`, and committed in a scoped commit — plan critique C-002: `open-pr` runs after `close-sprint` has committed, so an uncommitted write here would leave the Book dirty for the *next* sprint's committed-evidence gate to trip on, with the cause several steps from the symptom. All five original fixtures were rewritten to carry a Book with a closed sprint and kept their original assertions unchanged; nine were added, including a single Book walked through research, plan, build, test, and an open loop with the checkpoint refused and the provider never invoked at each. 14/14 pass.
+- **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
+- **Completed:** 2026-09-02T20:14:00Z
+- **Files modified:** `{4 bundles}/scripts/remote-adapter.sh`, `{4 bundles}/scripts/remote-adapter.test.sh`, `{4 bundles}/schemas/sprint-meta.md`, task ledgers
+- **Commit:** PENDING
