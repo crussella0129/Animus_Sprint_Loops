@@ -2,8 +2,8 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0004
-- **State:** proposed
-- **Work evidence:** none
+- **State:** planned
+- **Work evidence:** [T-137–T-142 build plan](../sprints/s17/sprint-plans/build-plan.md#execution-sequence), [Sprint 17 test plan](../sprints/s17/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
 - **Test evidence:** none
@@ -107,3 +107,8 @@ foundation to put first.
   not cover and which converging naively would silently downgrade; and recorded
   the install-mode consequence that forces bundle identity into the skill bundle
   rather than the plugin manifest alone. State remains `proposed`.
+- 2026-09-02: `proposed → planned` — Sprint 17 tasks T-137–T-142 cover the
+  version accessor, the outdated and ahead substrate states, the convergence
+  entrypoint with its stamp and `--check` mode, in-bundle identity with manifest
+  agreement, the per-sprint bundle-version record, and the adapter contracts
+  that route an outdated substrate to convergence.
