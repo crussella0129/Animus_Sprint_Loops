@@ -493,3 +493,10 @@
 - **Completed:** 2026-09-02T19:38:00Z
 - **Files modified:** `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/finalize-plan.sh`, `{4 bundles}/scripts/close-sprint.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
 - **Commit:** `efc831f93701eebc12317f68f6c5910a87fa5253`
+
+## T-148 (sprint 18)
+- **Description:** Refused sprint writes from a branch that is not the remote profile's work branch, at contract 3. `commit-task.sh` checks immediately after the pending-evidence check and before `git add`, so a refusal stages nothing; `close-sprint.sh` checks before the sprint metadata is read or written. Both resolve the profile best-effort and leave a project with no resolvable profile entirely alone, because `local-only` without a profile is a legitimate configuration rather than a broken one. The diagnostic names both the current and the expected branch, since the escape is a deliberate branch switch and not a flag. Fixtures prove the refusal stages nothing, that the same commit succeeds from the work branch and records its path, that a project without a profile is unaffected, and that close refuses from the wrong branch without touching the metadata. `close-sprint.sh`'s share of this task landed in T-147's commit boundary; this commit carries `commit-task.sh`.
+- **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
+- **Completed:** 2026-09-02T19:41:00Z
+- **Files modified:** `{4 bundles}/scripts/commit-task.sh`, `{4 bundles}/scripts/close-sprint.sh` (in T-147's boundary), `{4 bundles}/scripts/runtime-helpers.test.sh` (in T-147's boundary), task ledgers
+- **Commit:** PENDING
