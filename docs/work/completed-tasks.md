@@ -443,4 +443,4 @@
 - **Intent:** [INT-0004](../intents/INT-0004-substrate-contract-versioning.md)
 - **Completed:** 2026-09-02T16:31:00Z
 - **Files modified:** `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `a3e10e3324a36f7408e952277dd59c7442525aa4`
