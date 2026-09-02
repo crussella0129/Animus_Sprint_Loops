@@ -1,7 +1,7 @@
 ---
 name: sprint-loop
 description: Run or resume the Sprint Loops Book v2 workflow when the user explicitly invokes /sprint-loop or directly asks to start, continue, resume, or run a sprint loop. Do not use it for ordinary documentation work or merely because a docs directory exists.
-argument-hint: "[ continue | start <goal> | abort <reason> ]"
+argument-hint: "[ continue | start <goal> | abort <reason> | upgrade ]"
 ---
 
 # Sprint Loops for Claude Code
@@ -37,6 +37,13 @@ The invocation arguments are `$ARGUMENTS`.
 - `abort <reason>` invokes
   `bash "${CLAUDE_SKILL_DIR}/scripts/abort-sprint.sh" "<reason>"`. Require one
   non-empty, one-line reason.
+- `upgrade` converges the project's substrate to this bundle's contract
+  version without starting a sprint: run
+  `bash "${CLAUDE_SKILL_DIR}/scripts/check-substrate.sh"`, then
+  `bash "${CLAUDE_SKILL_DIR}/scripts/deploy-substrate.sh"`, then report the
+  resulting substrate state. Spin-up and upgrade are the same idempotent
+  command, so this is safe on a current project — it changes nothing. Add
+  `--check` to the second command to name pending steps without writing.
 - Any other argument is unsupported. Never use an argument to jump directly
   to a phase.
 

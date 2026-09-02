@@ -25,8 +25,8 @@ make_profile() {  # <dir> <body>
 }
 run() { bash "$CS" --root "$1" 2>/dev/null; }
 
-# The bundle's own contract version drives the fixtures, so a future bump does
-# not silently strand them at a hardcoded number.
+# The bundle's own contract version drives the fixtures, so a later version
+# change does not silently strand them at a hardcoded number.
 # shellcheck source=book-paths.sh
 . "$SCRIPT_DIR/book-paths.sh"
 V=$BOOK_SUBSTRATE_CONTRACT_VERSION

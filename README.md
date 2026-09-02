@@ -33,15 +33,19 @@ reports.
 **3 — What happens.** Every run begins at the **substrate gate**
 (`check-substrate.sh`):
 
-- On a brand-new project it reports `substrate-absent` and runs **Sprint 0
-  deploy** (`deploy-substrate.sh`), which creates the `docs/` Book, the `main` /
-  `dev` branches, the work ledgers, a remote profile
-  ([`schemas/remote-profile.md`](open-harnesses/schemas/remote-profile.md)), and
-  the first sprint.
-- On an established project it reports `substrate-complete` and hands off to
-  routing, which advances the sprint through **Research → Plan → Build → Test →
-  Loop**. Each phase writes its exit artifact into `docs/`; the current phase is
-  *derived* from that evidence, never a mutable pointer.
+- On a brand-new project it reports `substrate-absent` and runs
+  **convergence** (`deploy-substrate.sh`), which creates the `docs/` Book, the
+  `main` / `dev` branches, the work ledgers, a remote profile
+  ([`schemas/remote-profile.md`](open-harnesses/schemas/remote-profile.md)), the
+  first sprint, and the substrate contract stamp.
+- On a project set up by an older bundle it reports
+  `substrate-outdated:<book>-><bundle>` and runs the **same** command.
+  Spin-up and upgrade are one idempotent operation — see [Convergence: spin-up
+  and upgrade are one command](#convergence-spin-up-and-upgrade-are-one-command).
+- On an established, current project it reports `substrate-complete` and hands
+  off to routing, which advances the sprint through **Research → Plan → Build →
+  Test → Loop**. Each phase writes its exit artifact into `docs/`; the current
+  phase is *derived* from that evidence, never a mutable pointer.
 
 Work accumulates on `dev`, and each sprint opens exactly one `dev → main`
 pull/merge request as a reversible checkpoint — see [Branch model and
@@ -122,6 +126,44 @@ silently.
 - [`antigravity-ide/`](antigravity-ide/) — Antigravity workflow, runtime skill,
   and installer.
 - [`tools/`](tools/) — parity, policy, and deterministic verification guards.
+
+## Convergence: spin-up and upgrade are one command
+
+`deploy-substrate.sh` is the single entrypoint for all three cases. It creates
+only what is missing, stamps the project's **substrate contract version**, and
+verifies:
+
+| Starting state | What the command does |
+| --- | --- |
+| Fresh project | Creates the Book, branches, ledgers, remote profile, first sprint, and the stamp. |
+| Set up by an older bundle | Adds only the missing pieces and updates the stamp. |
+| Already current | Nothing. It is a byte-for-byte no-op and says so. |
+
+The contract version lives in `docs/.sprint-loop-book` beside the schema
+version:
+
+```text
+schema-version: 2
+substrate-version: 2
+```
+
+A Book with no `substrate-version` line is contract version 1, and every helper
+reads it exactly as it did before the stamp existed — so an un-converged project
+keeps behaving identically until it converges. A Book stamped *ahead* of the
+running bundle is refused rather than downgraded; update the bundle instead.
+
+Preview without writing anything:
+
+```bash
+bash scripts/deploy-substrate.sh --check
+```
+
+From Claude Code, `/sprint-loop:sprint-loop upgrade` runs the check and the
+convergence and reports the resulting state without starting a sprint. Each
+sprint records the bundle that ran it in `sprint-meta.md`, from the bundle's own
+`scripts/bundle-version.sh`; the plugin cache pins a commit, so run
+`/plugin update sprint-loop` to pick up a newly merged bundle before the next
+sprint.
 
 ## Branch model and checkpoints
 

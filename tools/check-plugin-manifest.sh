@@ -54,7 +54,7 @@ grep -q '^argument-hint:' "$SRCDIR/skills/sprint-loop/SKILL.md" || fail "skills/
 
 # Bundle identity (sprint 17): the version lives inside the skill bundle, because
 # the manual installer ships skills/sprint-loop/ with no .claude-plugin/ beside
-# it. plugin.json must agree with it, so a partial version bump is observable.
+# it. plugin.json must agree with it, so a partial version change is observable.
 BVS="$SRCDIR/skills/sprint-loop/scripts/bundle-version.sh"
 [ -f "$BVS" ] || fail "bundle version helper missing at $BVS"
 BUNDLE_VERSION="$(bash "$BVS")" || fail "bundle-version.sh exited non-zero"
@@ -81,7 +81,7 @@ if not version:
           file=sys.stderr); sys.exit(1)
 if version != bundle:
     print(f"check-plugin-manifest: FAIL — plugin.json version is {version!r} but the bundle "
-          f"reports {bundle!r}; bump both together", file=sys.stderr); sys.exit(1)
+          f"reports {bundle!r}; raise both together", file=sys.stderr); sys.exit(1)
 PY
 
 echo "check-plugin-manifest: OK — marketplace 'sprint-loop' -> $SRC (skill + plugin.json v$BUNDLE_VERSION verified)"

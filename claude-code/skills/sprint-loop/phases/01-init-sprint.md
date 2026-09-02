@@ -6,15 +6,24 @@ Before routing or initializing anything, run the installed bundle's
 `scripts/check-substrate.sh` from the project root. It reports one of:
 
 - `substrate-complete` — Book, ledgers, the configured `base`/`work` branches,
-  and a resolvable remote profile all exist. Proceed with Init below.
-- `substrate-absent` — a fresh project. Run **Sprint 0 deploy**,
-  `scripts/deploy-substrate.sh` (idempotent), which creates the Book, the
-  `main`/`dev` branches, the ledgers, the remote profile (see
-  `schemas/remote-profile.md`), and the first sprint. The skill creates **no
-  per-sprint branch** — sprints work on `work`/`dev`.
+  and a resolvable remote profile all exist, at this bundle's substrate contract
+  version. Proceed with Init below.
+- `substrate-absent` — a fresh project. Run **convergence**,
+  `scripts/deploy-substrate.sh`, which creates the Book, the `main`/`dev`
+  branches, the ledgers, the remote profile (see `schemas/remote-profile.md`),
+  the first sprint, and the contract stamp. The skill creates **no per-sprint
+  branch** — sprints work on `work`/`dev`.
+- `substrate-outdated:<book>-><bundle>` — the substrate is complete but predates
+  this bundle's contract. Run the **same** helper: spin-up and upgrade are one
+  idempotent command that creates only what is missing, stamps the contract
+  version, and verifies. Re-running it on a current project changes nothing.
+  `scripts/deploy-substrate.sh --check` names the pending steps without writing.
+- `substrate-ahead:<book>-><bundle>` — the Book was stamped by a newer bundle
+  than the one running. Do not converge; it would downgrade the project. Update
+  the installed bundle instead.
 - `substrate-partial:<diagnostic>` — resolve the named missing element (migrate a
-  legacy Book, declare the remote profile, or create the missing branch) before
-  continuing.
+  legacy Book, declare the remote profile, create the missing branch, or repair a
+  malformed contract stamp) before continuing.
 
 ## Dependency-update intake (sprint boundary only)
 

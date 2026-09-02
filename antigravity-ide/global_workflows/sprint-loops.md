@@ -124,8 +124,12 @@ Then open exactly one `work -> base` PR/MR with
 (`schemas/remote-profile.md`): at most one per sprint, never merged under
 `mergePolicy: human-approve`, and **no per-sprint branch** is created. After a
 merge to `base`, `scripts/sync-work-branch.sh` resyncs `work`. Bootstrap and
-routing begin at the substrate gate `scripts/check-substrate.sh`
-(`substrate-absent` runs `scripts/deploy-substrate.sh`).
+routing begin at the substrate gate `scripts/check-substrate.sh`.
+`substrate-absent` and `substrate-outdated:<book>-><bundle>` both run the same
+idempotent `scripts/deploy-substrate.sh`: spin-up and upgrade are one command,
+and re-running it on a current project changes nothing (`--check` names the
+pending steps without writing). `substrate-ahead` means the Book was stamped by
+a newer bundle — update the bundle rather than converging backwards.
 
 Hosted-updater PRs targeting `work` are sprint-boundary intake, not another
 branch topology. Never merge them during an active sprint. Merge only when the
