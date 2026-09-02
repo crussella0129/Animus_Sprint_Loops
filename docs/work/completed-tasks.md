@@ -520,4 +520,4 @@
 - **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
 - **Completed:** 2026-09-02T20:33:00Z
 - **Files modified:** `{claude-code,codex-cli}/skills/*/phases/{02,04,05,06}-*.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/08-loop-phase.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `fcbd5fac087d8dd4c93ccbc8d3c50723b3678296`
