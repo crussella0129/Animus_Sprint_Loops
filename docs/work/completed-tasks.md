@@ -486,3 +486,10 @@
 - **Completed:** 2026-09-02T19:12:00Z
 - **Files modified:** `{4 bundles}/scripts/check-tracked.sh`, `{4 bundles}/scripts/check-tracked.test.sh`, `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
 - **Commit:** `10fbbc8bdf835e8996a56da2f8a93f3d9f99888d`
+
+## T-147 (sprint 18)
+- **Description:** Gated plan finalization and sprint close on committed Book evidence at contract 3. Added `book_gates_active()` and `BOOK_GATES_MIN_CONTRACT_VERSION` to the shared path contract so the version that introduced the gates lives in one place rather than as a literal at five call sites; an unreadable or malformed version leaves the gates inactive, because a gate's job is to add a check and never to break a project that has not converged. `finalize-plan.sh` refuses to lock while the Book carries uncommitted state, before any lock candidate exists, so the existing transactional rollback path is untouched. `close-sprint.sh` runs the same check at entry — it writes and commits the sprint metadata itself, so a check placed after that write would always see its own change and always fail. Five fixture groups verify the gates and their inertness at contract 2. Deviation from the plan's Touches list: `book-paths.sh` gained the shared predicate rather than each gate carrying a literal, and `close-sprint.sh` in this commit boundary also carries T-148's branch guard, because the two tasks modify the same file and were implemented together.
+- **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
+- **Completed:** 2026-09-02T19:38:00Z
+- **Files modified:** `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/finalize-plan.sh`, `{4 bundles}/scripts/close-sprint.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
+- **Commit:** PENDING

@@ -514,4 +514,111 @@ write_marker "$F" 'schema-version: 2
 [ "$(substrate_version "$F")" = 1 ] || fail "restored marker no longer reads as version 1"
 pass
 
+# ---------------------------------------------------------------------------
+# Sprint 18: the contract-3 turn-and-checkpoint gates. Each fixture is built
+# twice — once stamped at contract 3, where the gate binds, and once at contract
+# 2, where it must be inert — so the compatibility claim is tested rather than
+# asserted.
+# ---------------------------------------------------------------------------
+stamp_contract() { printf 'schema-version: 2\nsubstrate-version: %s\n' "$2" > "$1/docs/.sprint-loop-book"; }
+write_profile() {
+  mkdir -p "$1/docs/work"
+  {
+    printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v2 -->\n\n```\n'
+    printf 'provider: local-only\nbase: main\nwork: dev\n```\n'
+  } > "$1/docs/work/remote-profile.md"
+}
+commit_all() { git -C "$1" add -A; git -C "$1" commit -qm "${2:-fixture}"; }
+on_branch() { git -C "$1" checkout -q -B "$2"; }
+
+# test_finalize_refuses_dirty_book / test_finalize_allows_clean_book
+plan_fixture gate_finalize_dirty
+stamp_contract "$F" 3
+write_profile "$F"
+on_branch "$F" dev
+commit_all "$F" 'clean book'
+printf 'uncommitted\n' > "$F/docs/intents/INT-0002-stray.md"
+expect_failure 'commit the Book before locking the plans' run_script "$F" finalize-plan.sh
+expect_failure 'INT-0002-stray.md' run_script "$F" finalize-plan.sh
+unlocked "$F" || fail "dirty Book partially locked plans"
+rm "$F/docs/intents/INT-0002-stray.md"
+run_script "$F" finalize-plan.sh >/dev/null
+[ "$(head -n 1 "$F/docs/sprints/s0/sprint-plans/build-plan.md")" = 'Finalized - DO NOT EDIT' ] ||
+  fail "clean Book did not lock the build plan"
+pass
+
+# test_gates_inert_below_contract_3 — the same condition at contract 2 locks.
+plan_fixture gate_finalize_contract2
+stamp_contract "$F" 2
+write_profile "$F"
+on_branch "$F" dev
+commit_all "$F" 'clean book'
+printf 'uncommitted\n' > "$F/docs/intents/INT-0002-stray.md"
+run_script "$F" finalize-plan.sh >/dev/null ||
+  fail "contract-2 Book was gated on committed evidence"
+[ "$(head -n 1 "$F/docs/sprints/s0/sprint-plans/build-plan.md")" = 'Finalized - DO NOT EDIT' ] ||
+  fail "contract-2 Book did not lock the build plan"
+pass
+
+# test_commit_task_refuses_wrong_branch / test_branch_guard_inert_without_profile
+init_fixture gate_branch
+stamp_contract "$F" 3
+write_profile "$F"
+on_branch "$F" dev
+printf '# Completed\n## T-001 (sprint 0)\n- **Commit:** PENDING\n' > "$F/docs/work/completed-tasks.md"
+commit_all "$F" 'ledger'
+on_branch "$F" main
+expect_failure 'names dev as the work branch' \
+  run_script "$F" commit-task.sh T-001 'wrong branch' -- docs/work/completed-tasks.md
+[ -z "$(git -C "$F" diff --cached --name-only)" ] || fail "wrong-branch refusal staged paths"
+on_branch "$F" dev
+printf 'task output\n' > "$F/docs/work/task-artifact.txt"
+run_script "$F" commit-task.sh T-001 'right branch' -- docs/work/task-artifact.txt >/dev/null ||
+  fail "work-branch commit was refused"
+git -C "$F" ls-files --error-unmatch docs/work/task-artifact.txt >/dev/null 2>&1 ||
+  fail "work-branch commit did not record the task path"
+pass
+
+# test_close_refuses_dirty_book / test_close_refuses_wrong_branch
+init_fixture gate_close
+stamp_contract "$F" 3
+write_profile "$F"
+on_branch "$F" dev
+printf '# Research\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
+printf 'Finalized - DO NOT EDIT\n\n# Build\n' > "$F/docs/sprints/s0/sprint-plans/build-plan.md"
+printf 'Finalized - DO NOT EDIT\n\n# Test\n' > "$F/docs/sprints/s0/sprint-plans/test-plan.md"
+printf '# Completed\n## T-001 (sprint 0)\n' > "$F/docs/work/completed-tasks.md"
+printf '# Test report\npass\n' > "$F/docs/sprints/s0/sprint-tests/test-report.md"
+printf '# Critique\n## Concerns\n- none\n## Confidence\nclean\n' > "$F/docs/sprints/s0/sprint-tests/critique.md"
+commit_all "$F" 'loop-ready book'
+[ "$(run_script "$F" current-phase.sh)" = loop ] || fail "close fixture is not at phase loop"
+CLOSE_META="$F/docs/sprints/s0/sprint-meta.md"
+close_meta_before=$(git -C "$F" hash-object "$CLOSE_META")
+printf 'drifted\n' >> "$F/docs/work/tasks.md"
+expect_failure 'commit the Book before closing the sprint' \
+  run_script "$F" close-sprint.sh success 'dirty book'
+[ "$close_meta_before" = "$(git -C "$F" hash-object "$CLOSE_META")" ] ||
+  fail "dirty-Book refusal still wrote the sprint metadata"
+git -C "$F" checkout -q -- docs/work/tasks.md
+on_branch "$F" main
+expect_failure 'names dev as the work branch' \
+  run_script "$F" close-sprint.sh success 'wrong branch'
+[ "$close_meta_before" = "$(git -C "$F" hash-object "$CLOSE_META")" ] ||
+  fail "wrong-branch refusal still wrote the sprint metadata"
+on_branch "$F" dev
+run_script "$F" close-sprint.sh success 'clean book on the work branch' >/dev/null ||
+  fail "close was refused on a clean Book from the work branch"
+grep -qF -- '- **Exit status:** success' "$CLOSE_META" || fail "close did not record success"
+pass
+
+init_fixture gate_branch_no_profile
+stamp_contract "$F" 3
+on_branch "$F" main
+printf '# Completed\n## T-001 (sprint 0)\n- **Commit:** PENDING\n' > "$F/docs/work/completed-tasks.md"
+commit_all "$F" 'ledger'
+printf 'task output\n' > "$F/docs/work/task-artifact.txt"
+run_script "$F" commit-task.sh T-001 'no profile' -- docs/work/task-artifact.txt >/dev/null ||
+  fail "branch guard bound without a resolvable remote profile"
+pass
+
 echo "runtime-helpers.test: $COUNT Book runtime fixtures passed"
