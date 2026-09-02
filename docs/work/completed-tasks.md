@@ -492,4 +492,4 @@
 - **Intent:** [INT-0005](../intents/INT-0005-turn-and-checkpoint-contract.md)
 - **Completed:** 2026-09-02T19:38:00Z
 - **Files modified:** `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/finalize-plan.sh`, `{4 bundles}/scripts/close-sprint.sh`, `{4 bundles}/scripts/runtime-helpers.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `efc831f93701eebc12317f68f6c5910a87fa5253`
