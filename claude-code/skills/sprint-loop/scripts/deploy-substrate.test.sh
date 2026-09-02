@@ -139,4 +139,75 @@ bash "$DS" --root "$R" --provider generic --base main --work dev >/dev/null 2>&1
   die test_deploy_no_clobber 'clobbered an existing renovate.json'
 pass test_deploy_no_clobber
 
+# The bundle's own contract version drives the fixtures.
+# shellcheck source=book-paths.sh
+. "$SCRIPT_DIR/book-paths.sh"
+V=$BOOK_SUBSTRATE_CONTRACT_VERSION
+marker_of() { printf '%s/docs/.sprint-loop-book' "$1"; }
+
+# test_converge_stamps_unstamped_book + test_converge_verifies_after_stamp —
+# a complete but unstamped Book is the upgrade case this entrypoint exists for.
+U="$TMP_ROOT/converge"; mkdir -p "$U"
+bash "$DS" --root "$U" --provider github --base main --work dev >/dev/null 2>&1 ||
+  die test_converge_stamps_unstamped_book 'initial deploy failed'
+# Reset it to contract version 1 to model a project deployed by an older bundle.
+printf 'schema-version: 2\n' > "$(marker_of "$U")"
+git -C "$U" -c user.email=t@t -c user.name=t commit -q -am 'unstamp' 2>/dev/null || true
+[ "$(bash "$CS" --root "$U" 2>/dev/null)" = "substrate-outdated:1->$V" ] ||
+  die test_converge_stamps_unstamped_book "expected outdated, got '$(bash "$CS" --root "$U" 2>/dev/null)'"
+out=$(bash "$DS" --root "$U" 2>"$U.err") ||
+  die test_converge_verifies_after_stamp "convergence failed: $(cat "$U.err")"
+case "$out" in *substrate-complete*) : ;; *) die test_converge_verifies_after_stamp "no success line: $out" ;; esac
+[ "$(grep -c 'substrate-version' "$(marker_of "$U")")" = 1 ] ||
+  die test_converge_stamps_unstamped_book 'expected exactly one substrate-version line'
+grep -qFx "substrate-version: $V" "$(marker_of "$U")" ||
+  die test_converge_stamps_unstamped_book 'stamp value wrong'
+grep -qFx 'schema-version: 2' "$(marker_of "$U")" ||
+  die test_converge_stamps_unstamped_book 'schema-version line was not preserved'
+[ "$(bash "$CS" --root "$U" 2>/dev/null)" = substrate-complete ] ||
+  die test_converge_stamps_unstamped_book 'not complete after convergence'
+pass test_converge_stamps_unstamped_book
+pass test_converge_verifies_after_stamp
+
+# test_deploy_idempotent for the stamp: a converged project is a byte no-op.
+before_conv=$(snap "$U")
+bash "$DS" --root "$U" >/dev/null 2>&1 || die test_converge_idempotent 'converged re-run failed'
+[ "$before_conv" = "$(snap "$U")" ] || die test_converge_idempotent 'converged re-run changed state'
+pass test_converge_idempotent
+
+# test_converge_check_is_readonly
+printf 'schema-version: 2\n' > "$(marker_of "$U")"
+before_check=$(snap "$U")
+if check_out=$(bash "$DS" --root "$U" --check 2>&1); then
+  die test_converge_check_is_readonly 'exit 0 with a pending step'
+fi
+case "$check_out" in *"stamp substrate-version: $V"*) : ;; *) die test_converge_check_is_readonly "pending stamp not reported: $check_out" ;; esac
+[ "$before_check" = "$(snap "$U")" ] || die test_converge_check_is_readonly 'check mutated the project'
+bash "$DS" --root "$U" >/dev/null 2>&1 || die test_converge_check_is_readonly 'convergence after check failed'
+check_out=$(bash "$DS" --root "$U" --check 2>&1) ||
+  die test_converge_check_is_readonly 'check exits non-zero on a converged project'
+case "$check_out" in *'no pending steps'*) : ;; *) die test_converge_check_is_readonly "converged check output: $check_out" ;; esac
+pass test_converge_check_is_readonly
+
+# test_converge_refuses_ahead_book — never converge backwards.
+printf 'schema-version: 2\nsubstrate-version: 99\n' > "$(marker_of "$U")"
+before_ahead=$(snap "$U")
+if bash "$DS" --root "$U" >/dev/null 2>"$U.ahead"; then
+  die test_converge_refuses_ahead_book 'ahead Book accepted'
+fi
+grep -q '99' "$U.ahead" && grep -q "$V" "$U.ahead" ||
+  die test_converge_refuses_ahead_book "diagnostic names neither version: $(cat "$U.ahead")"
+[ "$before_ahead" = "$(snap "$U")" ] || die test_converge_refuses_ahead_book 'ahead refusal mutated the project'
+pass test_converge_refuses_ahead_book
+
+# test_converge_rolls_back_stamp
+printf 'schema-version: 2\n' > "$(marker_of "$U")"
+marker_before=$(cksum "$(marker_of "$U")")
+if DEPLOY_SUBSTRATE_FAIL_AFTER=stamp bash "$DS" --root "$U" >/dev/null 2>&1; then
+  die test_converge_rolls_back_stamp 'injected failure did not fail'
+fi
+[ "$marker_before" = "$(cksum "$(marker_of "$U")")" ] ||
+  die test_converge_rolls_back_stamp 'marker not restored after rollback'
+pass test_converge_rolls_back_stamp
+
 printf 'deploy-substrate selftest: all fixtures passed\n'

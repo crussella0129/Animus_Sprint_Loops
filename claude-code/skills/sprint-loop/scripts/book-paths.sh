@@ -4,10 +4,14 @@
 # shellcheck disable=SC2034 # Public BOOK_*/LEGACY_* variables are consumed by callers.
 
 BOOK_SCHEMA_VERSION=2
+# The substrate contract version this bundle implements. A Book marker with no
+# 'substrate-version' entry predates the stamp and is contract version 1.
+BOOK_SUBSTRATE_CONTRACT_VERSION=2
 BOOK_SPLIT_BRAIN_DIAGNOSTIC='split-brain state: writable Book and legacy Sprint Loops layouts coexist'
 BOOK_LEGACY_ONLY_DIAGNOSTIC='legacy-only Sprint Loops layout detected; migrate to the v2 Book before writing state'
 BOOK_UNINITIALIZED_DIAGNOSTIC='Sprint Loops Book is not initialized'
 BOOK_MARKER_DIAGNOSTIC="invalid Sprint Loops Book marker: expected exactly one anchored 'schema-version: 2' entry"
+BOOK_SUBSTRATE_VERSION_DIAGNOSTIC="invalid Sprint Loops substrate version: expected at most one anchored 'substrate-version: <positive integer>' entry"
 
 book_join_root() {
   case "${SPRINT_LOOP_PROJECT_ROOT:-.}" in
@@ -46,6 +50,36 @@ book_marker_is_v2() {
     /^schema-version:[[:space:]]*2[[:space:]]*$/ { valid++ }
     END { exit !(count == 1 && valid == 1) }
   ' "$BOOK_MARKER"
+}
+
+# Print the Book's substrate contract version. A marker carrying no
+# 'substrate-version' entry is contract version 1 — "unstamped" is a real
+# version, not a null. A malformed or repeated entry is refused rather than
+# guessed, following the remote-profile marker precedent.
+book_substrate_version() {
+  [ -f "$BOOK_MARKER" ] || {
+    printf '%s\n' "$BOOK_MARKER_DIAGNOSTIC" >&2
+    return 1
+  }
+  book_substrate_version_value=$(awk '
+    { sub(/\r$/, "") }
+    /^[[:space:]]*substrate-version:/ { count++ }
+    /^substrate-version:[[:space:]]*[1-9][0-9]*[[:space:]]*$/ {
+      valid++
+      value=$0
+      sub(/^substrate-version:[[:space:]]*/, "", value)
+      sub(/[[:space:]]*$/, "", value)
+    }
+    END {
+      if (count == 0) { print 1; exit 0 }
+      if (count == 1 && valid == 1) { print value; exit 0 }
+      exit 1
+    }
+  ' "$BOOK_MARKER") || {
+    printf '%s: %s\n' "$BOOK_SUBSTRATE_VERSION_DIAGNOSTIC" "$BOOK_MARKER" >&2
+    return 1
+  }
+  printf '%s\n' "$book_substrate_version_value"
 }
 
 book_has_book_layout() {

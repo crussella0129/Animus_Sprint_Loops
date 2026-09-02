@@ -1,0 +1,128 @@
+# INT-0004 — Versioned substrate contract with one idempotent convergence entrypoint
+
+<!-- sprint-loop-intent-v2 -->
+- **Intent ID:** INT-0004
+- **State:** realized
+- **Work evidence:** [T-137–T-142 build plan](../sprints/s17/sprint-plans/build-plan.md#execution-sequence), [Sprint 17 test plan](../sprints/s17/sprint-plans/test-plan.md)
+- **Completion evidence:** [T-137–T-142 completion records](../work/completed-tasks.md#t-137-sprint-17)
+- **Code evidence:** [substrate version accessor](../../open-harnesses/scripts/book-paths.sh), [substrate states](../../open-harnesses/scripts/check-substrate.sh), [convergence entrypoint](../../open-harnesses/scripts/deploy-substrate.sh), [bundle identity](../../open-harnesses/scripts/bundle-version.sh), [manifest agreement guard](../../tools/check-plugin-manifest.sh)
+- **Test evidence:** [Sprint 17 test report](../sprints/s17/sprint-tests/test-report.md), [Sprint 17 E2E record](../sprints/s17/sprint-tests/e2e-tests.md)
+- **Documentation evidence:** [Convergence: spin-up and upgrade are one command](../../README.md#convergence-spin-up-and-upgrade-are-one-command), [sprint-meta schema](../../open-harnesses/schemas/sprint-meta.md), [Init phase contract](../../claude-code/skills/sprint-loop/phases/01-init-sprint.md)
+
+## Intent
+Make spin-up and upgrade the same operation, and make "which contract is this
+project on?" a fact on disk rather than an inference.
+
+1. **A substrate contract version.** `docs/.sprint-loop-book` carries a second
+   anchored key, `substrate-version: N`, beside the unchanged
+   `schema-version: 2`. An absent key means version 1.
+2. **One convergence entrypoint.** `deploy-substrate.sh` becomes an ordered list
+   of individually idempotent convergence steps behind its existing
+   transactional rollback: it spins up a fresh project, brings an older project
+   to the current contract, and no-ops on a current one. `--check` reports drift
+   read-only without writing.
+3. **A fourth substrate answer.** `check-substrate.sh` reports
+   `substrate-outdated:<from>-><to>` when the Book is otherwise valid but behind
+   the installed bundle. Init routes that to convergence; the adapter also
+   exposes a deliberate `upgrade` invocation.
+4. **Bundle version discipline.** `plugin.json` carries a `version`, the skill
+   records its bundle identity at Init, and `sprint-meta.md` gains a
+   `Bundle version` field, so the bundle that ran a sprint is recorded rather
+   than inferred. This closes the deferred roadmap item on plugin version
+   discipline and the documented reload step.
+
+Non-goals: this intent adds no phase gate and changes no routing behavior. It
+only makes version-conditional gating possible for the intents that follow.
+
+## Acceptance criteria
+- A Book at contract version 1 converges to the current version in one command,
+  and a second run of that command changes nothing and reports the no-op.
+- A failure injected at any convergence step rolls back every artifact that run
+  created, leaving the project at its prior contract version.
+- An un-converged Book produces byte-identical routing output before and after
+  the release that introduces this intent.
+- `check-substrate.sh` distinguishes `substrate-complete`, `substrate-absent`,
+  `substrate-partial:<diagnostic>`, and `substrate-outdated:<from>-><to>`.
+- Every helper that reads the marker still parses a Book carrying the new key,
+  across all four bundles.
+- A Book stamped **ahead** of the running bundle's implemented version is
+  refused with a diagnostic naming both versions, and is never converged
+  backwards.
+- A closed sprint's metadata names the bundle version that ran it, in every
+  install mode — including the manual installer path, which installs the skill
+  bundle with no plugin manifest beside it.
+
+## Rationale
+`deploy-substrate.sh` was already three quarters of an upgrade tool: it creates
+only what is missing, verifies, and rolls back. What it lacked was any notion of
+what "current" means, so it could add absent artifacts but never recognize that
+a present artifact was stale. A version stamp supplies that, and once gates can
+ask the Book which contract it is on, every later behavioral change ships
+without breaking a project mid-flight.
+
+The marker is the right home for the stamp: `book_marker_is_v2()` requires
+exactly one line matching `^\s*schema-version:`, so a differently named key is
+invisible to every existing parser in every bundle. The compatibility cost of
+this design is therefore approximately zero, which is what makes it the right
+foundation to put first.
+
+## Alternatives
+- **Unconditional gates, no version.** Simplest to write, and it reroutes
+  projects mid-sprint when a new required artifact appears. Rejected: the router
+  must stay a pure function of the filesystem for cross-harness resume to hold.
+- **A separate `upgrade-substrate.sh`.** Two scripts that must agree about what
+  a complete substrate is, which is exactly the drift the guard suite exists to
+  prevent elsewhere. Rejected as a second writable authority in script form.
+- **Version in the remote profile.** The profile is about the remote topology
+  and is legitimately absent on `local-only` projects. The Book marker is the
+  one artifact every Sprint Loops project has.
+- **Semantic versioning of the whole bundle as the gate.** Too coarse: the
+  question a gate asks is "has this project's substrate been converged?", not
+  "which release is installed?".
+
+## Consequences
+- New behavior reaches an existing project only after convergence runs. Init
+  converging automatically keeps that from being a manual burden, at the cost of
+  Init occasionally doing more than initialize.
+- Every gate introduced from here on must record the contract version that
+  introduced it, or the compatibility guarantee decays silently.
+- The convergence step list becomes a maintained ordering with its own review
+  burden; a step that is not genuinely idempotent breaks the no-op guarantee.
+- Bundle version discipline adds a per-sprint bump obligation and a documented
+  reload step, because the plugin cache pins a commit and a running loop
+  otherwise keeps executing the bundle it started with.
+- Bundle identity must live inside the skill bundle itself, not only in the
+  plugin manifest: the manual installer copies `skills/sprint-loop/` without any
+  `.claude-plugin/` directory, so a manifest-only version is unreadable in that
+  install mode. That places the version file outside the directories the
+  cross-bundle parity guard currently maps, which must be resolved rather than
+  left uncovered.
+
+## Transition history
+- 2026-09-02: created as `proposed` — derived from operator feedback that the
+  spin-up and update paths should be one idempotent system, and required as the
+  compatibility foundation for INT-0005 through INT-0009.
+- 2026-09-02: revised during Sprint 17 Research — added the acceptance criterion
+  for a Book stamped ahead of the running bundle, which the original chapter did
+  not cover and which converging naively would silently downgrade; and recorded
+  the install-mode consequence that forces bundle identity into the skill bundle
+  rather than the plugin manifest alone. State remains `proposed`.
+- 2026-09-02: `proposed → planned` — Sprint 17 tasks T-137–T-142 cover the
+  version accessor, the outdated and ahead substrate states, the convergence
+  entrypoint with its stamp and `--check` mode, in-bundle identity with manifest
+  agreement, the per-sprint bundle-version record, and the adapter contracts
+  that route an outdated substrate to convergence.
+- 2026-09-02: `planned → active` — Build began with T-137, the substrate
+  contract version constant and the `book_substrate_version()` accessor in the
+  shared path contract.
+- 2026-09-02: `active → realized` — T-137–T-142 delivered the version
+  accessor, the outdated and ahead substrate states, the convergence
+  entrypoint with its stamp/`--check`/ahead-refusal, in-bundle identity with
+  manifest agreement, the per-sprint bundle-version record, and the adapter
+  contracts. Every acceptance criterion has an executed named test; guards run
+  33662373769 concluded `success` on both CI legs for head `21deff42`; and this
+  repository converged its own substrate from contract version 1 to 2 with a
+  one-line diff and a byte-identical re-run. Two deferred test concerns
+  (rollback injection breadth, and a misleading determinism label in the guard
+  runner's console summary) are carried forward as backlog rather than left
+  implicit.

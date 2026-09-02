@@ -407,7 +407,7 @@ pass
 
 init_fixture close
 META="$F/docs/sprints/s0/sprint-meta.md"
-awk '!/Book schema version/ && !/Completion evidence/' "$META" > "$F/meta.tmp"
+awk '!/Book schema version/ && !/Completion evidence/ && !/Bundle version/' "$META" > "$F/meta.tmp"
 mv "$F/meta.tmp" "$META"
 printf '# Research\n' > "$F/docs/sprints/s0/sprint-research/research-report.md"
 printf 'Finalized - DO NOT EDIT\n\n# Build\n' > "$F/docs/sprints/s0/sprint-plans/build-plan.md"
@@ -441,6 +441,10 @@ expect_failure 'original Book and index restored' \
 rm "$F/.git/hooks/pre-commit"
 run_script "$F" close-sprint.sh success 'tests: sprint-tests\test-report.md; commits: HEAD' >/dev/null
 grep -qF -- '- **Exit status:** success' "$META" || fail "close status missing"
+# test_legacy_sprint_meta_closes_without_bundle_version: the fixture above
+# strips Bundle version, so a sprint record predating the field still closes.
+grep -qF -- '- **Bundle version:**' "$META" &&
+  fail "close invented a Bundle version field on a legacy record"
 grep -qF -- '- **Completion evidence:** tests: sprint-tests\test-report.md; commits: HEAD' "$META" || fail "completion evidence missing"
 awk 'substr($0, length($0), 1) != "\r" { exit 1 }' "$META" ||
   fail "close did not preserve uniform CRLF"
@@ -460,6 +464,54 @@ run_script "$F" update-confidence.sh patched >/dev/null
 run_script "$F" update-confidence.sh pass >/dev/null
 [ "$(cat "$F/docs/work/confidence.txt")" = 0.7 ] || fail "pass delta changed"
 [ ! -e "$F/confidence.txt" ] || fail "legacy confidence authority created"
+pass
+
+# T-137: substrate contract version accessor. Sourcing the path contract is the
+# only way to exercise it, so each assertion runs in its own subshell.
+substrate_version() {
+  ( cd "$1" && SPRINT_LOOP_PROJECT_ROOT=. . "$SCRIPT_DIR/book-paths.sh" && book_substrate_version )
+}
+marker_is_v2() {
+  ( cd "$1" && SPRINT_LOOP_PROJECT_ROOT=. . "$SCRIPT_DIR/book-paths.sh" && book_marker_is_v2 )
+}
+write_marker() { printf '%s' "$2" > "$1/docs/.sprint-loop-book"; }
+
+# test_substrate_version_absent_is_one
+init_fixture substrate-version
+MARKER="$F/docs/.sprint-loop-book"
+grep -qFx 'schema-version: 2' "$MARKER" || fail "fixture marker is not the plain v2 marker"
+[ "$(substrate_version "$F")" = 1 ] || fail "an unstamped marker must read as contract version 1"
+pass
+
+# test_substrate_version_reads_stamped_value + test_marker_v2_survives_version_key
+write_marker "$F" 'schema-version: 2
+substrate-version: 2
+'
+[ "$(substrate_version "$F")" = 2 ] || fail "stamped substrate version was not read back"
+marker_is_v2 "$F" || fail "book_marker_is_v2 broke on a marker carrying substrate-version"
+write_marker "$F" 'schema-version: 2
+substrate-version: 11
+'
+[ "$(substrate_version "$F")" = 11 ] || fail "multi-digit substrate version was not read back"
+pass
+
+# test_substrate_version_rejects_malformed
+write_marker "$F" 'schema-version: 2
+substrate-version: two
+'
+expect_failure 'entry: docs/.sprint-loop-book' substrate_version "$F"
+write_marker "$F" 'schema-version: 2
+substrate-version: 0
+'
+expect_failure 'entry: docs/.sprint-loop-book' substrate_version "$F"
+write_marker "$F" 'schema-version: 2
+substrate-version: 2
+substrate-version: 3
+'
+expect_failure 'entry: docs/.sprint-loop-book' substrate_version "$F"
+write_marker "$F" 'schema-version: 2
+'
+[ "$(substrate_version "$F")" = 1 ] || fail "restored marker no longer reads as version 1"
 pass
 
 echo "runtime-helpers.test: $COUNT Book runtime fixtures passed"

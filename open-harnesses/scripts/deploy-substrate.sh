@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
-# Idempotent Sprint 0 deploy: bring a project to substrate-complete.
-# Creates only what is missing — Book scaffold + first sprint, remote profile,
-# and base/work branches — then verifies. Transactional: any failure or
-# signal before commit rolls back every artifact this run created.
+# Idempotent Sprint Loops convergence: bring a project to substrate-complete.
+# One entrypoint for all three cases — it spins up a fresh project, brings an
+# older one to this bundle's substrate contract version, and no-ops on a
+# current one. Creates only what is missing — Book scaffold + first sprint,
+# remote profile, updater config, base/work branches, contract stamp — then
+# verifies. Transactional: any failure or signal before commit rolls back every
+# artifact this run created, including the stamp.
 # Usage: deploy-substrate.sh [--root <dir>] [--provider p] [--base b] [--work w]
-#                            [--merge-policy m]
+#                            [--merge-policy m] [--check]
+#   --check   read-only: name each pending convergence step and write nothing.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC2034 # Consumed by the sourced path contract.
 SPRINT_LOOP_PROJECT_ROOT="${SPRINT_LOOP_PROJECT_ROOT:-.}"
-PROVIDER=local-only; BASE=main; WORK=dev; MERGE_POLICY=human-approve
+PROVIDER=local-only; BASE=main; WORK=dev; MERGE_POLICY=human-approve; CHECK_ONLY=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --root) SPRINT_LOOP_PROJECT_ROOT="$2"; shift 2 ;;
@@ -18,6 +22,7 @@ while [ "$#" -gt 0 ]; do
     --base) BASE="$2"; shift 2 ;;
     --work) WORK="$2"; shift 2 ;;
     --merge-policy) MERGE_POLICY="$2"; shift 2 ;;
+    --check) CHECK_ONLY=1; shift ;;
     *) echo "deploy-substrate: unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -33,11 +38,76 @@ esac
 
 PROFILE=$(book_join_root docs/work/remote-profile.md)
 
+# A Book stamped past this bundle is refused outright: converging backwards
+# would silently downgrade the project. This guard precedes every write and the
+# read-only report alike.
+if [ -f "$BOOK_MARKER" ] && book_version=$(book_substrate_version 2>/dev/null); then
+  if [ "$book_version" -gt "$BOOK_SUBSTRATE_CONTRACT_VERSION" ]; then
+    fail "Book substrate contract version $book_version is ahead of this bundle's $BOOK_SUBSTRATE_CONTRACT_VERSION; upgrade the bundle instead of converging backwards"
+  fi
+fi
+
+# Read-only drift report. Names every pending convergence step and writes
+# nothing, so an operator can see what convergence would do before running it.
+if [ "$CHECK_ONLY" -eq 1 ]; then
+  pending=0
+  say_pending() { pending=$((pending + 1)); printf 'pending: %s\n' "$*"; }
+  case "$(book_layout_state)" in
+    none) say_pending "create the Book scaffold and the first sprint" ;;
+    book-only)
+      ls -d "$BOOK_SPRINTS_DIR"/s* >/dev/null 2>&1 ||
+        say_pending "create the first sprint" ;;
+  esac
+  if [ -f "$PROFILE" ]; then
+    if check_prof=$(bash "$SCRIPT_DIR/remote-profile.sh" --root "$ROOT" 2>/dev/null); then
+      PROVIDER=$(printf '%s\n' "$check_prof" | sed -n 's/^PROVIDER=//p')
+      BASE=$(printf '%s\n' "$check_prof" | sed -n 's/^BASE=//p')
+      WORK=$(printf '%s\n' "$check_prof" | sed -n 's/^WORK=//p')
+    else
+      say_pending "repair the unreadable remote profile at $PROFILE"
+    fi
+  else
+    say_pending "create the remote profile at $PROFILE (provider=$PROVIDER base=$BASE work=$WORK)"
+  fi
+  case "$PROVIDER" in
+    github)
+      [ -f "$ROOT/.github/dependabot.yml" ] ||
+        say_pending "create .github/dependabot.yml targeting $WORK" ;;
+    gitlab|generic)
+      [ -f "$ROOT/renovate.json" ] ||
+        say_pending "create renovate.json targeting $WORK" ;;
+  esac
+  if git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    for check_br in "$BASE" "$WORK"; do
+      git -C "$ROOT" show-ref --verify --quiet "refs/heads/$check_br" ||
+        say_pending "create branch $check_br"
+    done
+  else
+    say_pending "initialize a git repository on $BASE"
+    say_pending "create branch $WORK"
+  fi
+  if [ ! -f "$BOOK_MARKER" ]; then
+    say_pending "stamp substrate-version: $BOOK_SUBSTRATE_CONTRACT_VERSION"
+  elif check_version=$(book_substrate_version 2>/dev/null); then
+    [ "$check_version" -eq "$BOOK_SUBSTRATE_CONTRACT_VERSION" ] ||
+      say_pending "stamp substrate-version: $BOOK_SUBSTRATE_CONTRACT_VERSION (currently $check_version)"
+  else
+    say_pending "repair the malformed substrate-version entry in $BOOK_MARKER"
+  fi
+  if [ "$pending" -eq 0 ]; then
+    printf 'deploy-substrate: converged (no pending steps)\n'
+    exit 0
+  fi
+  exit 1
+fi
+
 CREATED_BOOK=0; CREATED_PROFILE=0; CREATED_SPRINT=""; CREATED_GITDIR=0
 CREATED_BRANCHES=""; CREATED_UPDATER=""; COMMITTED=0
+STAMPED=0; PRIOR_MARKER=""
 
 rollback() {
   [ "$COMMITTED" -eq 1 ] && return 0
+  [ "$STAMPED" -eq 1 ] && printf '%s\n' "$PRIOR_MARKER" > "$BOOK_MARKER"
   for _b in $CREATED_BRANCHES; do git -C "$ROOT" branch -D "$_b" >/dev/null 2>&1 || true; done
   if [ -n "$CREATED_UPDATER" ]; then
     rm -f "$CREATED_UPDATER"
@@ -117,6 +187,37 @@ case "$PROVIDER" in
 esac
 maybe_fail updater
 
+# 2c. Stamp the substrate contract version.
+#
+# Ordering is load-bearing twice over. It runs BEFORE the final verification,
+# because check-substrate.sh reports substrate-outdated for a complete but
+# unstamped Book — a stamp placed after the verify would make convergence fail
+# on exactly the projects it exists to upgrade. It also runs before the git
+# step, so a fresh deploy commits the stamped marker rather than leaving the
+# working tree dirty. The write happens only when the value would change, which
+# is what keeps a converged re-run a byte-for-byte no-op.
+if [ -f "$BOOK_MARKER" ]; then
+  current_version=$(book_substrate_version) ||
+    fail "$BOOK_SUBSTRATE_VERSION_DIAGNOSTIC: $BOOK_MARKER"
+  if [ "$current_version" -ne "$BOOK_SUBSTRATE_CONTRACT_VERSION" ]; then
+    PRIOR_MARKER=$(cat "$BOOK_MARKER")
+    stamp_tmp="$BOOK_MARKER.stamp.$$"
+    if awk -v v="$BOOK_SUBSTRATE_CONTRACT_VERSION" '
+        { sub(/\r$/, "") }
+        /^[[:space:]]*substrate-version:/ { next }
+        { print }
+        END { print "substrate-version: " v }
+      ' "$BOOK_MARKER" > "$stamp_tmp"; then
+      STAMPED=1
+      mv "$stamp_tmp" "$BOOK_MARKER" || fail "stamping the substrate version failed"
+    else
+      rm -f "$stamp_tmp"
+      fail "stamping the substrate version failed"
+    fi
+  fi
+fi
+maybe_fail stamp
+
 # 3. Git repo + branches.
 if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   git -C "$ROOT" init -q -b "$BASE" || fail "git init failed"
@@ -144,5 +245,5 @@ result=$(bash "$SCRIPT_DIR/check-substrate.sh" --root "$ROOT" 2>/dev/null) || tr
 
 COMMITTED=1
 trap - EXIT HUP INT TERM
-printf 'deploy-substrate: substrate-complete (provider=%s base=%s work=%s mergePolicy=%s)\n' \
-  "$PROVIDER" "$BASE" "$WORK" "$MERGE_POLICY"
+printf 'deploy-substrate: substrate-complete (provider=%s base=%s work=%s mergePolicy=%s contract=%s)\n' \
+  "$PROVIDER" "$BASE" "$WORK" "$MERGE_POLICY" "$BOOK_SUBSTRATE_CONTRACT_VERSION"

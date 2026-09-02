@@ -36,6 +36,7 @@ REQUIRED_SCRIPTS=(
   abort-sprint.sh
   book-paths.sh
   book-routing.test.sh
+  bundle-version.sh
   check-book.sh
   check-book.test.sh
   close-sprint.sh

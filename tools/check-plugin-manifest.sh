@@ -4,10 +4,13 @@
 #     plugins[] entry named "sprint-loop" whose source is "./claude-code"
 #   - the source dir resolves to a tree containing skills/sprint-loop/SKILL.md
 #   - <source>/.claude-plugin/plugin.json is valid JSON with name == "sprint-loop"
+#     and a "version" equal to the bundle's own scripts/bundle-version.sh output
 # Exits non-zero with a message naming the failed assertion. No deps beyond python3
 # (jq is frequently absent on Windows git-bash).
+#
+# PLUGIN_MANIFEST_ROOT overrides the repo root (used by the fixture test).
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="${PLUGIN_MANIFEST_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 fail() { echo "check-plugin-manifest: FAIL — $1" >&2; exit 1; }
 
@@ -49,9 +52,19 @@ SRCDIR="$ROOT/${SRC#./}"
 [ -d "$SRCDIR/commands" ] && fail "skill-only plugin must not ship a commands/ dir ($SRCDIR/commands) — the skill provides /sprint-loop; remove the (possibly empty) directory"
 grep -q '^argument-hint:' "$SRCDIR/skills/sprint-loop/SKILL.md" || fail "skills/sprint-loop/SKILL.md lacks an 'argument-hint:' line — it must carry it to be the /sprint-loop slash command without a separate command file"
 
+# Bundle identity (sprint 17): the version lives inside the skill bundle, because
+# the manual installer ships skills/sprint-loop/ with no .claude-plugin/ beside
+# it. plugin.json must agree with it, so a partial version change is observable.
+BVS="$SRCDIR/skills/sprint-loop/scripts/bundle-version.sh"
+[ -f "$BVS" ] || fail "bundle version helper missing at $BVS"
+BUNDLE_VERSION="$(bash "$BVS")" || fail "bundle-version.sh exited non-zero"
+[ -n "$BUNDLE_VERSION" ] || fail "bundle-version.sh printed nothing"
+BVS_LINES="$(bash "$BVS" | wc -l | tr -d '[:space:]')"
+[ "$BVS_LINES" = 1 ] || fail "bundle-version.sh must print exactly one line (printed $BVS_LINES)"
+
 PJ="$SRCDIR/.claude-plugin/plugin.json"
 [ -f "$PJ" ] || fail "plugin.json missing at $PJ"
-PJ="$PJ" python3 - <<'PY' || exit 1
+PJ="$PJ" BUNDLE_VERSION="$BUNDLE_VERSION" python3 - <<'PY' || exit 1
 import json, os, sys
 pj = os.environ["PJ"]
 try:
@@ -60,6 +73,15 @@ except Exception as e:
     print(f"check-plugin-manifest: FAIL — plugin.json not valid JSON: {e}", file=sys.stderr); sys.exit(1)
 if p.get("name") != "sprint-loop":
     print(f"check-plugin-manifest: FAIL — plugin.json name is {p.get('name')!r}, expected 'sprint-loop'", file=sys.stderr); sys.exit(1)
+bundle = os.environ["BUNDLE_VERSION"]
+version = p.get("version")
+if not version:
+    print("check-plugin-manifest: FAIL — plugin.json has no 'version' field; it must equal "
+          f"the bundle version {bundle!r} from skills/sprint-loop/scripts/bundle-version.sh",
+          file=sys.stderr); sys.exit(1)
+if version != bundle:
+    print(f"check-plugin-manifest: FAIL — plugin.json version is {version!r} but the bundle "
+          f"reports {bundle!r}; raise both together", file=sys.stderr); sys.exit(1)
 PY
 
-echo "check-plugin-manifest: OK — marketplace 'sprint-loop' -> $SRC (skill + plugin.json verified)"
+echo "check-plugin-manifest: OK — marketplace 'sprint-loop' -> $SRC (skill + plugin.json v$BUNDLE_VERSION verified)"

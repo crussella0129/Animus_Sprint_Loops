@@ -124,6 +124,36 @@ test_bundle_docs_are_adapter_scoped() {
   pass
 }
 
+# Sprint 17: convergence has to be reachable from the operator surfaces, not
+# only from the helper. Both byte-parity copies of the Init contract must name
+# the outdated state and route it to the one idempotent command.
+test_phase01_documents_outdated_route() {
+  for contract in     claude-code/skills/sprint-loop/phases/01-init-sprint.md     codex-cli/skills/sprint-loops/phases/01-init-sprint.md     open-harnesses/particles/01-init-sprint.md     antigravity-ide/global_workflows/sprint-loops.md; do
+    require_text "$contract" 'substrate-outdated'
+    require_text "$contract" 'deploy-substrate.sh'
+  done
+  for contract in     claude-code/skills/sprint-loop/phases/01-init-sprint.md     codex-cli/skills/sprint-loops/phases/01-init-sprint.md; do
+    require_text "$contract" 'substrate-ahead'
+  done
+  require_text README.md 'substrate-version'
+  require_text README.md '--check'
+  pass
+}
+
+# The Claude Code argument list is closed, so the upgrade route only exists if
+# it is defined there and advertised by the argument hint.
+test_skill_defines_upgrade_argument() {
+  require_text claude-code/skills/sprint-loop/SKILL.md '- `upgrade`'
+  require_text claude-code/skills/sprint-loop/SKILL.md 'argument-hint:'
+  grep -Fq 'upgrade' "$ROOT/claude-code/skills/sprint-loop/SKILL.md" ||
+    fail 'claude-code SKILL.md does not define the upgrade argument'
+  grep -E '^argument-hint:.*upgrade' "$ROOT/claude-code/skills/sprint-loop/SKILL.md" >/dev/null ||
+    fail 'argument-hint does not advertise upgrade'
+  pass
+}
+
 test_root_docs_do_not_duplicate_protocol
 test_bundle_docs_are_adapter_scoped
+test_phase01_documents_outdated_route
+test_skill_defines_upgrade_argument
 echo "operator-docs.test: $COUNT documentation contracts passed"
