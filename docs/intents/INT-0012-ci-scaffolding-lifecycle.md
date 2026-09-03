@@ -4,10 +4,10 @@
 - **Intent ID:** INT-0012
 - **State:** active
 - **Work evidence:** [T-164–T-167 build plan](../sprints/s20/sprint-plans/build-plan.md#execution-sequence), [Sprint 20 test plan](../sprints/s20/sprint-plans/test-plan.md)
-- **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **Completion evidence:** [T-164–T-167 completion records](../work/completed-tasks.md#t-164-sprint-20)
+- **Code evidence:** [language detection](../../open-harnesses/scripts/detect-languages.sh), [the per-host generator](../../open-harnesses/scripts/scaffold-ci.sh), [the convergence step](../../open-harnesses/scripts/deploy-substrate.sh)
+- **Test evidence:** [Sprint 20 test report](../sprints/s20/sprint-tests/test-report.md), [Sprint 20 E2E record](../sprints/s20/sprint-tests/e2e-tests.md)
+- **Documentation evidence:** [CI exists from Sprint 0](../../README.md#ci-exists-from-sprint-0), [Init phase contract](../../claude-code/skills/sprint-loop/phases/01-init-sprint.md)
 
 ## Intent
 Every Sprint Loops project should have working continuous integration from
@@ -147,3 +147,11 @@ protecting the project.
   for the YAML hosts it needs INT-0006's CI truth check and a real hosted run.
 - 2026-09-03: `planned → active` — Build began with T-164, contract 4 and
   manifest-driven language detection.
+- 2026-09-03: Sprint 20 delivered generation — T-164 through T-167 — and the
+  intent remains `active`. Parts 3 and 4, reconciling jobs as a project's
+  languages change and proposing rather than performing removals, are untouched.
+  The criterion asking for an observable job failure is met only for `generic`,
+  whose output is an executable script; for the four YAML hosts the sprint proves
+  the generated file carries the language's real commands, and closing that gap
+  needs INT-0006's CI truth check plus a real hosted run. CI green on both legs
+  for head `51fb955`.
