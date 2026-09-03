@@ -60,6 +60,8 @@ REQUIRED_SCRIPTS=(
   deploy-substrate.test.sh
   detect-languages.sh
   detect-languages.test.sh
+  scaffold-ci.sh
+  scaffold-ci.test.sh
   remote-adapter.sh
   remote-adapter.test.sh
   remote-profile.sh
