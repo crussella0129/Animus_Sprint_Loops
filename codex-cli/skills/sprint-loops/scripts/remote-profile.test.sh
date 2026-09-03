@@ -84,4 +84,35 @@ printf '%s\n' "$out" | grep -qx 'PROVIDER=local-only' || die test_profile_local_
 printf '%s\n' "$out" | grep -qx 'MERGEPOLICY=human-approve' || die test_profile_local_only_valid 'mergePolicy defaults'
 pass test_profile_local_only_valid
 
+# test_profile_accepts_gitea_forgejo — self-hosted forges are declared, not
+# inferred, so the enum has to carry them.
+for forge in gitea forgejo; do
+  F="$TMP_ROOT/$forge"
+  write_profile "$F" "provider: $forge
+base: main
+work: dev"
+  [ "$(bash "$RP" --root "$F" provider)" = "$forge" ] ||
+    die test_profile_accepts_gitea_forgejo "$forge was not resolved"
+  bash "$RP" --root "$F" >/dev/null || die test_profile_accepts_gitea_forgejo "$forge full resolve failed"
+done
+pass test_profile_accepts_gitea_forgejo
+
+# Widening the enum must not weaken the rejection, and the diagnostic must name
+# every accepted value so an operator can see the whole set.
+B="$TMP_ROOT/bitbucket-again"
+write_profile "$B" 'provider: bitbucket
+base: main
+work: dev'
+if bash "$RP" --root "$B" >/dev/null 2>/dev/null; then
+  die test_profile_rejects_malformed 'unknown provider accepted after widening the enum'
+fi
+reject_out=$(bash "$RP" --root "$B" 2>&1 || true)
+for value in github gitlab gitea forgejo generic local-only; do
+  case "$reject_out" in
+    *"$value"*) : ;;
+    *) die test_profile_rejects_malformed "diagnostic omits $value: $reject_out" ;;
+  esac
+done
+pass test_profile_enum_diagnostic_names_every_value
+
 printf 'remote-profile selftest: all fixtures passed\n'

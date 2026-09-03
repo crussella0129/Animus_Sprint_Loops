@@ -521,3 +521,10 @@
 - **Completed:** 2026-09-02T20:33:00Z
 - **Files modified:** `{claude-code,codex-cli}/skills/*/phases/{02,04,05,06}-*.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `open-harnesses/particles/08-loop-phase.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
 - **Commit:** `fcbd5fac087d8dd4c93ccbc8d3c50723b3678296`
+
+## T-158 (sprint 19)
+- **Description:** Widened the provider enum to accept `gitea` and `forgejo` across all four bundles, documented them in the schema alongside the inference rules, and extended the Renovate arm — in both the write path and the `--check` drift report, which have separate provider dispatches — so a declared self-hosted forge is not silently left with no updater config, the same class of omission as the wrong provider itself. The rejection of unknown values is unchanged and now proven stronger: `test_profile_enum_diagnostic_names_every_value` asserts `bitbucket` is still refused *and* that the diagnostic names all six accepted values, so an operator sees the whole set rather than guessing. `test_forgejo_uses_fallback_checkpoint` confirms both forges take the push-and-compare path and invoke no provider CLI; the REST tier is INT-0006's later scope. The updater-arm change to `deploy-substrate.sh` lands in T-157's commit boundary, because the two tasks share that file.
+- **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
+- **Completed:** 2026-09-03T04:10:00Z
+- **Files modified:** `{4 bundles}/scripts/remote-profile.sh`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/remote-profile.test.sh`, `{4 bundles}/scripts/remote-adapter.test.sh`, task ledgers
+- **Commit:** PENDING
