@@ -20,11 +20,29 @@ rather than being a one-shot guess made on day one.
    `.github/workflows/`, GitLab CI as `.gitlab-ci.yml`, Gitea and Forgejo
    Actions under their own workflow directories, and for `generic` a portable
    runner script plus a documented manual step. `local-only` gets none, because
-   it genuinely has no host.
+   it genuinely has no host. Gitea and Forgejo Actions consume GitHub Actions
+   workflow syntax, so the four hosts are really **two formats** — Actions YAML
+   and GitLab CI — differing for three of them only by directory.
+
+   "Never clobbering" is **directory-level, not file-level**: if the host's
+   workflow directory already holds any workflow, generate nothing. A
+   file-level check would add a second workflow beside a project's hand-written
+   one, leaving two CI systems disagreeing about the same push.
 2. **Language and platform detection.** Which jobs are written follows from what
    the project contains — `Cargo.toml`, `go.mod`, `pyproject.toml`,
    `package.json`, shell scripts, and so on — and from the platforms the project
-   targets, not from a fixed template.
+   targets, not from a fixed template. Detection is manifest-driven and sorted,
+   because the canonical runner's determinism meta-check compares normalized
+   output across two runs.
+
+   A **fresh project has no canonical suite**, so generated jobs run
+   language-native commands and prefer a canonical runner only when one is
+   already present. Requiring one would make the first sprint of every new
+   project impossible.
+
+   Triggers are read from the remote profile's `base` and `work`, never
+   hardcoded: a workflow that triggers only on `base` never runs on the branch
+   sprints commit to, nor on the checkpoint itself.
 3. **Reconciliation over the project's life.** As intents introduce a new
    language or a new platform target, the missing jobs are added; as a language
    or target genuinely leaves the project, its jobs are removed. This is a
@@ -113,3 +131,10 @@ protecting the project.
   platform targets change. Split from
   [INT-0006](INT-0006-provider-reach-and-ci-truth.md), which keeps knowing and
   reaching the provider and refusing an unverified green.
+- 2026-09-03: revised during Sprint 20 Research — recorded that Gitea and
+  Forgejo share GitHub's workflow syntax so the four hosts are two formats;
+  that no-clobber must be directory-level or a generated workflow can sit beside
+  a hand-written one; that a fresh project has no canonical suite, so generated
+  jobs must be language-native and prefer a runner only when present; and that
+  triggers must come from the remote profile so CI actually runs on the work
+  branch and the checkpoint.
