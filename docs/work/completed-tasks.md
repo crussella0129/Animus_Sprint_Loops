@@ -576,4 +576,4 @@
 - **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
 - **Completed:** 2026-09-03T16:48:00Z
 - **Files modified:** `{claude-code,codex-cli}/skills/*/phases/01-init-sprint.md`, `open-harnesses/particles/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `91cc6734b389f0582c93e531809c056e5da11b90`
