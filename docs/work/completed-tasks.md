@@ -563,3 +563,10 @@
 - **Completed:** 2026-09-03T16:22:00Z
 - **Files modified:** `{4 bundles}/scripts/scaffold-ci.sh`, `{4 bundles}/scripts/scaffold-ci.test.sh`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
 - **Commit:** `84b41c67692f9df18cc6a362678a20a3ef46151c`
+
+## T-166 (sprint 20)
+- **Description:** Wired CI generation into convergence as step 2d, mirroring the updater step: create-if-absent, tracked in `CREATED_CI` for rollback, with a matching `--check` arm that names the pending file and writes nothing. **Deviation from the locked plan, deliberate and material.** The plan's clause "WHEN convergence runs against a Book below contract 4, THEN it SHALL generate nothing" reads the contract version at entry, but convergence raises the project to the current contract in the same run — so implementing that clause literally meant a fresh project read contract 1 and got no CI, and an existing project upgrading to contract 4 would have skipped the very thing the upgrade exists for, seeing CI only on a second convergence. The step therefore runs **after** the stamp, and `test_converge_generates_ci_after_stamp` pins the ordering rather than leaving it implicit. The plan's inertness fixture was replaced accordingly: what is worth asserting is that generation follows the stamp and that an existing configuration survives a full convergence, not a state convergence never leaves a project in. Seven fixtures: generation with both branches in the triggers and the updater config beside it, the ordering proof, idempotence over files and refs, rollback removing the generated file, `--check` reporting the pending step read-only, a hand-written workflow surviving a full convergence untouched, and `local-only` generating nothing anywhere.
+- **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
+- **Completed:** 2026-09-03T16:44:00Z
+- **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
+- **Commit:** PENDING

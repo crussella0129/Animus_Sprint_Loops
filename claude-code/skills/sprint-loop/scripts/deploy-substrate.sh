@@ -133,6 +133,10 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
     say_pending "initialize a git repository on $BASE"
     say_pending "create branch $WORK"
   fi
+  if [ "$(book_substrate_version 2>/dev/null || echo 1)" -ge 4 ]; then
+    check_ci=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER"       --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
+    [ -n "$check_ci" ] && say_pending "create $check_ci"
+  fi
   if [ ! -f "$BOOK_MARKER" ]; then
     say_pending "stamp substrate-version: $BOOK_SUBSTRATE_CONTRACT_VERSION"
   elif check_version=$(book_substrate_version 2>/dev/null); then
@@ -151,7 +155,7 @@ fi
 DEPLOY_ORIGINAL_HEAD=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 SWITCHED_BRANCH=0
 CREATED_BOOK=0; CREATED_PROFILE=0; CREATED_SPRINT=""; CREATED_GITDIR=0
-CREATED_BRANCHES=""; CREATED_UPDATER=""; COMMITTED=0
+CREATED_BRANCHES=""; CREATED_UPDATER=""; CREATED_CI=""; COMMITTED=0
 STAMPED=0; PRIOR_MARKER=""
 
 rollback() {
@@ -164,6 +168,11 @@ rollback() {
   if [ -n "$CREATED_UPDATER" ]; then
     rm -f "$CREATED_UPDATER"
     rmdir "$(dirname "$CREATED_UPDATER")" 2>/dev/null || true
+  fi
+  if [ -n "$CREATED_CI" ]; then
+    rm -f "$CREATED_CI"
+    rmdir "$(dirname "$CREATED_CI")" 2>/dev/null || true
+    rmdir "$(dirname "$(dirname "$CREATED_CI")")" 2>/dev/null || true
   fi
   [ -n "$CREATED_SPRINT" ] && rm -rf "$CREATED_SPRINT"
   [ "$CREATED_PROFILE" -eq 1 ] && rm -f "$PROFILE"
@@ -267,6 +276,7 @@ case "$PROVIDER" in
 esac
 maybe_fail updater
 
+
 # 2c. Stamp the substrate contract version.
 #
 # Ordering is load-bearing twice over. It runs BEFORE the final verification,
@@ -297,6 +307,27 @@ if [ -f "$BOOK_MARKER" ]; then
   fi
 fi
 maybe_fail stamp
+
+# 2d. CI configuration (create-if-absent, contract 4 and above).
+#
+# A fresh project otherwise reaches its first checkpoint with no CI at all, so
+# that checkpoint is green because nothing ran. Bound at a contract version
+# because writing a CI file into a project that has been running for months is
+# more intrusive than a gate: an existing project gets it only when it converges,
+# and --check previews it first.
+#
+# This step runs AFTER the stamp deliberately. Convergence raises the project
+# to the current contract in the same run, so evaluating the version before the
+# stamp would mean CI first appears on the *second* convergence — the run that
+# upgrades a project would silently skip the thing the upgrade is for.
+if [ "$(book_substrate_version 2>/dev/null || echo 1)" -ge 4 ]; then
+  ci_before=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER"     --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
+  if [ -n "$ci_before" ]; then
+    bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER"       --base "$BASE" --work "$WORK" >/dev/null || fail "generating the CI configuration failed"
+    [ -f "$ROOT/$ci_before" ] && CREATED_CI="$ROOT/$ci_before"
+  fi
+fi
+maybe_fail ci
 
 # 3. Git repo + branches.
 if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
