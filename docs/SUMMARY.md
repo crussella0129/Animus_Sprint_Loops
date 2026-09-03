@@ -12,6 +12,7 @@
 - [INT-0009 — Sprint identity](intents/INT-0009-sprint-identity.md)
 - [INT-0010 — Rust portability study](intents/INT-0010-rust-portability-study.md)
 - [INT-0011 — Human-in-the-loop compatibility](intents/INT-0011-human-in-the-loop-compatibility.md)
+- [INT-0012 — CI scaffolding lifecycle](intents/INT-0012-ci-scaffolding-lifecycle.md)
 - [Tasks](work/tasks.md)
 - [Completed tasks](work/completed-tasks.md)
 - [Sprint 0](sprints/s0/sprint-meta.md)
