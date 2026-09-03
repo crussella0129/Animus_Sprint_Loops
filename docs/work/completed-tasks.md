@@ -535,3 +535,10 @@
 - **Completed:** 2026-09-03T04:14:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
 - **Commit:** `034cbfdb6a09c4e10ee599cd59ffb6721e8726b9`
+
+## T-159 (sprint 19)
+- **Description:** `deploy-substrate.sh --check` now reports a recorded provider that disagrees with what `origin` implies, naming both values, and repairs nothing: a provider an operator set deliberately is not convergence's to overwrite. The line is deliberately not counted as a pending convergence step, so it does not change the exit code — it is a diagnosis, not work. `--check` also now reports the *inferred* provider for a profile that does not exist yet, so the preview matches what convergence would actually write rather than echoing the old default. Four fixtures: a `local-only` profile against a GitHub origin reports the disagreement naming both values; the same run leaves every file and every git ref byte-identical and the recorded provider unrepaired; agreement is silent; and a `local-only` profile with no origin is silent because it agrees. This is the surface an operator uses to find projects bootstrapped before inference existed — T-156 covers acting on what it finds. The implementation shares `deploy-substrate.sh` with T-157 and landed in that commit boundary; this entry records its completion and its fixtures.
+- **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
+- **Completed:** 2026-09-03T04:16:00Z
+- **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh` (in T-157's boundary), `{4 bundles}/scripts/deploy-substrate.test.sh` (in T-157's boundary), task ledgers
+- **Commit:** PENDING
