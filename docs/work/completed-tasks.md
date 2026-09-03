@@ -542,3 +542,10 @@
 - **Completed:** 2026-09-03T04:16:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh` (in T-157's boundary), `{4 bundles}/scripts/deploy-substrate.test.sh` (in T-157's boundary), task ledgers
 - **Commit:** `df0099a29d4bbcbd191ebd49776b5306351cfa06`
+
+## T-160 (sprint 19)
+- **Description:** Documented provider inference across every operator surface. Both byte-parity Init contracts now state the inference rules, why `local-only` for a hosted project is the dangerous case (it opens no checkpoint and exits 0, so it is silent rather than wrong-looking), the full `--provider` override set, that Gitea and Forgejo must be declared because neither is inferable, and that an existing profile is reported on rather than rewritten. The runtime-neutral Init particle and the Antigravity workflow carry condensed forms. The README gained a "The provider is inferred, not assumed" section with the mapping table and the report-don't-rewrite rule, and the remote-profile schema documents the widened enum, the inference rules, and why `local-only` is correct only for a project that genuinely has no `origin`. `test_init_documents_provider_inference` asserts all four Init surfaces name `origin`, `generic`, and `local-only`; that both phase contracts name `--provider` and `forgejo`; and that the README names every accepted value plus the never-rewritten rule. 7/7 documentation contracts pass and `adapter-semantics` is green.
+- **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
+- **Completed:** 2026-09-03T04:18:00Z
+- **Files modified:** `{claude-code,codex-cli}/skills/*/phases/01-init-sprint.md`, `open-harnesses/particles/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
+- **Commit:** PENDING

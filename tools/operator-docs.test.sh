@@ -179,8 +179,36 @@ test_exit_evidence_requires_commit() {
 
 test_root_docs_do_not_duplicate_protocol
 test_bundle_docs_are_adapter_scoped
+# Sprint 19: provider inference must be visible to an operator, because a
+# hosted project silently recorded as local-only opens no checkpoint and exits 0.
+test_init_documents_provider_inference() {
+  for surface in \
+    claude-code/skills/sprint-loop/phases/01-init-sprint.md \
+    codex-cli/skills/sprint-loops/phases/01-init-sprint.md \
+    open-harnesses/particles/01-init-sprint.md \
+    antigravity-ide/global_workflows/sprint-loops.md; do
+    require_text "$surface" 'origin'
+    require_text "$surface" 'generic'
+    require_text "$surface" 'local-only'
+  done
+  for surface in \
+    claude-code/skills/sprint-loop/phases/01-init-sprint.md \
+    codex-cli/skills/sprint-loops/phases/01-init-sprint.md; do
+    require_text "$surface" '--provider'
+    require_text "$surface" 'forgejo'
+  done
+  require_text README.md 'The provider is inferred, not assumed'
+  for value in github gitlab gitea forgejo generic local-only; do
+    require_text README.md "$value"
+  done
+  require_text README.md 'never rewritten'
+  require_text open-harnesses/schemas/remote-profile.md 'declared, not'
+  pass
+}
+
 test_turn_contract_present
 test_exit_evidence_requires_commit
+test_init_documents_provider_inference
 test_phase01_documents_outdated_route
 test_skill_defines_upgrade_argument
 echo "operator-docs.test: $COUNT documentation contracts passed"
