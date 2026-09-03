@@ -24,7 +24,10 @@ checkpoint, and a checkpoint that reports green because nothing ran.
 2. **A provider enum that covers the hosts in use.** `github`, `gitlab`,
    `generic`, and `local-only` omit Gitea and Forgejo, which are neither GitHub
    nor "generic" — they have their own API shape and their own CI directory.
-   Add them rather than flattening them into `generic`.
+   Add them rather than flattening them into `generic`. They are values a
+   project **declares**, not values inference can produce: both are
+   overwhelmingly self-hosted on arbitrary domains, so no URL pattern
+   identifies them the way `github.com` identifies GitHub.
 3. **A third provider tier beneath the vendor CLIs.** Add a direct REST path
    using `curl` and a token from the environment, then the prefilled compare URL,
    then a `sprint-checkpoint.md` handoff artifact in the sprint record carrying
@@ -50,6 +53,9 @@ provider, reaching it, and refusing to believe a green that never ran.
   GitHub, GitLab, Gitea, or Forgejo URL writes that provider into the profile,
   and records the URL it inferred from.
 - Convergence run with no `--provider` and no `origin` writes `local-only`.
+- Convergence run with no `--provider` against a remote whose host is not
+  recognized writes `generic`, never `local-only` — an unrecognized host still
+  pushes and prints a compare URL, while `local-only` does nothing at all.
 - An explicit `--provider` always wins over inference.
 - A profile already written stays authoritative: convergence reports a
   disagreement between the recorded provider and the current `origin` rather
@@ -131,3 +137,8 @@ than a red one, because it consumes the reviewer's trust.
   reconciliation, and moved CI *generation* out to INT-0012 so this chapter
   covers knowing and reaching the provider while that one covers what gets
   generated and how it is maintained.
+- 2026-09-03: Sprint 19 Research refined the detection rule — an unrecognized
+  remote resolves to `generic` rather than `local-only`, because the current
+  default gets exactly that case backwards for every hosted project; and
+  recorded that `gitea` and `forgejo` are declarable but not inferable, so the
+  enum addition serves explicit declaration rather than detection.
