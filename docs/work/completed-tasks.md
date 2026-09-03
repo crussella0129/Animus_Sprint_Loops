@@ -548,4 +548,4 @@
 - **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
 - **Completed:** 2026-09-03T04:18:00Z
 - **Files modified:** `{claude-code,codex-cli}/skills/*/phases/01-init-sprint.md`, `open-harnesses/particles/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `9d520438a3d87855461b26456f50fbd6013c94eb`
