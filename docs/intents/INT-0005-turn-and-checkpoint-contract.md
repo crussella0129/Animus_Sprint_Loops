@@ -4,10 +4,10 @@
 - **Intent ID:** INT-0005
 - **State:** active
 - **Work evidence:** [T-146–T-151 build plan](../sprints/s18/sprint-plans/build-plan.md#execution-sequence), [Sprint 18 test plan](../sprints/s18/sprint-plans/test-plan.md)
-- **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **Completion evidence:** [T-146–T-151 completion records](../work/completed-tasks.md#t-146-sprint-18)
+- **Code evidence:** [tracked-evidence gate](../../open-harnesses/scripts/check-tracked.sh), [gate predicate](../../open-harnesses/scripts/book-paths.sh), [plan-lock gate](../../open-harnesses/scripts/finalize-plan.sh), [close gate and branch guard](../../open-harnesses/scripts/close-sprint.sh), [task-commit branch guard](../../open-harnesses/scripts/commit-task.sh), [misplaced state](../../open-harnesses/scripts/check-substrate.sh), [checkpoint gate and composed title](../../open-harnesses/scripts/remote-adapter.sh)
+- **Test evidence:** [Sprint 18 test report](../sprints/s18/sprint-tests/test-report.md), [Sprint 18 E2E record](../sprints/s18/sprint-tests/e2e-tests.md)
+- **Documentation evidence:** [One sprint per turn, one titled checkpoint per sprint](../../README.md#one-sprint-per-turn-one-titled-checkpoint-per-sprint), [Turn Contract in the Loop contract](../../claude-code/skills/sprint-loop/phases/06-loop-phase.md), [sprint-meta schema](../../open-harnesses/schemas/sprint-meta.md)
 
 ## Intent
 Close the four ways a sprint can currently end in a state the protocol says is
@@ -134,3 +134,11 @@ main` repeated fifteen times indexes nothing.
   18 closes.
 - 2026-09-02: `planned → active` — Build began with T-146, the contract-3
   constant and the tracked-evidence helper that every later gate calls.
+- 2026-09-02: Sprint 18 delivered the gates — T-146 through T-151 — and the
+  intent remains `active` rather than being claimed realized. Two parts are
+  outstanding: the local pre-commit hook, scoped out during Research as
+  separable, and the tracked-evidence check on the checkpoint path, which this
+  chapter's Intent prose describes but no acceptance criterion requires and the
+  implementation does not do (Sprint 18 test critique C-002). Everything the
+  sprint did scope is proven by named tests with CI green on both legs for head
+  `aa9c440`.
