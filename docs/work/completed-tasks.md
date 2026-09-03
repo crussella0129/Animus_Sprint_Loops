@@ -527,4 +527,4 @@
 - **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
 - **Completed:** 2026-09-03T04:10:00Z
 - **Files modified:** `{4 bundles}/scripts/remote-profile.sh`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/remote-profile.test.sh`, `{4 bundles}/scripts/remote-adapter.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `63fb832b4789a822b63020f8856404a72cb41f47`
