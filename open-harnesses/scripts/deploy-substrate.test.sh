@@ -437,6 +437,16 @@ grep -q '^  rust:' "$CG/$CI_REL" || die test_converge_generates_ci 'no rust job 
 [ "$(bash "$RP" --root "$CG" provider)" = github ] || die test_converge_generates_ci 'provider not inferred'
 pass test_converge_generates_ci
 
+# test_converge_commits_generated_ci — a workflow that is not pushed never runs,
+# so the project's first checkpoint would be green because nothing ran. Every
+# other fixture here asserts the file exists; only this one asserts it is in the
+# corpus, which is the property that actually matters.
+git -C "$CG" ls-files --error-unmatch "$CI_REL" >/dev/null 2>&1 ||
+  die test_converge_commits_generated_ci 'the generated workflow was left untracked'
+git -C "$CG" ls-files --error-unmatch .github/dependabot.yml >/dev/null 2>&1 ||
+  die test_converge_commits_generated_ci 'the updater config was left untracked'
+pass test_converge_commits_generated_ci
+
 # test_converge_generates_ci_after_stamp — convergence raises the project to the
 # current contract in the same run, so the CI step has to run after the stamp.
 # Evaluating the version before it would mean CI first appears on the *second*

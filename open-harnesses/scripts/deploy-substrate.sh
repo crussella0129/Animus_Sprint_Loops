@@ -337,6 +337,10 @@ fi
 if ! git -C "$ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
   git -C "$ROOT" add -A -- docs >/dev/null 2>&1 || true
   [ -n "$CREATED_UPDATER" ] && git -C "$ROOT" add -A -- "$CREATED_UPDATER" >/dev/null 2>&1 || true
+  # The generated CI configuration belongs in the initial commit for the same
+  # reason the updater config does: a workflow that is not pushed never runs,
+  # and the project's first checkpoint would be green because nothing ran.
+  [ -n "$CREATED_CI" ] && git -C "$ROOT" add -A -- "$CREATED_CI" >/dev/null 2>&1 || true
   git -C "$ROOT" -c user.email=sprint-loops@local -c user.name=sprint-loops \
     commit -q --allow-empty -m "sprint-0: substrate" || fail "initial commit failed"
 fi
