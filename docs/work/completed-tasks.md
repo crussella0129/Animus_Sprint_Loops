@@ -541,4 +541,4 @@
 - **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
 - **Completed:** 2026-09-03T04:16:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh` (in T-157's boundary), `{4 bundles}/scripts/deploy-substrate.test.sh` (in T-157's boundary), task ledgers
-- **Commit:** PENDING
+- **Commit:** `df0099a29d4bbcbd191ebd49776b5306351cfa06`
