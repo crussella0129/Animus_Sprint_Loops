@@ -54,8 +54,8 @@ done < <(parse_profile)
 
 [ -n "$provider" ] || fail "profile missing required field: provider"
 case "$provider" in
-  github|gitlab|generic|local-only) ;;
-  *) fail "unknown provider '$provider' (expected github|gitlab|generic|local-only)" ;;
+  github|gitlab|gitea|forgejo|generic|local-only) ;;
+  *) fail "unknown provider '$provider' (expected github|gitlab|gitea|forgejo|generic|local-only)" ;;
 esac
 [ -n "$base" ] || fail "profile missing required field: base"
 [ -n "$work" ] || fail "profile missing required field: work"

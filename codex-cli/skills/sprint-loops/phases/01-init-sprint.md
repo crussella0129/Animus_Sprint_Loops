@@ -13,6 +13,18 @@ Before routing or initializing anything, run the installed bundle's
   branches, the ledgers, the remote profile (see `schemas/remote-profile.md`),
   the first sprint, and the contract stamp. The skill creates **no per-sprint
   branch** — sprints work on `work`/`dev`.
+
+  **The provider is inferred from the `origin` remote.** A host containing
+  `github` or `gitlab` resolves to that provider, `codeberg.org` resolves to
+  `forgejo`, any other remote resolves to `generic`, and only an absent `origin`
+  resolves to `local-only` — a hosted project recorded as `local-only` opens no
+  checkpoint and exits successfully, which is silent rather than wrong-looking.
+  Pass `--provider <github|gitlab|gitea|forgejo|generic|local-only>` to override;
+  Gitea and Forgejo must be declared this way, since both are self-hosted on
+  arbitrary domains. What was inferred, and the URL it came from, is recorded in
+  the profile. An existing profile is never rewritten:
+  `scripts/deploy-substrate.sh --check` reports a recorded provider that
+  disagrees with the current `origin` and leaves the repair to a person.
 - `substrate-outdated:<book>-><bundle>` — the substrate is complete but predates
   this bundle's contract. Run the **same** helper: spin-up and upgrade are one
   idempotent command that creates only what is missing, stamps the contract

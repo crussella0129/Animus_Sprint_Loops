@@ -147,6 +147,29 @@ schema-version: 2
 substrate-version: 3
 ```
 
+### The provider is inferred, not assumed
+
+When convergence first creates the remote profile it reads the `origin` remote
+rather than guessing:
+
+| `origin` | Recorded provider |
+| --- | --- |
+| host contains `github` | `github` |
+| host contains `gitlab` | `gitlab` |
+| `codeberg.org` | `forgejo` |
+| any other remote | `generic` — still pushes `work` and prints a compare URL |
+| no `origin` at all | `local-only` — no PR/MR is opened |
+
+`gitea` and `forgejo` are accepted values but are **declared, not inferred**:
+both are overwhelmingly self-hosted on arbitrary domains, so no URL pattern
+identifies them. Override any inference with
+`--provider <github|gitlab|gitea|forgejo|generic|local-only>`. What was
+inferred, and the URL it came from, is recorded in the profile.
+
+An existing profile is **never rewritten** — it is a Book field you may have set
+deliberately. `deploy-substrate.sh --check` reports a recorded provider that
+disagrees with the current `origin` and leaves the repair to you.
+
 A Book with no `substrate-version` line is contract version 1, and every helper
 reads it exactly as it did before the stamp existed — so an un-converged project
 keeps behaving identically until it converges. A Book stamped *ahead* of the

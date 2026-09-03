@@ -232,4 +232,18 @@ grep -q 'title Sprint checkpoint: dev -> main' "$STUBLOG" ||
   die test_checkpoint_gates_inert_below_contract_3 "contract-2 title changed: $(cat "$STUBLOG")"
 pass test_checkpoint_gates_inert_below_contract_3
 
+# test_forgejo_uses_fallback_checkpoint — gitea and forgejo are declarable
+# today and take the push-and-compare fallback; the REST tier is later scope.
+PFJ="$TMP_ROOT/forgejo"; make_repo "$PFJ" 'provider: forgejo
+base: main
+work: dev'
+make_closed_book "$PFJ" 'Forgejo host'
+export STUBLOG="$PFJ.log"; : > "$STUBLOG"
+fj_out=$(PATH="$STUB_BIN:$PATH" STUB_PR_EXISTS=0 bash "$RA" --root "$PFJ" open-pr 2>&1) ||
+  die test_forgejo_uses_fallback_checkpoint 'forgejo open-pr failed'
+printf '%s' "$fj_out" | grep -qi 'manually' ||
+  die test_forgejo_uses_fallback_checkpoint "no fallback message: $fj_out"
+[ ! -s "$STUBLOG" ] || die test_forgejo_uses_fallback_checkpoint 'a provider CLI was invoked'
+pass test_forgejo_uses_fallback_checkpoint
+
 printf 'remote-adapter selftest: all fixtures passed\n'

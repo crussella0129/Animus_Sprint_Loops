@@ -129,7 +129,11 @@ routing begin at the substrate gate `scripts/check-substrate.sh`.
 idempotent `scripts/deploy-substrate.sh`: spin-up and upgrade are one command,
 and re-running it on a current project changes nothing (`--check` names the
 pending steps without writing). `substrate-ahead` means the Book was stamped by
-a newer bundle — update the bundle rather than converging backwards.
+a newer bundle — update the bundle rather than converging backwards. Convergence
+infers the remote provider from the `origin` remote when it first creates the
+profile — `github`, `gitlab`, `forgejo` for `codeberg.org`, `generic` for any
+other remote, and `local-only` only when there is no `origin` — and never
+rewrites a profile that already exists.
 
 Hosted-updater PRs targeting `work` are sprint-boundary intake, not another
 branch topology. Never merge them during an active sprint. Merge only when the

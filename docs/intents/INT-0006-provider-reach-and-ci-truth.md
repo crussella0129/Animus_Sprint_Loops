@@ -2,12 +2,12 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0006
-- **State:** proposed
-- **Work evidence:** none
-- **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **State:** active
+- **Work evidence:** [T-157–T-160 build plan](../sprints/s19/sprint-plans/build-plan.md#execution-sequence), [Sprint 19 test plan](../sprints/s19/sprint-plans/test-plan.md)
+- **Completion evidence:** [T-157–T-160 completion records](../work/completed-tasks.md#t-157-sprint-19)
+- **Code evidence:** [provider inference and the disagreement report](../../open-harnesses/scripts/deploy-substrate.sh), [provider enum](../../open-harnesses/scripts/remote-profile.sh)
+- **Test evidence:** [Sprint 19 test report](../sprints/s19/sprint-tests/test-report.md), [Sprint 19 E2E record](../sprints/s19/sprint-tests/e2e-tests.md)
+- **Documentation evidence:** [The provider is inferred, not assumed](../../README.md#the-provider-is-inferred-not-assumed), [remote-profile schema](../../open-harnesses/schemas/remote-profile.md), [Init phase contract](../../claude-code/skills/sprint-loop/phases/01-init-sprint.md)
 
 ## Intent
 Three failures that all end with a human doing the machine's job: a project that
@@ -24,7 +24,10 @@ checkpoint, and a checkpoint that reports green because nothing ran.
 2. **A provider enum that covers the hosts in use.** `github`, `gitlab`,
    `generic`, and `local-only` omit Gitea and Forgejo, which are neither GitHub
    nor "generic" — they have their own API shape and their own CI directory.
-   Add them rather than flattening them into `generic`.
+   Add them rather than flattening them into `generic`. They are values a
+   project **declares**, not values inference can produce: both are
+   overwhelmingly self-hosted on arbitrary domains, so no URL pattern
+   identifies them the way `github.com` identifies GitHub.
 3. **A third provider tier beneath the vendor CLIs.** Add a direct REST path
    using `curl` and a token from the environment, then the prefilled compare URL,
    then a `sprint-checkpoint.md` handoff artifact in the sprint record carrying
@@ -50,6 +53,9 @@ provider, reaching it, and refusing to believe a green that never ran.
   GitHub, GitLab, Gitea, or Forgejo URL writes that provider into the profile,
   and records the URL it inferred from.
 - Convergence run with no `--provider` and no `origin` writes `local-only`.
+- Convergence run with no `--provider` against a remote whose host is not
+  recognized writes `generic`, never `local-only` — an unrecognized host still
+  pushes and prints a compare URL, while `local-only` does nothing at all.
 - An explicit `--provider` always wins over inference.
 - A profile already written stays authoritative: convergence reports a
   disagreement between the recorded provider and the current `origin` rather
@@ -131,3 +137,23 @@ than a red one, because it consumes the reviewer's trust.
   reconciliation, and moved CI *generation* out to INT-0012 so this chapter
   covers knowing and reaching the provider while that one covers what gets
   generated and how it is maintained.
+- 2026-09-03: Sprint 19 Research refined the detection rule — an unrecognized
+  remote resolves to `generic` rather than `local-only`, because the current
+  default gets exactly that case backwards for every hosted project; and
+  recorded that `gitea` and `forgejo` are declarable but not inferable, so the
+  enum addition serves explicit declaration rather than detection.
+- 2026-09-03: `proposed → planned` — Sprint 19 tasks T-157–T-160 cover provider
+  inference, the enum widening with its updater routing, the report-don't-rewrite
+  reconciliation, and the operator-facing contracts. The REST checkpoint tier,
+  the CI truth check, and base protection are deliberately out of that sprint, so
+  this intent will remain `active` at its close rather than realized.
+- 2026-09-03: `planned → active` — Build began with T-157, provider inference
+  from the origin remote at profile creation.
+- 2026-09-03: Sprint 19 delivered provider detection and the enum — T-157
+  through T-160 — and the intent remains `active`. Six of thirteen acceptance
+  criteria are proven with named tests and CI green on both legs for head
+  `facd325`; the REST checkpoint tier, the CI truth check, and best-effort base
+  protection are untouched and remain this chapter's outstanding scope. The
+  defect that motivated the revision is fixed and retested end to end: a fresh
+  repository with a GitHub origin, converged with no arguments, now records
+  `github` rather than `local-only`.

@@ -22,9 +22,11 @@ mergePolicy: human-approve
 The resolver reads the **first fenced code block** and parses `key: value`
 lines. Fields:
 
-- `provider` — **required**; one of `github` | `gitlab` | `generic` | `local-only`.
-  Selects the checkpoint adapter (`gh`, `glab`, a push-and-print-URL fallback,
-  or none).
+- `provider` — **required**; one of `github` | `gitlab` | `gitea` | `forgejo` |
+  `generic` | `local-only`. Selects the checkpoint adapter (`gh`, `glab`, a
+  push-and-print-URL fallback, or none). `gitea` and `forgejo` currently take
+  the fallback; they are named separately from `generic` because they have their
+  own API shape and their own CI directory.
 - `base` — **required**; the PR/MR-gated corpus branch (e.g. `main`).
 - `work` — **required**; the long-lived branch sprints commit to (e.g. `dev`).
 - `mergePolicy` — optional; `human-approve` (default) or `auto-on-green`.
@@ -37,7 +39,20 @@ Rules:
   unknown field/value is a resolution error with a specific diagnostic; extra
   keys are never ignored.
 - `local-only` needs only `base`/`work`; no remote or provider CLI is required,
-  and the Loop performs no PR/MR.
+  and the Loop performs no PR/MR. It is correct only when the project genuinely
+  has no `origin` remote — a hosted project recorded as `local-only` silently
+  loses the entire remote half of the protocol, because the Loop opens no PR/MR
+  and exits successfully.
+- Convergence **infers** the provider from the `origin` remote when the profile
+  is first created and no explicit provider is given: a host containing `github`
+  or `gitlab` resolves to that provider, `codeberg.org` resolves to `forgejo`,
+  any other remote resolves to `generic`, and only an absent `origin` resolves to
+  `local-only`. What was inferred, and the URL it came from, is recorded as prose
+  above the fenced block. Gitea and Forgejo are otherwise **declared, not
+  inferred**: both are overwhelmingly self-hosted on arbitrary domains.
+- An existing profile is never rewritten by convergence. `deploy-substrate.sh
+  --check` reports a recorded provider that disagrees with the current `origin`,
+  and leaves the repair to a person.
 - The skill never creates a per-sprint branch: sprints work on `work`, and each
   sprint opens exactly one `work → base` PR/MR (unless `local-only`).
 - Hosted dependency updaters target `work`; their PRs are boundary-gated input
