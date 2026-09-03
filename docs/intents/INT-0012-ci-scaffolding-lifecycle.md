@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0012
-- **State:** planned
+- **State:** active
 - **Work evidence:** [T-164–T-167 build plan](../sprints/s20/sprint-plans/build-plan.md#execution-sequence), [Sprint 20 test plan](../sprints/s20/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -145,3 +145,5 @@ protecting the project.
   its close. The acceptance criterion asking for an observable job failure is
   met only for the `generic` provider, whose output is an executable script;
   for the YAML hosts it needs INT-0006's CI truth check and a real hosted run.
+- 2026-09-03: `planned → active` — Build began with T-164, contract 4 and
+  manifest-driven language detection.

@@ -1,3 +1,5 @@
+Finalized - DO NOT EDIT
+
 # Sprint 20 Test Plan
 
 ## Intent Traceability
