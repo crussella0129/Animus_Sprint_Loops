@@ -379,16 +379,33 @@ AG="$TMP_ROOT/agree"; mkdir -p "$AG"
 git init -q -b main "$AG"; git -C "$AG" config user.email t@t; git -C "$AG" config user.name t
 git -C "$AG" remote add origin https://github.com/o/r.git
 bash "$DS" --root "$AG" >/dev/null 2>&1 || die test_check_silent_on_agreement 'seed deploy failed'
-ag_out=$(bash "$DS" --root "$AG" --check 2>&1)
-case "$ag_out" in
-  *'provider-disagreement'*) die test_check_silent_on_agreement "reported a disagreement: $ag_out" ;;
-esac
+# Both silence assertions below prove the check *ran* before proving it stayed
+# quiet. A bare "this substring is absent" test passes just as happily when the
+# command fails outright, which is how a feature can break under a green suite.
+assert_check_ran_quietly() {  # <test-name> <dir>
+  local out
+  out=$(bash "$DS" --root "$2" --check 2>&1) ||
+    die "$1" "--check exited non-zero: $out"
+  case "$out" in
+    *'converged (no pending steps)'*) : ;;
+    *) die "$1" "--check did not run to completion: $out" ;;
+  esac
+  case "$out" in
+    *'provider-disagreement'*) die "$1" "reported a disagreement: $out" ;;
+  esac
+}
+
+assert_check_ran_quietly test_check_silent_on_agreement "$AG"
 pass test_check_silent_on_agreement
 
-nr_out=$(bash "$DS" --root "$TMP_ROOT/noremote" --check 2>&1)
-case "$nr_out" in
-  *'provider-disagreement'*) die test_check_silent_without_remote "reported a disagreement: $nr_out" ;;
-esac
+# Its own fixture: reusing another test's directory means this one passes
+# vacuously if that test is renamed, reordered, or removed.
+NR="$TMP_ROOT/silent-noremote"; mkdir -p "$NR"
+git init -q -b main "$NR"; git -C "$NR" config user.email t@t; git -C "$NR" config user.name t
+bash "$DS" --root "$NR" >/dev/null 2>&1 || die test_check_silent_without_remote 'seed deploy failed'
+[ "$(bash "$RP" --root "$NR" provider)" = local-only ] ||
+  die test_check_silent_without_remote 'fixture is not the no-remote case'
+assert_check_ran_quietly test_check_silent_without_remote "$NR"
 pass test_check_silent_without_remote
 
 printf 'deploy-substrate selftest: all fixtures passed\n'
