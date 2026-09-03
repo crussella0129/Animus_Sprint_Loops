@@ -549,3 +549,10 @@
 - **Completed:** 2026-09-03T04:18:00Z
 - **Files modified:** `{claude-code,codex-cli}/skills/*/phases/01-init-sprint.md`, `open-harnesses/particles/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
 - **Commit:** `9d520438a3d87855461b26456f50fbd6013c94eb`
+
+## T-164 (sprint 20)
+- **Description:** Raised the substrate contract to 4 and the bundle to 0.20.0 across all four bundles and the plugin manifest, and added `detect-languages.sh`. Detection is manifest-driven and sorted because the canonical runner compares normalized output across two runs: `Cargo.toml` → rust, `go.mod` → go, any of pyproject/requirements/setup.py → python once, `package.json` → node, and a **tracked** `*.sh` → shell. Preferring git's index for shell means an untracked scratch file cannot decide a project's language, which a `find`-based check would have gotten wrong. A project already carrying `tools/run-guards.sh` additionally yields `canonical:tools/run-guards.sh`, appended after the sorted set so its presence never reorders the languages. Nine fixtures cover each language, all three python manifests plus the no-duplicate case, tracked-versus-untracked shell, a five-token polyglot project, an empty project, determinism across two runs, and the canonical token. The version raise also closes a real gap: Sprint 19 shipped code without raising the bundle, so `0.18.0` named two materially different bundles and Sprint 19's own record claims a version whose contents differ from Sprint 18's.
+- **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
+- **Completed:** 2026-09-03T16:02:00Z
+- **Files modified:** `{4 bundles}/scripts/detect-languages.sh`, `{4 bundles}/scripts/detect-languages.test.sh`, `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
+- **Commit:** PENDING
