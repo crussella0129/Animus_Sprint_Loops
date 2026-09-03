@@ -569,4 +569,4 @@
 - **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
 - **Completed:** 2026-09-03T16:44:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `93f1c52ee5ae73344670b7768911b5a84ab54474`
