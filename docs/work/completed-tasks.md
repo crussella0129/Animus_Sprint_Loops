@@ -570,3 +570,10 @@
 - **Completed:** 2026-09-03T16:44:00Z
 - **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
 - **Commit:** `93f1c52ee5ae73344670b7768911b5a84ab54474`
+
+## T-167 (sprint 20)
+- **Description:** Documented CI generation across every operator surface. Both byte-parity Init contracts name the generated file for each provider, state that `local-only` gets none, explain why the absence matters (a fresh project's first checkpoint is green because nothing ran), and give the opt-out: generation is create-if-absent, so deleting a generated file is permanent. The runtime-neutral particle and the Antigravity workflow carry condensed forms. The README gained a "CI exists from Sprint 0" section with the per-provider table, the detection sources, the both-branches trigger rule, and the directory-level no-clobber rule with its reasoning. `test_init_documents_ci_generation` asserts all three Init surfaces name the workflow directory, `.gitlab-ci.yml`, `ci.sh`, and `local-only`, and that the README carries the never-touched and permanent-deletion statements. One assertion initially failed for a reason worth recording: the phrase it looked for was split across a line break in the Antigravity file, so a `grep -F` on wrapped prose can fail while the prose is correct — the assertion now targets a token that sits on one line. 8/8 documentation contracts pass.
+- **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
+- **Completed:** 2026-09-03T16:48:00Z
+- **Files modified:** `{claude-code,codex-cli}/skills/*/phases/01-init-sprint.md`, `open-harnesses/particles/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
+- **Commit:** PENDING

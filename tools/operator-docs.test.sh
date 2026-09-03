@@ -208,7 +208,27 @@ test_init_documents_provider_inference() {
 
 test_turn_contract_present
 test_exit_evidence_requires_commit
+# Sprint 20: CI generation must be visible, including how to opt out — a
+# generated file a project cannot see is one it cannot decline.
+test_init_documents_ci_generation() {
+  for surface in \
+    claude-code/skills/sprint-loop/phases/01-init-sprint.md \
+    codex-cli/skills/sprint-loops/phases/01-init-sprint.md \
+    open-harnesses/particles/01-init-sprint.md; do
+    require_text "$surface" 'workflows'
+    require_text "$surface" '.gitlab-ci.yml'
+    require_text "$surface" 'ci.sh'
+    require_text "$surface" 'local-only'
+  done
+  require_text README.md 'CI exists from Sprint 0'
+  require_text README.md 'never touched'
+  require_text README.md 'permanent'
+  require_text antigravity-ide/global_workflows/sprint-loops.md 'workflow directory already holds a workflow'
+  pass
+}
+
 test_init_documents_provider_inference
+test_init_documents_ci_generation
 test_phase01_documents_outdated_route
 test_skill_defines_upgrade_argument
 echo "operator-docs.test: $COUNT documentation contracts passed"

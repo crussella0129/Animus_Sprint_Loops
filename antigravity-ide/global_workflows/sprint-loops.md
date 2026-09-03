@@ -133,7 +133,9 @@ a newer bundle — update the bundle rather than converging backwards. Convergen
 infers the remote provider from the `origin` remote when it first creates the
 profile — `github`, `gitlab`, `forgejo` for `codeberg.org`, `generic` for any
 other remote, and `local-only` only when there is no `origin` — and never
-rewrites a profile that already exists.
+rewrites a profile that already exists. It also generates the host's CI
+configuration from the languages the project contains, and generates nothing
+when the host's workflow directory already holds a workflow.
 
 Hosted-updater PRs targeting `work` are sprint-boundary intake, not another
 branch topology. Never merge them during an active sprint. Merge only when the

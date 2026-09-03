@@ -205,6 +205,37 @@ project that has not converged behaves exactly as it did before. The
 `Checkpoint` field in the sprint record holds the opened URL, committed with the
 close, so a later sprint can tell its own checkpoint from the previous one.
 
+### CI exists from Sprint 0
+
+Convergence also writes the host's CI configuration, chosen from the languages
+the project actually contains:
+
+| Provider | Generated file |
+| --- | --- |
+| `github` | `.github/workflows/sprint-loops-ci.yml` |
+| `gitea` / `forgejo` | `.gitea/` / `.forgejo/workflows/sprint-loops-ci.yml` |
+| `gitlab` | `.gitlab-ci.yml` |
+| `generic` | an executable `ci.sh` |
+| `local-only` | nothing — there is no host |
+
+Gitea and Forgejo consume GitHub Actions syntax, so those three share one
+format and differ only by directory. Jobs come from manifest detection —
+`Cargo.toml`, `go.mod`, `pyproject.toml`, `package.json`, tracked `*.sh` — and a
+project that already has a canonical suite runner gets a single job invoking it
+instead. Triggers name **both** the profile's `base` and `work` branches, since
+a workflow that only triggers on `base` never runs on the branch sprints commit
+to, nor on the checkpoint.
+
+**An existing CI configuration is never touched.** If the host's workflow
+directory already holds anything, convergence generates nothing — a file-level
+check would drop a second workflow beside your hand-written one and leave two CI
+systems disagreeing about the same push. Generation is create-if-absent, so
+**deleting a generated file is permanent**: that is how a project opts out.
+
+Without this, a fresh project reaches its first checkpoint with no CI at all,
+and that checkpoint is green because nothing ran — worse than a red one, because
+it spends a reviewer's trust on a check that never happened.
+
 ## Branch model and checkpoints
 
 Sprint Loops uses a small, long-lived branch topology declared per project in a
