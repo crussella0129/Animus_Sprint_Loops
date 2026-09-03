@@ -562,4 +562,4 @@
 - **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
 - **Completed:** 2026-09-03T16:22:00Z
 - **Files modified:** `{4 bundles}/scripts/scaffold-ci.sh`, `{4 bundles}/scripts/scaffold-ci.test.sh`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `84b41c67692f9df18cc6a362678a20a3ef46151c`
