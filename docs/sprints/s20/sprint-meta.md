@@ -8,6 +8,6 @@
 - **Bundle version:** 0.18.0
 - **Exit status:** in-progress
 - **Token count:** (filled at Loop Phase if observable)
-- **Summary:** (one-line description of sprint goal, filled after Plan Phase)
-- **Intents:** (filled after Plan Phase)
+- **Summary:** Generate each host's CI configuration at Sprint 0 from the languages a project actually contains, so a fresh project's first checkpoint is not green by absence.
+- **Intents:** [INT-0012](../../intents/INT-0012-ci-scaffolding-lifecycle.md) — planned (partial: generation only; reconciliation deferred)
 - **Completion evidence:** (filled at Loop Phase)

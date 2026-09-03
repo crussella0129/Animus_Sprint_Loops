@@ -2,8 +2,8 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0012
-- **State:** proposed
-- **Work evidence:** none
+- **State:** planned
+- **Work evidence:** [T-164–T-167 build plan](../sprints/s20/sprint-plans/build-plan.md#execution-sequence), [Sprint 20 test plan](../sprints/s20/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
 - **Test evidence:** none
@@ -138,3 +138,10 @@ protecting the project.
   jobs must be language-native and prefer a runner only when present; and that
   triggers must come from the remote profile so CI actually runs on the work
   branch and the checkpoint.
+- 2026-09-03: `proposed → planned` — Sprint 20 tasks T-164–T-167 cover
+  contract 4, language detection, the per-host generator, the convergence step,
+  and the operator contracts. Reconciliation and proposed removal (parts 3 and
+  4) are deliberately out of that sprint, so this intent will remain `active` at
+  its close. The acceptance criterion asking for an observable job failure is
+  met only for the `generic` provider, whose output is an executable script;
+  for the YAML hosts it needs INT-0006's CI truth check and a real hosted run.
