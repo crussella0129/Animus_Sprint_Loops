@@ -555,4 +555,4 @@
 - **Intent:** [INT-0012](../intents/INT-0012-ci-scaffolding-lifecycle.md)
 - **Completed:** 2026-09-03T16:02:00Z
 - **Files modified:** `{4 bundles}/scripts/detect-languages.sh`, `{4 bundles}/scripts/detect-languages.test.sh`, `{4 bundles}/scripts/book-paths.sh`, `{4 bundles}/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`, `tools/check-bundle-sync.sh`, `tools/run-guards.sh`, task ledgers
-- **Commit:** PENDING
+- **Commit:** `a19e71287346b6efe08927a135ba693b902cc736`
