@@ -441,8 +441,8 @@ pass test_converge_generates_ci
 # current contract in the same run, so the CI step has to run after the stamp.
 # Evaluating the version before it would mean CI first appears on the *second*
 # convergence: the run that upgrades a project would skip the upgrade's point.
-grep -qFx 'substrate-version: 4' "$CG/docs/.sprint-loop-book" ||
-  die test_converge_generates_ci_after_stamp 'marker is not at contract 4'
+grep -qFx "substrate-version: $V" "$CG/docs/.sprint-loop-book" ||
+  die test_converge_generates_ci_after_stamp "marker is not at contract $V"
 pass test_converge_generates_ci_after_stamp
 
 # test_converge_ci_idempotent

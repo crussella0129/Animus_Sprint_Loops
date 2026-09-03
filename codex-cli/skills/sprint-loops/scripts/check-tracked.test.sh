@@ -68,14 +68,19 @@ printf 'unrelated\n' > "$O/scratch.txt"
 succeeds "$O" || die test_tracked_ignores_non_book_changes "non-Book change refused: $(run "$O")"
 pass test_tracked_ignores_non_book_changes
 
-# test_contract_3_sees_stamp_2_as_behind — a Sprint-17-era Book is behind, not
-# current, so this sprint's gates bind only after convergence.
+# test_older_stamp_reads_as_behind — a Book stamped by an earlier bundle is
+# behind, not current, so version-gated behavior binds only after convergence.
+#
+# Asserted as a relationship rather than against a literal contract number: an
+# earlier form of this fixture hardcoded the then-current version and broke the
+# first time the contract was raised, failing for a reason that had nothing to
+# do with the property it was written to protect.
 V="$TMP_ROOT/version"; make_committed_book "$V"
 printf 'schema-version: 2\nsubstrate-version: 2\n' > "$V/docs/.sprint-loop-book"
 stamped=$( cd "$V" && SPRINT_LOOP_PROJECT_ROOT=. . "$SCRIPT_DIR/book-paths.sh" && book_substrate_version )
-[ "$stamped" = 2 ] || die test_contract_3_sees_stamp_2_as_behind "accessor read '$stamped', expected 2"
-[ "$BOOK_SUBSTRATE_CONTRACT_VERSION" = 3 ] ||
-  die test_contract_3_sees_stamp_2_as_behind "bundle constant is $BOOK_SUBSTRATE_CONTRACT_VERSION, expected 3"
-pass test_contract_3_sees_stamp_2_as_behind
+[ "$stamped" = 2 ] || die test_older_stamp_reads_as_behind "accessor read '$stamped', expected 2"
+[ "$stamped" -lt "$BOOK_SUBSTRATE_CONTRACT_VERSION" ] ||
+  die test_older_stamp_reads_as_behind "stamp $stamped is not behind the bundle's $BOOK_SUBSTRATE_CONTRACT_VERSION"
+pass test_older_stamp_reads_as_behind
 
 printf 'check-tracked selftest: all fixtures passed\n'
