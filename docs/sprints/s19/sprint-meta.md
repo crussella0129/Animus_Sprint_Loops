@@ -8,6 +8,6 @@
 - **Bundle version:** 0.18.0
 - **Exit status:** in-progress
 - **Token count:** (filled at Loop Phase if observable)
-- **Summary:** (one-line description of sprint goal, filled after Plan Phase)
-- **Intents:** (filled after Plan Phase)
+- **Summary:** Infer the provider from the origin remote at Sprint 0 instead of defaulting every hosted project to local-only.
+- **Intents:** [INT-0006](../../intents/INT-0006-provider-reach-and-ci-truth.md) — planned (partial: detection and enum only)
 - **Completion evidence:** (filled at Loop Phase)

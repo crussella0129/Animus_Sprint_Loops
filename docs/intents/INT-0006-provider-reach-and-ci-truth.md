@@ -2,8 +2,8 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0006
-- **State:** proposed
-- **Work evidence:** none
+- **State:** planned
+- **Work evidence:** [T-157–T-160 build plan](../sprints/s19/sprint-plans/build-plan.md#execution-sequence), [Sprint 19 test plan](../sprints/s19/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
 - **Test evidence:** none
@@ -142,3 +142,8 @@ than a red one, because it consumes the reviewer's trust.
   default gets exactly that case backwards for every hosted project; and
   recorded that `gitea` and `forgejo` are declarable but not inferable, so the
   enum addition serves explicit declaration rather than detection.
+- 2026-09-03: `proposed → planned` — Sprint 19 tasks T-157–T-160 cover provider
+  inference, the enum widening with its updater routing, the report-don't-rewrite
+  reconciliation, and the operator-facing contracts. The REST checkpoint tier,
+  the CI truth check, and base protection are deliberately out of that sprint, so
+  this intent will remain `active` at its close rather than realized.
