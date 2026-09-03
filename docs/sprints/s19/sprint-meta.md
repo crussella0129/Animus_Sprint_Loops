@@ -11,3 +11,4 @@
 - **Summary:** Infer the provider from the origin remote at Sprint 0 instead of defaulting every hosted project to local-only.
 - **Intents:** [INT-0006](../../intents/INT-0006-provider-reach-and-ci-truth.md) — active (partial: detection and enum delivered; REST tier, CI truth check, and base protection outstanding)
 - **Completion evidence:** T-157-T-160 made the provider a fact derived from origin instead of a local-only default; guards run 33715133221 green on both legs for head facd325; the reported symptom retested end to end on a fresh repository
+- **Checkpoint:** https://github.com/crussella0129/Animus_Sprint_Loops/pull/13
