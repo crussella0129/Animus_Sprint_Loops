@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0006
-- **State:** planned
+- **State:** active
 - **Work evidence:** [T-157–T-160 build plan](../sprints/s19/sprint-plans/build-plan.md#execution-sequence), [Sprint 19 test plan](../sprints/s19/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -147,3 +147,5 @@ than a red one, because it consumes the reviewer's trust.
   reconciliation, and the operator-facing contracts. The REST checkpoint tier,
   the CI truth check, and base protection are deliberately out of that sprint, so
   this intent will remain `active` at its close rather than realized.
+- 2026-09-03: `planned → active` — Build began with T-157, provider inference
+  from the origin remote at profile creation.
