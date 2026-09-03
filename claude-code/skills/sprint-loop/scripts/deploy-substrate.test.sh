@@ -237,4 +237,158 @@ grep -q 'switch to dev before converging' "$W.err" ||
   die test_converge_refuses_from_base_branch 'refusal moved the operator branch'
 pass test_converge_refuses_from_base_branch
 
+# ---------------------------------------------------------------------------
+# Sprint 19: provider inference. Every fixture below omits --provider, which is
+# the path all sixteen fixtures above skip — and the reason a default of
+# local-only survived them while writing every hosted project into its own Book
+# as having no remote.
+# ---------------------------------------------------------------------------
+RP="$SCRIPT_DIR/remote-profile.sh"
+infer_fixture() {  # <name> [origin-url] -> prints the resolved provider
+  local d="$TMP_ROOT/$1"
+  mkdir -p "$d"
+  git init -q -b main "$d"
+  git -C "$d" config user.email t@t
+  git -C "$d" config user.name t
+  if [ -n "${2:-}" ]; then git -C "$d" remote add origin "$2"; fi
+  bash "$DS" --root "$d" >/dev/null 2>&1
+  bash "$RP" --root "$d" provider 2>/dev/null
+}
+
+[ "$(infer_fixture gh-https https://github.com/o/r.git)" = github ] ||
+  die test_infer_github_https "got '$(bash "$RP" --root "$TMP_ROOT/gh-https" provider 2>&1)'"
+[ -f "$TMP_ROOT/gh-https/.github/dependabot.yml" ] ||
+  die test_infer_github_https 'inferred github did not scaffold the updater config'
+pass test_infer_github_https
+
+[ "$(infer_fixture gh-scp git@github.com:o/r.git)" = github ] || die test_infer_github_ssh 'scp form'
+[ "$(infer_fixture gh-ssh ssh://git@github.com/o/r.git)" = github ] || die test_infer_github_ssh 'ssh:// form'
+[ "$(infer_fixture gh-upper https://GitHub.com/o/r.git)" = github ] || die test_infer_github_ssh 'mixed case host'
+pass test_infer_github_ssh
+
+[ "$(infer_fixture gl https://gitlab.example.net/o/r.git)" = gitlab ] || die test_infer_gitlab 'enterprise gitlab host'
+[ -f "$TMP_ROOT/gl/renovate.json" ] || die test_infer_gitlab 'inferred gitlab did not scaffold renovate.json'
+pass test_infer_gitlab
+
+[ "$(infer_fixture cb https://codeberg.org/o/r.git)" = forgejo ] || die test_infer_forgejo_codeberg 'codeberg'
+pass test_infer_forgejo_codeberg
+
+# An unrecognized remote is generic, never local-only: generic still pushes the
+# work branch and prints a compare URL, while local-only does nothing at all.
+[ "$(infer_fixture unknown https://git.example.invalid/o/r.git)" = generic ] ||
+  die test_infer_unknown_host_is_generic "got '$(bash "$RP" --root "$TMP_ROOT/unknown" provider 2>&1)'"
+pass test_infer_unknown_host_is_generic
+
+[ "$(infer_fixture noremote)" = local-only ] || die test_infer_no_remote_is_local_only 'no remote'
+{ [ ! -f "$TMP_ROOT/noremote/.github/dependabot.yml" ] && [ ! -f "$TMP_ROOT/noremote/renovate.json" ]; } ||
+  die test_infer_no_remote_is_local_only 'local-only scaffolded an updater'
+pass test_infer_no_remote_is_local_only
+
+# The adapter pushes to `origin` exclusively, so a repository whose only remote
+# has another name has no remote this protocol can reach.
+NO="$TMP_ROOT/upstream-only"; mkdir -p "$NO"
+git init -q -b main "$NO"; git -C "$NO" config user.email t@t; git -C "$NO" config user.name t
+git -C "$NO" remote add upstream https://github.com/o/r.git
+bash "$DS" --root "$NO" >/dev/null 2>&1
+[ "$(bash "$RP" --root "$NO" provider)" = local-only ] ||
+  die test_infer_non_origin_remote_is_local_only "got '$(bash "$RP" --root "$NO" provider)'"
+pass test_infer_non_origin_remote_is_local_only
+
+EX="$TMP_ROOT/explicit"; mkdir -p "$EX"
+git init -q -b main "$EX"; git -C "$EX" config user.email t@t; git -C "$EX" config user.name t
+git -C "$EX" remote add origin https://github.com/o/r.git
+bash "$DS" --root "$EX" --provider local-only >/dev/null 2>&1
+[ "$(bash "$RP" --root "$EX" provider)" = local-only ] ||
+  die test_explicit_provider_wins "explicit flag lost to inference"
+pass test_explicit_provider_wins
+
+# Provenance is prose outside the fenced block; the resolver reads the first
+# fence and rejects unknown keys, so it must never become a field.
+grep -qF 'https://github.com/o/r.git' "$TMP_ROOT/gh-https/docs/work/remote-profile.md" ||
+  die test_infer_records_provenance 'source URL not recorded'
+grep -qF 'inferred as `github`' "$TMP_ROOT/gh-https/docs/work/remote-profile.md" ||
+  die test_infer_records_provenance 'inferred value not recorded'
+bash "$RP" --root "$TMP_ROOT/gh-https" >/dev/null 2>&1 ||
+  die test_infer_records_provenance 'provenance broke profile resolution'
+grep -qF 'inferred as' "$TMP_ROOT/explicit/docs/work/remote-profile.md" &&
+  die test_infer_records_provenance 'explicit provider claimed to be inferred'
+pass test_infer_records_provenance
+
+# An existing profile is a Book field the operator may have set deliberately.
+# The Book must be created before the profile, or init-sprint sees a docs/ tree
+# with no marker and refuses — which would leave the profile untouched for the
+# wrong reason and pass this fixture without convergence ever running.
+UT="$TMP_ROOT/untouched"; mkdir -p "$UT"
+git init -q -b main "$UT"; git -C "$UT" config user.email t@t; git -C "$UT" config user.name t
+git -C "$UT" remote add origin https://github.com/o/r.git
+( cd "$UT" && SPRINT_LOOP_PROJECT_ROOT=. SPRINT_MODEL=selftest bash "$INIT" >/dev/null )
+printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v2 -->\n\n```\nprovider: local-only\nbase: main\nwork: dev\n```\n' \
+  > "$UT/docs/work/remote-profile.md"
+untouched_before=$(cksum "$UT/docs/work/remote-profile.md")
+bash "$DS" --root "$UT" >"$UT.out" 2>&1 ||
+  die test_existing_profile_untouched "convergence failed, so the fixture would pass for the wrong reason: $(cat "$UT.out")"
+grep -q substrate-complete "$UT.out" ||
+  die test_existing_profile_untouched "convergence did not complete: $(cat "$UT.out")"
+[ "$untouched_before" = "$(cksum "$UT/docs/work/remote-profile.md")" ] ||
+  die test_existing_profile_untouched 'convergence rewrote an existing profile'
+[ "$(bash "$RP" --root "$UT" provider)" = local-only ] ||
+  die test_existing_profile_untouched 'the recorded provider changed'
+pass test_existing_profile_untouched
+
+# test_gitea_gets_renovate — a declared self-hosted forge must not silently get
+# no updater config, which is the same class of omission as the wrong provider.
+GT="$TMP_ROOT/gitea"; mkdir -p "$GT"
+bash "$DS" --root "$GT" --provider gitea --base main --work dev >/dev/null 2>&1 ||
+  die test_gitea_gets_renovate 'gitea deploy failed'
+[ -f "$GT/renovate.json" ] || die test_gitea_gets_renovate 'no Renovate config for gitea'
+grep -q '"baseBranchPatterns": \["dev"\]' "$GT/renovate.json" ||
+  die test_gitea_gets_renovate 'gitea Renovate does not target work'
+FJ="$TMP_ROOT/forgejo"; mkdir -p "$FJ"
+bash "$DS" --root "$FJ" --provider forgejo --base main --work dev >/dev/null 2>&1 ||
+  die test_gitea_gets_renovate 'forgejo deploy failed'
+[ -f "$FJ/renovate.json" ] || die test_gitea_gets_renovate 'no Renovate config for forgejo'
+pass test_gitea_gets_renovate
+
+# ---------------------------------------------------------------------------
+# T-159: --check reports a recorded provider that disagrees with origin, and
+# never repairs it. This is the surface an operator uses to find projects
+# bootstrapped before inference existed.
+# ---------------------------------------------------------------------------
+DG="$TMP_ROOT/disagree"; mkdir -p "$DG"
+git init -q -b main "$DG"; git -C "$DG" config user.email t@t; git -C "$DG" config user.name t
+git -C "$DG" remote add origin https://github.com/o/r.git
+bash "$DS" --root "$DG" --provider local-only >/dev/null 2>&1 ||
+  die test_check_reports_disagreement 'seed deploy failed'
+disagree_before=$(snap "$DG")
+dg_out=$(bash "$DS" --root "$DG" --check 2>&1)
+case "$dg_out" in
+  *'provider-disagreement'*) : ;;
+  *) die test_check_reports_disagreement "no disagreement reported: $dg_out" ;;
+esac
+case "$dg_out" in *local-only*) : ;; *) die test_check_reports_disagreement 'recorded value not named' ;; esac
+case "$dg_out" in *github*) : ;; *) die test_check_reports_disagreement 'inferred value not named' ;; esac
+pass test_check_reports_disagreement
+
+[ "$disagree_before" = "$(snap "$DG")" ] ||
+  die test_check_disagreement_is_readonly 'the disagreement report mutated the project'
+[ "$(bash "$RP" --root "$DG" provider)" = local-only ] ||
+  die test_check_disagreement_is_readonly 'the recorded provider was repaired'
+pass test_check_disagreement_is_readonly
+
+AG="$TMP_ROOT/agree"; mkdir -p "$AG"
+git init -q -b main "$AG"; git -C "$AG" config user.email t@t; git -C "$AG" config user.name t
+git -C "$AG" remote add origin https://github.com/o/r.git
+bash "$DS" --root "$AG" >/dev/null 2>&1 || die test_check_silent_on_agreement 'seed deploy failed'
+ag_out=$(bash "$DS" --root "$AG" --check 2>&1)
+case "$ag_out" in
+  *'provider-disagreement'*) die test_check_silent_on_agreement "reported a disagreement: $ag_out" ;;
+esac
+pass test_check_silent_on_agreement
+
+nr_out=$(bash "$DS" --root "$TMP_ROOT/noremote" --check 2>&1)
+case "$nr_out" in
+  *'provider-disagreement'*) die test_check_silent_without_remote "reported a disagreement: $nr_out" ;;
+esac
+pass test_check_silent_without_remote
+
 printf 'deploy-substrate selftest: all fixtures passed\n'

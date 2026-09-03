@@ -15,10 +15,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC2034 # Consumed by the sourced path contract.
 SPRINT_LOOP_PROJECT_ROOT="${SPRINT_LOOP_PROJECT_ROOT:-.}"
 PROVIDER=local-only; BASE=main; WORK=dev; MERGE_POLICY=human-approve; CHECK_ONLY=0
+PROVIDER_EXPLICIT=0; PROVIDER_SOURCE=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --root) SPRINT_LOOP_PROJECT_ROOT="$2"; shift 2 ;;
-    --provider) PROVIDER="$2"; shift 2 ;;
+    --provider) PROVIDER="$2"; PROVIDER_EXPLICIT=1; shift 2 ;;
     --base) BASE="$2"; shift 2 ;;
     --work) WORK="$2"; shift 2 ;;
     --merge-policy) MERGE_POLICY="$2"; shift 2 ;;
@@ -30,6 +31,43 @@ done
 ROOT="$SPRINT_LOOP_PROJECT_ROOT"
 
 fail() { printf 'deploy-substrate: %s\n' "$*" >&2; exit 1; }
+
+# Infer the provider from the origin remote.
+#
+# The historical default was local-only, which wrote every hosted project into
+# its own Book as having no remote — and because the Loop performs no PR/MR for
+# local-only and exits 0, the whole remote half of the protocol disappeared
+# without anything failing. Only a genuinely absent origin is local-only now; an
+# origin whose host is unrecognized resolves to generic, which still pushes the
+# work branch and prints a compare URL.
+#
+# Gitea and Forgejo are declarable but not inferable: both are overwhelmingly
+# self-hosted on arbitrary domains, so no URL pattern identifies them the way
+# github.com identifies GitHub. codeberg.org is the one widely known instance.
+#
+# The adapter pushes to `origin` exclusively, so a repository whose only remote
+# has another name has no remote this protocol can reach, and local-only is the
+# honest answer rather than a miss.
+infer_provider() {
+  infer_url=$(git -C "$ROOT" remote get-url origin 2>/dev/null) || infer_url=""
+  if [ -z "$infer_url" ]; then
+    printf 'local-only'
+    return 0
+  fi
+  case "$infer_url" in
+    *://*) infer_host=${infer_url#*://}; infer_host=${infer_host#*@}; infer_host=${infer_host%%/*} ;;
+    *@*:*) infer_host=${infer_url#*@}; infer_host=${infer_host%%:*} ;;
+    *) infer_host="" ;;
+  esac
+  infer_host=$(printf '%s' "$infer_host" | tr '[:upper:]' '[:lower:]')
+  infer_host=${infer_host%%:*}
+  case "$infer_host" in
+    codeberg.org) printf 'forgejo' ;;
+    *github*) printf 'github' ;;
+    *gitlab*) printf 'gitlab' ;;
+    *) printf 'generic' ;;
+  esac
+}
 
 case "$(book_layout_state)" in
   legacy-only) fail "legacy layout present; migrate to the Book before deploy" ;;
@@ -63,17 +101,26 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
       PROVIDER=$(printf '%s\n' "$check_prof" | sed -n 's/^PROVIDER=//p')
       BASE=$(printf '%s\n' "$check_prof" | sed -n 's/^BASE=//p')
       WORK=$(printf '%s\n' "$check_prof" | sed -n 's/^WORK=//p')
+      # Report, never repair. A recorded provider may have been set
+      # deliberately, so a disagreement with the current origin is a
+      # diagnosis for a person, not a pending convergence step.
+      check_inferred=$(infer_provider)
+      if [ "$PROVIDER" != "$check_inferred" ]; then
+        printf 'provider-disagreement: profile records %s but origin implies %s (not changed)\n' \
+          "$PROVIDER" "$check_inferred"
+      fi
     else
       say_pending "repair the unreadable remote profile at $PROFILE"
     fi
   else
+    if [ "$PROVIDER_EXPLICIT" -eq 0 ]; then PROVIDER=$(infer_provider); fi
     say_pending "create the remote profile at $PROFILE (provider=$PROVIDER base=$BASE work=$WORK)"
   fi
   case "$PROVIDER" in
     github)
       [ -f "$ROOT/.github/dependabot.yml" ] ||
         say_pending "create .github/dependabot.yml targeting $WORK" ;;
-    gitlab|generic)
+    gitlab|gitea|forgejo|generic)
       [ -f "$ROOT/renovate.json" ] ||
         say_pending "create renovate.json targeting $WORK" ;;
   esac
@@ -142,11 +189,28 @@ elif ! ls -d "$BOOK_SPRINTS_DIR"/s* >/dev/null 2>&1; then
 fi
 maybe_fail book
 
-# 2. Remote profile.
+# 2. Remote profile. Created only when absent — an existing profile is a Book
+# field the operator may have set deliberately, and convergence reports on it
+# (see --check) rather than rewriting it.
 if [ ! -f "$PROFILE" ]; then
+  if [ "$PROVIDER_EXPLICIT" -eq 0 ]; then
+    PROVIDER=$(infer_provider)
+    PROVIDER_SOURCE=$(git -C "$ROOT" remote get-url origin 2>/dev/null || printf '')
+  fi
   mkdir -p "$(dirname "$PROFILE")"
   {
-    printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v2 -->\n\n```\n'
+    printf '# Remote Profile\n\n<!-- sprint-loop-remote-profile-v2 -->\n\n'
+    if [ "$PROVIDER_EXPLICIT" -eq 0 ]; then
+      # Provenance sits outside the fenced block: the resolver reads the first
+      # fence and rejects unknown keys, so this must never become a field.
+      if [ -n "$PROVIDER_SOURCE" ]; then
+        printf 'Provider inferred as `%s` from the origin remote `%s`.\n' "$PROVIDER" "$PROVIDER_SOURCE"
+      else
+        printf 'Provider recorded as `%s`: no origin remote was configured.\n' "$PROVIDER"
+      fi
+      printf 'Edit the block below to correct it; convergence never rewrites an existing profile.\n\n'
+    fi
+    printf '```\n'
     printf 'provider: %s\nbase: %s\nwork: %s\n' "$PROVIDER" "$BASE" "$WORK"
     printf 'mergePolicy: %s\n```\n' "$MERGE_POLICY"
   } > "$PROFILE"
@@ -188,7 +252,7 @@ case "$PROVIDER" in
       } > "$updater"
       CREATED_UPDATER="$updater"
     fi ;;
-  gitlab|generic)
+  gitlab|gitea|forgejo|generic)
     updater="$ROOT/renovate.json"
     if [ ! -f "$updater" ]; then
       {

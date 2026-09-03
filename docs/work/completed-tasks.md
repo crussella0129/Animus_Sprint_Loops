@@ -528,3 +528,10 @@
 - **Completed:** 2026-09-03T04:10:00Z
 - **Files modified:** `{4 bundles}/scripts/remote-profile.sh`, `{4 bundles}/schemas/remote-profile.md`, `{4 bundles}/scripts/remote-profile.test.sh`, `{4 bundles}/scripts/remote-adapter.test.sh`, task ledgers
 - **Commit:** `63fb832b4789a822b63020f8856404a72cb41f47`
+
+## T-157 (sprint 19)
+- **Description:** Convergence now infers the provider from the `origin` remote instead of defaulting every hosted project to `local-only`. `infer_provider()` handles `https://host/…`, `git@host:…`, and `ssh://git@host/…`, strips any `user@` and port, and lowercases before matching: a host containing `github` or `gitlab` resolves to that provider, `codeberg.org` to `forgejo`, any other remote to `generic`, and only an absent `origin` to `local-only`. Inference runs solely when `--provider` is absent *and* the profile is being created, so an explicit flag always wins and an existing profile is never touched. What was inferred and the URL it came from are printed and recorded as prose above the profile's fenced block — outside it, because the resolver reads the first fence and rejects unknown keys. Twelve fixtures added, every one omitting `--provider`: that is the path all sixteen prior fixtures skipped, and the reason a `local-only` default survived them. Two findings worth recording. The plan listed T-157 and T-158 as independent, but the `codeberg.org → forgejo` clause fails until the enum accepts `forgejo` — the resolver rejects it and convergence rolls the entire deploy back — so the enum widening had to come first. And `test_existing_profile_untouched` initially passed for the wrong reason: it created `docs/work` before the Book existed, so `init-sprint` refused, convergence never ran, and the profile was trivially unchanged. It now asserts convergence completed before asserting the profile did not change.
+- **Intent:** [INT-0006](../intents/INT-0006-provider-reach-and-ci-truth.md)
+- **Completed:** 2026-09-03T04:14:00Z
+- **Files modified:** `{4 bundles}/scripts/deploy-substrate.sh`, `{4 bundles}/scripts/deploy-substrate.test.sh`, task ledgers
+- **Commit:** PENDING
