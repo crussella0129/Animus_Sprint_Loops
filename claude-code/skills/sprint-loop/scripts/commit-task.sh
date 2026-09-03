@@ -41,6 +41,22 @@ if [ ! -f "$F" ] || ! awk '
   exit 1
 fi
 
+# Work-branch guard (contract 3). A sprint executed on the base branch is
+# otherwise only discovered at checkpoint time, when the whole sprint is already
+# there. Refuse before anything is staged. A project with no resolvable remote
+# profile is a legitimate configuration and is left alone.
+if book_gates_active; then
+  if BRANCH_PROFILE=$(bash "$SCRIPT_DIR/remote-profile.sh" 2>/dev/null); then
+    EXPECTED_BRANCH=$(printf '%s\n' "$BRANCH_PROFILE" | sed -n 's/^WORK=//p')
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+    if [ -n "$EXPECTED_BRANCH" ] && [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
+      printf 'refusing to commit %s: HEAD is %s but the remote profile names %s as the work branch\n' "$TASK_ID" "$CURRENT_BRANCH" "$EXPECTED_BRANCH" >&2
+      printf '  switch to %s before writing sprint state\n' "$EXPECTED_BRANCH" >&2
+      exit 1
+    fi
+  fi
+fi
+
 # Scope both staging and committing. Unrelated staged and working-tree changes
 # remain outside this task boundary.
 COMMIT_PATHS=("${TASK_PATHS[@]}" "$BOOK_TASKS_FILE" "$BOOK_COMPLETED_TASKS_FILE")

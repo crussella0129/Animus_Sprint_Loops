@@ -57,6 +57,8 @@ Exactly one route is complete:
 - **Re-architecture failure:** non-empty `failure-report.md` naming affected
   intents and evidence. A test critique/report is not required on this route.
 
+- The phase's exit artifacts are committed; the installed `scripts/check-tracked.sh` helper reports a clean Book.
+
 On the pass route, `test-report.md` plus a structurally valid critique with an
 accepted final verdict are required for `current-phase.sh` to report `loop`.
 A `block` or malformed critique remains in Test. A non-empty failure report

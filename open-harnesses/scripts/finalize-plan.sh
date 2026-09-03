@@ -8,6 +8,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/critic-contract.sh"
 book_require_v2_layout
 
+# Committed-evidence gate (contract 3). Phase exits are satisfied by artifacts
+# existing, and an untracked file is indistinguishable from a committed one, so
+# planning can otherwise be locked over evidence that was never recorded.
+if book_gates_active; then
+  if ! FINALIZE_TRACKED_OUT=$(bash "$SCRIPT_DIR/check-tracked.sh" 2>&1); then
+    echo "refusing to finalize: commit the Book before locking the plans" >&2
+    printf '%s\n' "$FINALIZE_TRACKED_OUT" >&2
+    exit 1
+  fi
+fi
+
 LAST=$("$SCRIPT_DIR/current-sprint.sh")
 if [ "$LAST" = -1 ]; then echo "no sprints found" >&2; exit 1; fi
 D="$BOOK_SPRINTS_DIR/s$LAST/sprint-plans"

@@ -17,10 +17,17 @@ phase-routing record; it does not redefine intent.
 - **Summary:** (one-line sprint goal, filled after Plan Phase)
 - **Intents:** [INT-0001](../../intents/INT-0001-short-title.md)
 - **Completion evidence:** (filled at Loop Phase)
+- **Checkpoint:** (filled by the remote adapter when the checkpoint opens)
 
 ## Blockages
 (Optional. Name the affected task and intent, impact, and disposition.)
 ```
+
+`Checkpoint` records the URL of the sprint's one `work -> base` PR/MR. The
+remote adapter appends it when the checkpoint opens and commits that write,
+so a later sprint can tell its own checkpoint from the previous one without
+querying the provider, and the Book is never left dirty behind a checkpoint.
+Records written before the field existed remain valid.
 
 `Bundle version` records the Sprint Loops bundle that ran the sprint, taken
 from the installed `scripts/bundle-version.sh`. Sprint records written before

@@ -140,6 +140,19 @@ update on `work`, then supersede the unmergeable updater PR. It uses the same
 `work -> base` checkpoint as every other sprint, with no checkpoint or sprint
 subtype.
 
+## Turn Contract
+
+A sprint is one turn. Once a sprint is open, continue through its phases and
+stop only at one of four boundaries: a blocking product ambiguity, a claim that
+needs human judgment to verify, an explicit abort, or the merge boundary once
+the checkpoint is open under `mergePolicy: human-approve`. The contract is
+advisory — no helper runs when a turn simply ends — but the evidence a premature
+stop leaves behind is enforced: `substrate-outdated` and `substrate-misplaced`
+are reported before routing, the checkpoint is refused while the sprint is open,
+plan finalization and sprint close are refused while the Book carries
+uncommitted state, and a task commit is refused from any branch that is not the
+profile's work branch.
+
 ## Authority
 
 Always Proceed and auto-accept are interaction preferences only. They do not

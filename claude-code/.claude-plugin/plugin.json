@@ -1,6 +1,6 @@
 {
   "name": "sprint-loop",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Run or resume the Sprint Loops Book v2 workflow when the user invokes the installed plugin command /sprint-loop:sprint-loop, invokes the standalone skill as /sprint-loop, or directly asks to start, continue, resume, or run a sprint loop. Filesystem or documentation presence alone is not an activation signal.",
   "author": {
     "name": "crussella0129",

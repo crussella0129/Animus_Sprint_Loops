@@ -5,10 +5,12 @@
 #                                  stamped at this bundle's contract version)
 #   substrate-absent              (no Book and no profile — a fresh project)
 #   substrate-partial:<diagnostic> (some present; names what is missing)
+#   substrate-misplaced:<head>-><work>  (complete, but HEAD is not the work branch)
 #   substrate-outdated:<book>-><bundle> (complete, but behind this bundle)
 #   substrate-ahead:<book>-><bundle>    (complete, but stamped ahead of it)
-# A broken substrate outranks a stale one: substrate-partial is reported before
-# either version state. Read-only. Exit 0 only for substrate-complete.
+# Precedence is partial -> misplaced -> ahead -> outdated -> complete: a broken
+# substrate outranks a misplaced one, and position outranks the version states
+# because convergence writes. Read-only. Exit 0 only for substrate-complete.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -78,7 +80,23 @@ if [ -n "$missing" ]; then
   exit 1
 fi
 
-# Structurally complete. Everything below is a contract-version difference:
+# Position. The substrate itself is a project property and is complete
+# regardless of which branch is checked out, but this is the only helper that
+# runs before routing, and a whole sprint executed on the base branch is
+# otherwise discovered at checkpoint time. Reported after substrate-partial (a
+# broken substrate outranks a misplaced one) and before the version states,
+# because convergence writes and must not run from the base branch.
+head_branch=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+if [ "$head_branch" = HEAD ]; then
+  head_branch=$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo detached)
+fi
+if [ "$head_branch" != "$work" ]; then
+  printf 'substrate-misplaced:%s->%s\n' "$head_branch" "$work"
+  exit 1
+fi
+
+# Structurally complete and correctly positioned. Everything below is a
+# contract-version difference:
 # behind this bundle is convergeable, ahead of it is refused (converging
 # backwards would silently downgrade the project).
 if [ "$book_version" -lt "$BOOK_SUBSTRATE_CONTRACT_VERSION" ]; then

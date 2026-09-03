@@ -48,6 +48,7 @@ Do not use navigation or migrated history as current project intent.
 - The report contains Sprint Goal, Existing Code Survey, External Sources,
   Risks/Unknowns/Dependencies, Recommended Approach, and referenced artifacts.
 - `research-budget.sh` passes, or the report contains a justified override.
+- The phase's exit artifacts are committed; the installed `scripts/check-tracked.sh` helper reports a clean Book.
 - The installed `current-phase.sh` helper reports `plan`.
 
 When complete, read `phases/03-plan-phase.md`.

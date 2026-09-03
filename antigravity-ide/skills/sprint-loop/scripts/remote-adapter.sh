@@ -2,7 +2,14 @@
 # Provider-agnostic sprint checkpoint adapter. Opens exactly one work->base
 # PR/MR via the declared remote profile (github->gh, gitlab->glab), or falls
 # back to pushing work and printing the compare URL. Never merges — merging is
-# the human-approve boundary. Usage:
+# the human-approve boundary.
+#
+# At contract version 3 and above the checkpoint is gated on a closed sprint and
+# its title is composed from the Book, because a checkpoint opened mid-sprint is
+# the visible symptom of a turn that ended early, and an uninformative title
+# makes the checkpoint list — a project's most-read index — index nothing.
+#
+# Usage:
 #   remote-adapter.sh [--root D] pr-exists              # exit 0 if an open PR/MR exists
 #   remote-adapter.sh [--root D] open-pr [--title T] [--body B]
 set -uo pipefail
@@ -29,6 +36,69 @@ provider=$(printf '%s\n' "$prof" | sed -n 's/^PROVIDER=//p')
 base=$(printf '%s\n' "$prof" | sed -n 's/^BASE=//p')
 work=$(printf '%s\n' "$prof" | sed -n 's/^WORK=//p')
 
+SPRINT_N=-1
+SPRINT_META=""
+
+book_phase() {
+  SPRINT_LOOP_PROJECT_ROOT="$ROOT" bash "$SCRIPT_DIR/current-phase.sh" 2>/dev/null || echo unknown
+}
+
+resolve_sprint() {
+  SPRINT_N=$(SPRINT_LOOP_PROJECT_ROOT="$ROOT" bash "$SCRIPT_DIR/current-sprint.sh" 2>/dev/null || echo -1)
+  [ "$SPRINT_N" != -1 ] || return 1
+  SPRINT_META="$BOOK_SPRINTS_DIR/s$SPRINT_N/sprint-meta.md"
+  [ -s "$SPRINT_META" ]
+}
+
+# Read one anchored sprint-meta field by exact prefix.
+meta_field() {
+  awk -v prefix="- **$1:** " '
+    { line=$0; sub(/\r$/, "", line) }
+    substr(line, 1, length(prefix)) == prefix {
+      print substr(line, length(prefix) + 1); exit
+    }
+  ' "$SPRINT_META"
+}
+
+# The checkpoint title is Book-derived, not free text: Sprint <N>: <Summary>.
+compose_title() {
+  local summary
+  summary=$(meta_field Summary)
+  case "$summary" in
+    ''|'(one-line'*)
+      printf 'remote-adapter: sprint %s has no Summary; the checkpoint title is composed from it\n' "$SPRINT_N" >&2
+      printf '  fill the Summary field in %s before opening the checkpoint\n' "$SPRINT_META" >&2
+      return 1 ;;
+  esac
+  printf 'Sprint %s: %s' "$SPRINT_N" "$summary"
+}
+
+# Record the checkpoint in the sprint record and commit it. open-pr runs after
+# close-sprint has committed, so an uncommitted write here would leave the Book
+# dirty for the next sprint's committed-evidence gate to trip on.
+record_checkpoint() {
+  local url=$1 tmp
+  [ -n "$url" ] || return 0
+  [ -s "$SPRINT_META" ] || return 0
+  grep -qF -- '- **Checkpoint:**' "$SPRINT_META" && return 0
+  tmp="$SPRINT_META.checkpoint.$$"
+  CHECKPOINT_URL=$url awk '
+    BEGIN { url=ENVIRON["CHECKPOINT_URL"] }
+    {
+      if (NR == 1 && sub(/\r$/, "", $0)) ORS="\r\n"
+      else sub(/\r$/, "", $0)
+      print
+    }
+    /^- \*\*Completion evidence:\*\*/ && !done {
+      print "- **Checkpoint:** " url; done=1
+    }
+    END { if (!done) print "- **Checkpoint:** " url }
+  ' "$SPRINT_META" > "$tmp" || { rm -f "$tmp"; return 0; }
+  mv "$tmp" "$SPRINT_META" || return 0
+  git -C "$ROOT" add -- "$SPRINT_META" >/dev/null 2>&1 || return 0
+  git -C "$ROOT" commit -q -m "sprint-$SPRINT_N: record checkpoint" -- "$SPRINT_META" >/dev/null 2>&1 || return 0
+}
+
 pr_exists() {
   case "$provider" in
     github)
@@ -50,16 +120,26 @@ compare_url() {
 }
 
 open_pr() {
+  local created=""
   [ -n "$TITLE" ] || TITLE="Sprint checkpoint: $work -> $base"
+  [ -n "$BODY" ] || BODY="Sprint checkpoint from $work to $base."
   git -C "$ROOT" push -q -u origin "$work" 2>/dev/null || true
   case "$provider" in
     github)
       if command -v gh >/dev/null 2>&1; then
-        ( cd "$ROOT" && gh pr create --head "$work" --base "$base" --title "$TITLE" --body "$BODY" ) && return 0
+        if created=$( cd "$ROOT" && gh pr create --head "$work" --base "$base" --title "$TITLE" --body "$BODY" ); then
+          printf '%s\n' "$created"
+          record_checkpoint "$created"
+          return 0
+        fi
       fi ;;
     gitlab)
       if command -v glab >/dev/null 2>&1; then
-        ( cd "$ROOT" && glab mr create --source-branch "$work" --target-branch "$base" --title "$TITLE" --description "$BODY" ) && return 0
+        if created=$( cd "$ROOT" && glab mr create --source-branch "$work" --target-branch "$base" --title "$TITLE" --description "$BODY" ); then
+          printf '%s\n' "$created"
+          record_checkpoint "$created"
+          return 0
+        fi
       fi ;;
   esac
   printf 'remote-adapter: pushed %s; open a %s -> %s PR/MR manually: %s\n' "$work" "$work" "$base" "$(compare_url)"
@@ -69,6 +149,34 @@ open_pr() {
 case "$ACTION" in
   pr-exists) pr_exists ;;
   open-pr)
+    # Checkpoint gate (contract 3): a checkpoint is the boundary of a finished
+    # sprint, so it is refused while one is still open. current-phase.sh reports
+    # ready-for-next-sprint exactly when the sprint metadata carries a terminal
+    # Exit status, so this one call is the whole condition. An aborted sprint
+    # reaches that state too, and may checkpoint: abandoned work still needs a
+    # reversible boundary.
+    if book_gates_active; then
+      phase=$(book_phase)
+      if [ "$phase" != ready-for-next-sprint ]; then
+        printf 'remote-adapter: refusing to open a checkpoint while the sprint is open (phase: %s)\n' "$phase" >&2
+        echo '  close the sprint first; a checkpoint is the boundary of a finished sprint' >&2
+        exit 1
+      fi
+      if ! resolve_sprint; then
+        echo 'remote-adapter: no sprint record to checkpoint' >&2
+        exit 1
+      fi
+      if [ -n "$TITLE" ]; then
+        printf '%s\n' "$TITLE" | grep -Eq '^Sprint [0-9]+: .+' || {
+          printf 'remote-adapter: refusing the supplied title %s\n' "\"$TITLE\"" >&2
+          echo '  a checkpoint title must read: Sprint <N>: <description>' >&2
+          exit 1
+        }
+      else
+        TITLE=$(compose_title) || exit 1
+      fi
+      [ -n "$BODY" ] || BODY="Sprint $SPRINT_N checkpoint. Record: docs/sprints/s$SPRINT_N/sprint-meta.md"
+    fi
     if [ "$provider" = local-only ]; then
       echo "remote-adapter: local-only profile; no PR/MR opened"; exit 0
     fi

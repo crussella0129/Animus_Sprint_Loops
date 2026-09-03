@@ -152,8 +152,35 @@ test_skill_defines_upgrade_argument() {
   pass
 }
 
+# Sprint 18: the turn contract is the operator-facing counterpart to the gates.
+test_turn_contract_present() {
+  for surface in \
+    claude-code/skills/sprint-loop/phases/06-loop-phase.md \
+    codex-cli/skills/sprint-loops/phases/06-loop-phase.md \
+    antigravity-ide/global_workflows/sprint-loops.md \
+    open-harnesses/particles/08-loop-phase.md; do
+    require_text "$surface" 'Turn Contract'
+    require_text "$surface" 'advisory'
+    require_text "$surface" 'abort'
+    require_text "$surface" 'human-approve'
+  done
+  require_text README.md 'One sprint per turn, one titled checkpoint per sprint'
+  require_text README.md 'substrate-misplaced'
+  pass
+}
+
+test_exit_evidence_requires_commit() {
+  for phase in 02-research-phase 04-build-phase 05-test-phase 06-loop-phase; do
+    require_text "claude-code/skills/sprint-loop/phases/$phase.md" 'check-tracked.sh'
+    require_text "codex-cli/skills/sprint-loops/phases/$phase.md" 'check-tracked.sh'
+  done
+  pass
+}
+
 test_root_docs_do_not_duplicate_protocol
 test_bundle_docs_are_adapter_scoped
+test_turn_contract_present
+test_exit_evidence_requires_commit
 test_phase01_documents_outdated_route
 test_skill_defines_upgrade_argument
 echo "operator-docs.test: $COUNT documentation contracts passed"

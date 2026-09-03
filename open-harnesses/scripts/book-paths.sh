@@ -6,7 +6,7 @@
 BOOK_SCHEMA_VERSION=2
 # The substrate contract version this bundle implements. A Book marker with no
 # 'substrate-version' entry predates the stamp and is contract version 1.
-BOOK_SUBSTRATE_CONTRACT_VERSION=2
+BOOK_SUBSTRATE_CONTRACT_VERSION=3
 BOOK_SPLIT_BRAIN_DIAGNOSTIC='split-brain state: writable Book and legacy Sprint Loops layouts coexist'
 BOOK_LEGACY_ONLY_DIAGNOSTIC='legacy-only Sprint Loops layout detected; migrate to the v2 Book before writing state'
 BOOK_UNINITIALIZED_DIAGNOSTIC='Sprint Loops Book is not initialized'
@@ -80,6 +80,19 @@ book_substrate_version() {
     return 1
   }
   printf '%s\n' "$book_substrate_version_value"
+}
+
+# Contract version at which the Sprint 18 turn-and-checkpoint gates bind. A Book
+# below this version predates them and must behave exactly as it did before.
+BOOK_GATES_MIN_CONTRACT_VERSION=3
+
+# True when the Book's contract version is at or above the version that
+# introduced the gates. An unreadable or malformed version leaves them inactive
+# rather than failing the caller: a gate's job is to add a check, never to break
+# a project that has not converged.
+book_gates_active() {
+  book_gates_version=$(book_substrate_version 2>/dev/null) || return 1
+  [ "$book_gates_version" -ge "$BOOK_GATES_MIN_CONTRACT_VERSION" ]
 }
 
 book_has_book_layout() {

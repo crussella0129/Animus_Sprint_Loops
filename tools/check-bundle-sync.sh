@@ -54,6 +54,8 @@ REQUIRED_SCRIPTS=(
   update-confidence.sh
   check-substrate.sh
   check-substrate.test.sh
+  check-tracked.sh
+  check-tracked.test.sh
   deploy-substrate.sh
   deploy-substrate.test.sh
   remote-adapter.sh

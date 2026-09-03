@@ -20,6 +20,33 @@ esac
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/book-paths.sh"
 book_require_v2_layout
+# Committed-evidence gate (contract 3), at entry. close-sprint writes and
+# commits the sprint metadata itself, so a check placed after that write would
+# always see its own change and always fail.
+if book_gates_active; then
+  if ! CLOSE_TRACKED_OUT=$(bash "$SCRIPT_DIR/check-tracked.sh" 2>&1); then
+    echo "refusing to close: commit the Book before closing the sprint" >&2
+    printf '%s\n' "$CLOSE_TRACKED_OUT" >&2
+    exit 1
+  fi
+fi
+
+# Work-branch guard (contract 3). A sprint executed on the base branch is
+# otherwise only discovered at checkpoint time, when the whole sprint is already
+# there. Refuse before anything is staged. A project with no resolvable remote
+# profile is a legitimate configuration and is left alone.
+if book_gates_active; then
+  if BRANCH_PROFILE=$(bash "$SCRIPT_DIR/remote-profile.sh" 2>/dev/null); then
+    EXPECTED_BRANCH=$(printf '%s\n' "$BRANCH_PROFILE" | sed -n 's/^WORK=//p')
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+    if [ -n "$EXPECTED_BRANCH" ] && [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
+      printf 'refusing to close: HEAD is %s but the remote profile names %s as the work branch\n' "$CURRENT_BRANCH" "$EXPECTED_BRANCH" >&2
+      printf '  switch to %s before writing sprint state\n' "$EXPECTED_BRANCH" >&2
+      exit 1
+    fi
+  fi
+fi
+
 N=$("$SCRIPT_DIR/current-sprint.sh")
 if [ "$N" = -1 ]; then echo "no sprint to close" >&2; exit 1; fi
 META="$BOOK_SPRINTS_DIR/s$N/sprint-meta.md"
