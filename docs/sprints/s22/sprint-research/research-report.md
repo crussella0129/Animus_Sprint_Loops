@@ -36,6 +36,9 @@ This sprint starts from the latest remote work-branch source.
 ## 4. Risks, Unknowns, Dependencies
 - A suite hash alone excludes its subject and dependencies. Bind confirmations
   to the committed source tree and refuse dirty/unavailable or mismatched provenance.
+- The plan critic identified an untracked-dependency gap: even a clean tracked
+  tree can pass using files absent from HEAD. Add `--committed` to run qualifying
+  baselines from one archive; normal working-tree reports cannot qualify.
 - A PASS with a determinism mismatch is not a passing baseline. Missing,
   malformed, duplicate, stale, or failing baseline rows must not produce success.
 - Diagnostics must preserve actual output while evidence hashes keep their
@@ -46,6 +49,9 @@ This sprint starts from the latest remote work-branch source.
 - T-181's original macOS failure cannot be diagnosed from discarded output.
   Keep it open; captured diagnostics enable investigation if it recurs.
 - T-178's version-literal guard and the broader INT-0007 sweep remain outside scope.
+- Independent code review reproduced mutation leakage between suites, improper
+  deduplication of distinct suites sharing a subject, and hash/report failures
+  returning success. Include these in T-179's evidence-integrity boundary.
 - Git Bash requires an explicit `/usr/bin:/bin` PATH in this execution environment.
   The installed shellcheck and Python availability must be resolved for canonical checks.
 

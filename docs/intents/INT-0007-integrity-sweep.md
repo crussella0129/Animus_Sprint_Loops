@@ -2,8 +2,8 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0007
-- **State:** proposed
-- **Work evidence:** none
+- **State:** planned
+- **Work evidence:** [Sprint 22 T-177](../sprints/s22/sprint-plans/build-plan.md#t-177-remove-duplicate-compatibility-suites)
 - **Completion evidence:** none
 - **Code evidence:** none
 - **Test evidence:** none
@@ -84,3 +84,6 @@ would not be.
 - 2026-09-02: created as `proposed` — derived from operator feedback item 3.a,
   which observed stubs surviving compaction and agent handover between sprints,
   and vestigial structure accumulating with nothing looking for it.
+- 2026-09-04: `proposed` -> `planned` for Sprint 22 T-177, retiring the two
+  compatibility shims already identified in Sprint 21. This is preparatory
+  cleanup; the computed sweep and its acceptance criteria remain outstanding.

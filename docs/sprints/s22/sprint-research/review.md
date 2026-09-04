@@ -2,6 +2,17 @@
 
 Reviewed baseline: `d765e33cf402b37d118069b9d6b2e597df8170f3`.
 
+- **P1 / correctness — mutation leaks between suites.** Independent review
+  reproduced an insensitive second suite scoring sensitive because the first
+  subject remained neutered in the shared copy. Restore after every run,
+  including unscorable paths; verify order independence.
+- **P1 / correctness — infrastructure failures report success.** A failing
+  hash backend produces empty hashes and PASS; failed confirmation appends are
+  ignored. Require successful capture, hashing, and writes before confirming.
+- **P2 / correctness — subject deduplication skips distinct tests.** Two
+  suites may legitimately test one subject. A sensitive suite cannot establish
+  that its sibling is sensitive; score each independently after removing shims.
+
 - **P1 / correctness — stale sensitivity evidence (T-179).**
   `baseline_status()` reads only status. A historical PASS can qualify a changed
   test or broken subject at HEAD as sensitive. A `status:PASS` row with
