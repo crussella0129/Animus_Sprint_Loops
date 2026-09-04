@@ -175,12 +175,15 @@ cleanup() {
 on_signal() { exit 130; }
 trap cleanup EXIT
 trap on_signal HUP INT TERM
-if awk 'NR == 1 { exit !(substr($0, length($0), 1) == "\r") }' "$BP"; then
+# Line endings come from book-paths.sh, not an open-coded awk idiom: on the
+# host this matters for, awk cannot see a carriage return, so the old form
+# gave a CRLF plan an LF header and produced the mixed file it prevents.
+if book_first_line_is_crlf "$BP"; then
   { printf '%s\r\n\r\n' "$HEADER"; cat "$BP"; } > "$BP_TMP"
 else
   { printf '%s\n\n' "$HEADER"; cat "$BP"; } > "$BP_TMP"
 fi
-if awk 'NR == 1 { exit !(substr($0, length($0), 1) == "\r") }' "$TP"; then
+if book_first_line_is_crlf "$TP"; then
   { printf '%s\r\n\r\n' "$HEADER"; cat "$TP"; } > "$TP_TMP"
 else
   { printf '%s\n\n' "$HEADER"; cat "$TP"; } > "$TP_TMP"

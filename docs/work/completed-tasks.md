@@ -577,3 +577,10 @@
 - **Completed:** 2026-09-03T16:48:00Z
 - **Files modified:** `{claude-code,codex-cli}/skills/*/phases/01-init-sprint.md`, `open-harnesses/particles/01-init-sprint.md`, `antigravity-ide/global_workflows/sprint-loops.md`, `README.md`, `tools/operator-docs.test.sh`, task ledgers
 - **Commit:** `91cc6734b389f0582c93e531809c056e5da11b90`
+
+## T-172 (sprint 21)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Replace every carriage-return detection in the corpus with one shared primitive built on a bash read, the only construct that observes a CR on all supported hosts. Fixing the detection made the runtime-helpers suite reachable past line 232 for the first time since sprint 18, and what it reached was a production defect rather than a fixture problem: abort-sprint.sh, close-sprint.sh, commit-task.sh and remote-adapter.sh each decided a file's line endings by testing whether an awk substitution had stripped a trailing CR. That test returns 0 on a host whose awk cannot see a CR, so all four silently rewrote CRLF Book files as LF on Windows. The decision now comes from the shell primitive and is passed into awk. Three further assertions in the fixture were blind in the same direction as the code they checked, which is why none of it was visible. An audit of all 60 already-locked plans in this repository found 0 mixed-ending files, so the fix removes the cause and there is no damage to repair. The suite now reports 37 fixtures passed, exit 0.
+- **Completed:** 2026-09-03T00:00:00Z
+- **Files modified:** `{open-harnesses,claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop}/scripts/{book-paths,finalize-plan,abort-sprint,close-sprint,commit-task,remote-adapter}.sh`, `.../scripts/runtime-helpers.test.sh`
+- **Commit:** PENDING

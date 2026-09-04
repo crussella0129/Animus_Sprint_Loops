@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0013
-- **State:** planned
+- **State:** active
 - **Work evidence:** [T-172-T-176 build plan](../sprints/s21/sprint-plans/build-plan.md#execution-sequence), [Sprint 21 test plan](../sprints/s21/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -118,3 +118,6 @@ no-literal criteria cover the shapes it cannot see.
   them sensitive for the wrong reason - shipping the defect class it exists
   to catch. The control was then replaced by the guard runner's own report,
   which is cheaper and already proves each suite passes.
+- 2026-09-03: `planned` -> `active` - Build began with T-172, the line-ending
+  primitive, because until the guard suite runs to completion on the operator's
+  host the sprint cannot see the evidence its later tasks produce.
