@@ -584,3 +584,10 @@
 - **Completed:** 2026-09-03T00:00:00Z
 - **Files modified:** `{open-harnesses,claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop}/scripts/{book-paths,finalize-plan,abort-sprint,close-sprint,commit-task,remote-adapter}.sh`, `.../scripts/runtime-helpers.test.sh`
 - **Commit:** `46c8a0056585c9f7b1cab229b7c94558ef2a6934`
+
+## T-173 (sprint 21)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** The runner's console summary labelled every failing suite in a --determinism run a determinism mismatch. The label expanded on the field being SET, and the field is set in both directions, carrying an "ok" payload on agreement. The ndjson was correct throughout, so nothing downstream ever contradicted the console. The label now follows the mismatch itself. This also gave the canonical runner its first test file: it decides whether every other suite passed and had no fixtures of its own, which is how a four-sprint-old defect survived. Two seams make those fixtures cheap - RUN_GUARDS_ONLY_EXTRA runs only synthetic suites, and naming suites as arguments restricts a run - rather than paying the real 19-suite cost to observe one console line. The fixtures were verified against the pre-fix expression and fail with the exact diagnostic. DEVIATION: tools/run-guards.sh in this commit also carries T-174's suite_subject/--list-suites/--list-subjects interface; the two tasks share one file and the critique (C-004) moved that interface to T-174, so it is recorded there and lands here only for path coherence.
+- **Completed:** 2026-09-03T00:00:00Z
+- **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh` (new)
+- **Commit:** PENDING

@@ -1,6 +1,5 @@
 # Agent Tasks (Persistent Backlog)
 
-- [ ] T-173 (sprint 21) [intent: INT-0013]: stop the runner mislabelling deterministic failures — `${det:+ det-mismatch}` expands whenever det is set, and det is set to the "ok" payload on agreement, so every failing suite in a --determinism run is called nondeterministic — touches: tools/run-guards.sh
 - [ ] T-174 (sprint 21) [intent: INT-0013]: require every suite to fail when its subject is neutered — new tools/check-suite-sensitivity.sh over a repository copy, with suite_subject()/--list-suites/--list-subjects in run-guards.sh as the single suite-list definition — touches: tools/check-suite-sensitivity.sh, tools/check-suite-sensitivity.test.sh, tools/run-guards.sh
 - [ ] T-175 (sprint 21) [intent: INT-0013]: pair every negative assertion with proof the command ran, and replace assertions against a version constant's current literal with the relationship the property needs — touches: {4 bundles}/scripts/*.test.sh, tools/*.test.sh except operator-docs
 - [ ] T-176 (sprint 21) [intent: INT-0013]: document the sensitivity check including its floor-not-proof limit, and bump the bundle to 0.21.0 — touches: README.md, {4 bundles}/scripts/bundle-version.sh, claude-code/.claude-plugin/plugin.json, tools/operator-docs.test.sh
