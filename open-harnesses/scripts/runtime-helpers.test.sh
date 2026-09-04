@@ -225,7 +225,10 @@ pass
 # awk was blind in exactly the direction finalize-plan.sh was: both agreed a
 # CRLF file was LF, and the suite passed while the property failed.
 book_probe() {  # <fn> <file>
-  ( cd "$SCRIPT_DIR" && . ./book-paths.sh 2>/dev/null && "$1" "$2" )
+  # No 2>/dev/null: a book-paths.sh that fails to source would otherwise be
+  # indistinguishable from "this file is not CRLF", and every negative fixture
+  # below would pass for the wrong reason.
+  ( cd "$SCRIPT_DIR" && . ./book-paths.sh && "$1" "$2" )
 }
 PROBE="$TMP_ROOT/crlf-probe"
 mkdir -p "$PROBE"
@@ -265,8 +268,7 @@ pass
 
 # Recorded, not asserted: awk's verdict is host-dependent, and the point of the
 # primitive is that the corpus no longer depends on it.
-printf 'runtime-helpers.test: note: awk reads the CRLF probe as %s
-'   "$(awk 'NR == 1 { print (substr($0, length($0), 1) == "\r") ? "CRLF" : "LF" }' "$PROBE/crlf.txt")"
+printf 'runtime-helpers.test: note: awk reads the CRLF probe as %s\n'   "$(awk 'NR == 1 { print (substr($0, length($0), 1) == "\r") ? "CRLF" : "LF" }' "$PROBE/crlf.txt")"
 
 # test_finalize_preserves_uniform_crlf
 plan_fixture crlf_plans
@@ -296,7 +298,10 @@ plan_fixture lf_plans
 run_script "$F" finalize-plan.sh >/dev/null
 for plan_name in build-plan.md test-plan.md; do
   plan_path="$F/docs/sprints/s0/sprint-plans/$plan_name"
-  if book_probe book_first_line_is_crlf "$plan_path"; then
+  # Every line, not just the first: the defect this guards against is a MIXED
+  # file, and a first-line check is exactly the instrument that cannot see one.
+  # tr is used because it observes a CR on this host, where awk and grep do not.
+  if [ "$(LC_ALL=C tr -dc '\r' < "$plan_path" | wc -c)" -ne 0 ]; then
     fail "finalization introduced a CR into an LF-only $plan_name"
   fi
 done

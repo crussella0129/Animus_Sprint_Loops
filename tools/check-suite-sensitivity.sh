@@ -82,7 +82,12 @@ else
 fi
 SUBJECTS=$(bash "$ROOT/tools/run-guards.sh" --list-subjects)
 
+work="$TMP_ROOT/work"
+cp -r "$PRISTINE" "$work"
+
 insensitive=""
+unscorable=""
+seen_subjects=""
 scored=0
 printf '%-24s %-14s %s\n' "SUITE" "VERDICT" "SUBJECT"
 printf '%-24s %-14s %s\n' "------------------------" "--------------" "-------"
@@ -101,28 +106,53 @@ for suite in $SUITES; do
     printf '%-24s %-14s %s\n' "$suite" "skipped" "harness-subject (scored by its own fixtures)"
     continue
   fi
+  # Two suites can share a subject: merge-policy-test is a shim that execs the
+  # adapter-semantics fixtures, so both name check-adapter-semantics.sh. Scoring
+  # it twice re-runs the corpus's second-slowest suite for the same answer.
+  case " $seen_subjects " in
+    *" $subject "*)
+      printf '%-24s %-14s %s\n' "$suite" "duplicate" "subject already scored: $subject"
+      continue ;;
+  esac
   status=$(baseline_status "$suite")
   if [ "$status" != PASS ]; then
     printf '%-24s %-14s %s\n' "$suite" "skipped" "baseline-not-pass ($status)"
     continue
   fi
 
-  work="$TMP_ROOT/work"
-  rm -rf "$work"
-  cp -r "$PRISTINE" "$work"
-  [ -f "$work/$subject" ] || {
+  # One work copy for the whole sweep, with only the subject restored between
+  # suites. A full recursive copy per suite is 13 copies of the tree on a
+  # runner that already takes ~50 minutes (T-163).
+  [ -f "$PRISTINE/$subject" ] || {
     printf '%-24s %-14s %s\n' "$suite" "skipped" "subject absent at HEAD: $subject"
     continue
   }
+  cp "$PRISTINE/$subject" "$work/$subject"
   printf '#!/usr/bin/env bash\n# neutered by check-suite-sensitivity.sh\nexit 0\n' > "$work/$subject"
   chmod +x "$work/$subject"
 
-  if (cd "$work" && bash tools/run-guards.sh --out "$TMP_ROOT/neutered.ndjson" "$suite") >/dev/null 2>&1; then
+  rm -f "$TMP_ROOT/neutered.ndjson"
+  (cd "$work" && bash tools/run-guards.sh --out "$TMP_ROOT/neutered.ndjson" "$suite") >/dev/null 2>&1
+  neutered_rc=$?
+
+  # A non-zero exit is NOT by itself proof the suite noticed. Every way the
+  # harness can break lands here too: a suite name the copy does not know
+  # (run-guards exits 2), a file the archive did not carry, a failed copy. If
+  # those scored as `sensitive`, a wholly broken sweep would report the corpus
+  # clean - a check that cannot fail, which is the defect this tool exists to
+  # find. The runner writes one confirmation row per suite it actually ran, so
+  # that row is what separates "the suite ran and failed" from "it never ran".
+  if [ "$neutered_rc" -eq 0 ]; then
     printf '%-24s %-14s %s\n' "$suite" "INSENSITIVE" "$subject"
     insensitive="$insensitive $suite"
+  elif ! grep -q "\"suite\":\"$suite\"" "$TMP_ROOT/neutered.ndjson" 2>/dev/null; then
+    printf '%-24s %-14s %s\n' "$suite" "unscorable" "did not run in the copy (rc=$neutered_rc)"
+    unscorable="$unscorable $suite"
+    continue
   else
     printf '%-24s %-14s %s\n' "$suite" "sensitive" "$subject"
   fi
+  seen_subjects="$seen_subjects $subject"
   scored=$((scored + 1))
 done
 
@@ -130,6 +160,12 @@ echo
 if [ -n "$insensitive" ]; then
   echo "check-suite-sensitivity: these suites PASS with their subject neutered:$insensitive" >&2
   echo "  each is asserting something that does not depend on the script it tests" >&2
+  exit 1
+fi
+if [ -n "$unscorable" ]; then
+  echo "check-suite-sensitivity: these suites could not be scored:$unscorable" >&2
+  echo "  each failed without the runner recording a confirmation, so the failure" >&2
+  echo "  came from the harness rather than from the neutered subject" >&2
   exit 1
 fi
 echo "check-suite-sensitivity: $scored suites scored, all fail when their subject is neutered"

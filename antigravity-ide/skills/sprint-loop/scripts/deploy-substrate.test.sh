@@ -199,8 +199,12 @@ before_ahead=$(snap "$U")
 if bash "$DS" --root "$U" >/dev/null 2>"$U.ahead"; then
   die test_converge_refuses_ahead_book 'ahead Book accepted'
 fi
-grep -q "$AHEAD" "$U.ahead" && grep -q "$V" "$U.ahead" ||
-  die test_converge_refuses_ahead_book "diagnostic names neither version: $(cat "$U.ahead")"
+# Anchored to the diagnostic's wording, not to two bare integers: with the
+# contract at 4 those are the single digits 5 and 4, which almost any message
+# satisfies. The literal 99 this replaced was accidentally strong; the
+# relationship must not buy correctness at the cost of the assertion.
+grep -q "version $AHEAD is ahead of this bundle's $V" "$U.ahead" ||
+  die test_converge_refuses_ahead_book "diagnostic does not name both versions: $(cat "$U.ahead")"
 [ "$before_ahead" = "$(snap "$U")" ] || die test_converge_refuses_ahead_book 'ahead refusal mutated the project'
 pass test_converge_refuses_ahead_book
 

@@ -216,16 +216,24 @@ if [ -n "$SELECTED" ]; then
   SUITES=("${CHOSEN[@]}")
 fi
 
+# bash before 4.4 - which includes the 3.2 that stock macOS still ships, the
+# same target hash_stdin works around - treats "${arr[@]}" on an EMPTY array as
+# an unbound variable under `set -u`. SUITES can legitimately be empty here
+# (RUN_GUARDS_ONLY_EXTRA=1 with no extras), so say so rather than abort with
+# "SUITES[@]: unbound variable".
+if [ "${#SUITES[@]}" -eq 0 ]; then
+  echo "run-guards: no suites selected" >&2
+  exit 2
+fi
+
 if [ "$LIST_MODE" = suites ]; then
-  printf '%s
-' "${SUITES[@]}"
+  printf '%s\n' "${SUITES[@]}"
   exit 0
 fi
 if [ "$LIST_MODE" = subjects ]; then
   for name in "${SUITES[@]}"; do
     subject=$(suite_subject "$name")
-    [ -n "$subject" ] && printf '%s %s
-' "$name" "$subject"
+    [ -n "$subject" ] && printf '%s %s\n' "$name" "$subject"
   done
   exit 0
 fi

@@ -123,8 +123,7 @@ export SPRINT_LOOP_CLOSE_EVIDENCE
 # Detecting it inside awk silently rewrote CRLF Book files as LF.
 if book_first_line_is_crlf "$META"; then _crlf=1; else _crlf=0; fi
 awk -v crlf="$_crlf" -v ts="$TS" -v status="$TARGET_STATUS" '
-  BEGIN { if (crlf) ORS="\r\n" }
-  BEGIN { evidence=ENVIRON["SPRINT_LOOP_CLOSE_EVIDENCE"] }
+  BEGIN { evidence=ENVIRON["SPRINT_LOOP_CLOSE_EVIDENCE"]; if (crlf) ORS="\r\n" }
   {
     sub(/\r$/, "", $0)
   }

@@ -151,19 +151,23 @@ book_require_v2_layout() {
 # helper rather than open-coding a neighbour's idiom. Measured evidence:
 # docs/sprints/s21/sprint-research/line-ending-probe.txt.
 #
-# BOOK_CR is built without a trailing newline in the substituted output, which
-# is the case command substitution does not strip. `book_cr_is_intact` exists so
-# a caller can prove that rather than assume it.
-BOOK_CR=$(printf '\rx')
-BOOK_CR=${BOOK_CR%x}
+# BOOK_CR is a bash ANSI-C literal rather than a command substitution. An
+# earlier form built it with `$(printf ...)`, which is exactly the construct
+# this comment warns about: a trailing CR is stripped there, and during
+# development that produced an EMPTY BOOK_CR. That is the silent catastrophe,
+# because `case "$x" in *"")` matches every string - every file would read as
+# CRLF, finalize-plan.sh would give LF plans CRLF headers, and every fixture
+# asserting preservation would pass. The predicates below refuse to answer
+# rather than guess if it ever happens again.
+BOOK_CR=$'\r'
+BOOK_CR_DIAGNOSTIC='book-paths: BOOK_CR is not a single carriage return; line-ending detection is unsafe'
 
 book_cr_is_intact() {
   [ "${#BOOK_CR}" -eq 1 ]
 }
 
-# 0 if the file's first line ends in CR, 1 otherwise (an empty or unreadable
-# file is "not CRLF", not an error).
 book_first_line_is_crlf() {
+  book_cr_is_intact || { printf '%s\n' "$BOOK_CR_DIAGNOSTIC" >&2; return 2; }
   book_crlf_first=""
   IFS= read -r book_crlf_first < "$1" 2>/dev/null || :
   case "$book_crlf_first" in
@@ -176,6 +180,7 @@ book_first_line_is_crlf() {
 # file — an LF header prepended to a CRLF body — which a first-line check reads
 # as clean from one end and broken from the other.
 book_all_lines_are_crlf() {
+  book_cr_is_intact || { printf '%s\n' "$BOOK_CR_DIAGNOSTIC" >&2; return 2; }
   [ -s "$1" ] || return 1
   while IFS= read -r book_crlf_line || [ -n "$book_crlf_line" ]; do
     case "$book_crlf_line" in

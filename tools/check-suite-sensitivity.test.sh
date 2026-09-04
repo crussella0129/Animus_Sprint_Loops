@@ -73,14 +73,21 @@ pass test_insensitive_suite_is_caught
 
 # test_failing_baseline_is_not_scored — sensitivity of a failing suite is not a
 # meaningful question. The suite must not even be executed.
+# The marker must land somewhere that outlives the tool: suites run with cwd
+# set to a copy inside the tool's own temp dir, which its EXIT trap deletes,
+# so an earlier $PWD/RAN-MARKER could never be found and the assertion below
+# could never fire.
+RAN_MARKER="$TMP_ROOT/ran-marker"
+export RAN_MARKER
+rm -f "$RAN_MARKER"
 FB=$(fixture failbase '#!/usr/bin/env bash
-touch "$PWD/RAN-MARKER"
+touch "$RAN_MARKER"
 exit 0')
 baseline "$FB" FAIL
 out=$(run_tool "$FB"); rc=$?
 case "$out" in *baseline-not-pass*) : ;; *) die test_failing_baseline_is_not_scored "not skipped: $out" ;; esac
 [ "$rc" -eq 0 ] || die test_failing_baseline_is_not_scored "a skip was treated as a failure"
-find "$TMP_ROOT/failbase" -name RAN-MARKER | grep -q . &&
+[ ! -e "$RAN_MARKER" ] ||
   die test_failing_baseline_is_not_scored "the suite ran despite a non-PASS baseline"
 pass test_failing_baseline_is_not_scored
 

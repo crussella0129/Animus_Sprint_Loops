@@ -71,8 +71,7 @@ export SPRINT_LOOP_ABORT_REASON
 # Detecting it inside awk silently rewrote CRLF Book files as LF.
 if book_first_line_is_crlf "$META"; then _crlf=1; else _crlf=0; fi
 awk -v crlf="$_crlf" -v ts="$TS" '
-  BEGIN { if (crlf) ORS="\r\n" }
-  BEGIN { reason=ENVIRON["SPRINT_LOOP_ABORT_REASON"] }
+  BEGIN { reason=ENVIRON["SPRINT_LOOP_ABORT_REASON"]; if (crlf) ORS="\r\n" }
   {
     sub(/\r$/, "", $0)
   }
