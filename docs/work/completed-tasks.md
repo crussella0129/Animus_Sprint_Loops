@@ -632,4 +632,4 @@
 - **Description:** Remove obsolete merge-policy wrappers and all runner registrations. Inventory fixture proves each canonical adapter suite occurs once. Canonical runner passes run-guards-test, adapter-semantics, and adapter-semantics-test (3/3); ShellCheck passes. The retained adapter fixture alone took 186 seconds, demonstrating the material cost of the removed duplicate.
 - **Completed:** 2026-09-04T21:59:11Z
 - **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`, `tools/check-merge-policy.sh` (removed), `tools/check-merge-policy.test.sh` (removed), `docs/intents/INT-0007-integrity-sweep.md`
-- **Commit:** PENDING
+- **Commit:** `79bda965a8357306c93967cfd3a547b80f6d959c`
