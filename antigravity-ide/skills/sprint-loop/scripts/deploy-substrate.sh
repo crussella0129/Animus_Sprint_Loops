@@ -133,8 +133,13 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
     say_pending "initialize a git repository on $BASE"
     say_pending "create branch $WORK"
   fi
-  if [ "$(book_substrate_version 2>/dev/null || echo 1)" -ge 4 ]; then
-    check_ci=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER"       --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
+  # Gated on the version this bundle implements, not on the project's current
+  # stamp. Convergence raises the project to that version in the same run, so
+  # gating the preview on the pre-stamp value would omit the workflow for
+  # exactly the projects that are about to receive one.
+  if [ "$BOOK_SUBSTRATE_CONTRACT_VERSION" -ge 4 ]; then
+    check_ci=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER" \
+      --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
     [ -n "$check_ci" ] && say_pending "create $check_ci"
   fi
   if [ ! -f "$BOOK_MARKER" ]; then
@@ -171,8 +176,15 @@ rollback() {
   fi
   if [ -n "$CREATED_CI" ]; then
     rm -f "$CREATED_CI"
-    rmdir "$(dirname "$CREATED_CI")" 2>/dev/null || true
-    rmdir "$(dirname "$(dirname "$CREATED_CI")")" 2>/dev/null || true
+    # Only the Actions hosts nest two directories deep (.github/workflows/).
+    # For gitlab and generic the file sits at the project root, so an unguarded
+    # cascade would call rmdir on the root itself and then on its parent.
+    _ci_dir=$(dirname "$CREATED_CI")
+    if [ "$_ci_dir" != "$ROOT" ]; then
+      rmdir "$_ci_dir" 2>/dev/null || true
+      _ci_parent=$(dirname "$_ci_dir")
+      if [ "$_ci_parent" != "$ROOT" ]; then rmdir "$_ci_parent" 2>/dev/null || true; fi
+    fi
   fi
   [ -n "$CREATED_SPRINT" ] && rm -rf "$CREATED_SPRINT"
   [ "$CREATED_PROFILE" -eq 1 ] && rm -f "$PROFILE"
@@ -320,10 +332,12 @@ maybe_fail stamp
 # to the current contract in the same run, so evaluating the version before the
 # stamp would mean CI first appears on the *second* convergence — the run that
 # upgrades a project would silently skip the thing the upgrade is for.
-if [ "$(book_substrate_version 2>/dev/null || echo 1)" -ge 4 ]; then
-  ci_before=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER"     --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
+if [ "$BOOK_SUBSTRATE_CONTRACT_VERSION" -ge 4 ]; then
+  ci_before=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER" \
+    --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
   if [ -n "$ci_before" ]; then
-    bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER"       --base "$BASE" --work "$WORK" >/dev/null || fail "generating the CI configuration failed"
+    bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER" \
+      --base "$BASE" --work "$WORK" >/dev/null || fail "generating the CI configuration failed"
     [ -f "$ROOT/$ci_before" ] && CREATED_CI="$ROOT/$ci_before"
   fi
 fi

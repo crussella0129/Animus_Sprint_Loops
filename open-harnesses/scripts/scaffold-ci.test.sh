@@ -143,12 +143,29 @@ pass test_scaffold_generic_ci_actually_fails
 # blanket swallow that a CI truth check should reject.
 PY=$(project python-tolerance pyproject.toml)
 gen "$PY" github >/dev/null
-grep -q 'rc" -eq 5' "$PY/.github/workflows/sprint-loops-ci.yml" ||
+grep -q -- '-eq 5' "$PY/.github/workflows/sprint-loops-ci.yml" ||
   die test_scaffold_python_tolerates_no_tests 'no exit-5 allowance'
+grep -q -- '|| rc=$?' "$PY/.github/workflows/sprint-loops-ci.yml" ||
+  die test_scaffold_python_tolerates_no_tests 'the tolerance uses a form that set -e defeats'
 grep -q '|| true' "$PY/.github/workflows/sprint-loops-ci.yml" &&
   die test_scaffold_python_tolerates_no_tests 'generated a blanket failure swallow'
 grep -q 'continue-on-error' "$PY/.github/workflows/sprint-loops-ci.yml" &&
   die test_scaffold_python_tolerates_no_tests 'generated continue-on-error'
 pass test_scaffold_python_tolerates_no_tests
+
+# test_scaffold_python_tolerance_survives_set_e — greping for the exit-5 branch
+# is not enough: every host runs these commands under `set -e`, where a bare
+# `cmd; rc=$?` exits before the tolerance is evaluated and the allowance is dead
+# code. This executes the emitted script with a stub returning 5.
+PYG=$(project python-set-e pyproject.toml)
+gen "$PYG" generic >/dev/null
+{ printf 'python() { return 5; }\n'; grep -v '^#!' "$PYG/ci.sh"; } > "$PYG/run.sh"
+( cd "$PYG" && bash ./run.sh >/dev/null 2>&1 ) ||
+  die test_scaffold_python_tolerance_survives_set_e 'exit 5 still failed the generated job under set -e'
+{ printf 'python() { return 1; }\n'; grep -v '^#!' "$PYG/ci.sh"; } > "$PYG/run-fail.sh"
+if ( cd "$PYG" && bash ./run-fail.sh >/dev/null 2>&1 ); then
+  die test_scaffold_python_tolerance_survives_set_e 'a real pytest failure was tolerated'
+fi
+pass test_scaffold_python_tolerance_survives_set_e
 
 printf 'scaffold-ci selftest: all fixtures passed\n'

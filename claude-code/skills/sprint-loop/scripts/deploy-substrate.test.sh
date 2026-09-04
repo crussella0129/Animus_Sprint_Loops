@@ -503,4 +503,50 @@ bash "$DS" --root "$LOC" >/dev/null 2>&1 || die test_converge_local_only_gets_no
 [ ! -f "$LOC/ci.sh" ] || die test_converge_local_only_gets_no_ci 'local-only generated ci.sh'
 pass test_converge_local_only_gets_no_ci
 
+# test_check_previews_ci_before_convergence — the preview has to describe what
+# convergence will do, and convergence raises the contract in the same run. An
+# earlier form gated the preview on the pre-stamp version, so the projects about
+# to receive a workflow were the exact ones never told about it.
+PV=$(ci_project ci-preview Cargo.toml)
+bash "$DS" --root "$PV" >/dev/null 2>&1 || die test_check_previews_ci_before_convergence 'seed convergence failed'
+printf 'schema-version: 2\nsubstrate-version: 3\n' > "$PV/docs/.sprint-loop-book"
+rm -rf "$PV/.github/workflows"
+pv_out=$(bash "$DS" --root "$PV" --check 2>&1)
+case "$pv_out" in *"create $CI_REL"*) : ;; *) die test_check_previews_ci_before_convergence "preview omits the workflow: $pv_out" ;; esac
+case "$pv_out" in *'stamp substrate-version'*) : ;; *) die test_check_previews_ci_before_convergence 'preview omits the stamp' ;; esac
+pass test_check_previews_ci_before_convergence
+
+# test_converge_upgrades_existing_project — the upgrade case, which no fixture
+# covered: an established repository with commits and no CI, converging to the
+# current contract, must gain the workflow.
+UP="$TMP_ROOT/ci-upgrade"; mkdir -p "$UP"
+git init -q -b main "$UP"; git -C "$UP" config user.email t@t; git -C "$UP" config user.name t
+git -C "$UP" remote add origin https://github.com/o/r.git
+printf 'fixture\n' > "$UP/Cargo.toml"; printf 'readme\n' > "$UP/README.md"
+git -C "$UP" add -A >/dev/null 2>&1; git -C "$UP" commit -qm 'existing project' >/dev/null 2>&1
+bash "$DS" --root "$UP" >/dev/null 2>&1 || die test_converge_upgrades_existing_project 'convergence failed'
+[ -f "$UP/$CI_REL" ] || die test_converge_upgrades_existing_project 'no workflow generated on upgrade'
+grep -q '^  rust:' "$UP/$CI_REL" || die test_converge_upgrades_existing_project 'no rust job on upgrade'
+# Convergence writes into an established repository and commits nothing — the
+# Book, the marker, the updater config and the workflow are all left staged for
+# the operator. Asserted so the uniformity is deliberate rather than assumed.
+for artifact in "$CI_REL" .github/dependabot.yml docs/.sprint-loop-book; do
+  if git -C "$UP" ls-files --error-unmatch "$artifact" >/dev/null 2>&1; then
+    die test_converge_upgrades_existing_project "convergence committed $artifact into an established repository"
+  fi
+done
+pass test_converge_upgrades_existing_project
+
+# test_converge_rollback_spares_project_root — for gitlab and generic the CI file
+# sits at the project root, so an unguarded rmdir cascade would target the root
+# and then its parent.
+RR="$TMP_ROOT/ci-rollback-root"; mkdir -p "$RR"
+printf 'fixture\n' > "$RR/Cargo.toml"
+if DEPLOY_SUBSTRATE_FAIL_AFTER=ci bash "$DS" --root "$RR" --provider generic --base main --work dev >/dev/null 2>&1; then
+  die test_converge_rollback_spares_project_root 'injected failure did not fail'
+fi
+[ -d "$RR" ] || die test_converge_rollback_spares_project_root 'rollback removed the project root'
+[ ! -f "$RR/ci.sh" ] || die test_converge_rollback_spares_project_root 'generated ci.sh survived rollback'
+pass test_converge_rollback_spares_project_root
+
 printf 'deploy-substrate selftest: all fixtures passed\n'

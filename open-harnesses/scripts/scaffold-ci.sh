@@ -92,11 +92,18 @@ fi
 # pytest line tolerates exactly its "no tests collected" code (5) and nothing
 # else — a real failure still fails. That narrow allowance is deliberate and is
 # not the blanket `|| true` a CI truth check should reject.
+#
+# The `|| rc=$?` form is required, not stylistic. Every host runs these commands
+# under `set -e`: the generated ci.sh sets it, the Actions default shell is
+# `bash --noprofile --norc -eo pipefail`, and the GitLab runner injects it. With
+# a bare `cmd; rc=$?` the shell exits on pytest's non-zero status before the
+# tolerance is ever evaluated, so the allowance is dead code and a project with
+# no tests fails the first checkpoint Sprint 0 was written to make green.
 lang_commands() {
   case "$1" in
     rust)   printf 'cargo fmt --check\ncargo clippy --all-targets -- -D warnings\ncargo test --all\n' ;;
     go)     printf 'test -z "$(gofmt -l .)"\ngo vet ./...\ngo test ./...\n' ;;
-    python) printf 'python -m pytest; rc=$?; [ "$rc" -eq 0 ] || [ "$rc" -eq 5 ]\n' ;;
+    python) printf 'python -m pytest || rc=$?; [ "${rc:-0}" -eq 0 ] || [ "${rc:-0}" -eq 5 ]\n' ;;
     node)   printf 'npm install --no-audit --no-fund\nnpm test --if-present\n' ;;
     shell)  printf 'git ls-files "*.sh" | xargs -r shellcheck -S warning\n' ;;
   esac
