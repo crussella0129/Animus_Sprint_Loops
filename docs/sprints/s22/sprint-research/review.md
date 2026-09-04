@@ -33,3 +33,22 @@ Correctness needs improvement in baseline validation; performance has the
 specific redundant work above; diagnostics currently impede maintainability.
 The shared adapter parity guard, Book evidence gates, and synthetic runner
 fixture seam provide useful foundations for making these changes safely.
+
+## Sprint resolution
+| Finding | Resolution | Verification |
+|---------|------------|--------------|
+| Stale baselines | T-179: committed-archive mode, tree/suite hashes, strict confirmation validation | Baseline integrity, source provenance, untracked dependency fixtures |
+| Mutation leaks | T-179: restore each subject before any verdict or continuation | Cross-dependent suites together, separately and in reversed order |
+| Shared-subject deduplication | T-179: score each distinct suite | Sensitive and insensitive siblings against the same subject |
+| Infrastructure success on failure | T-179: require capture, hash, and append success | Fault-injected capture/hash/report-write fixtures |
+| Discarded diagnostics | T-180: retained captures, both mismatch runs, normalized diff | Failure, mismatch and second-run-only failure fixtures |
+| Duplicate compatibility checks | T-177: remove shims and registrations | Inventory and canonical adapter regression suite |
+
+The implementation review found one additional portability defect in the new
+containment check: a physical subject path was compared with a lexical temp
+root. Commit `5dcac0a` canonicalizes the temp root before deriving paths. Added
+trailing-slash, parent-component and symlink-root fixtures pass on Linux; the
+independent reviewer confirmed the fix with no further findings.
+
+See [unit evidence](../sprint-tests/unit-tests.md) and
+[integration evidence](../sprint-tests/integration-tests.md) for executed checks.

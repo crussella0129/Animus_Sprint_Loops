@@ -4,9 +4,9 @@
 - **Intent ID:** INT-0013
 - **State:** active
 - **Work evidence:** [T-172-T-176 build plan](../sprints/s21/sprint-plans/build-plan.md#execution-sequence), [Sprint 21 test plan](../sprints/s21/sprint-plans/test-plan.md), [Sprint 22 build plan](../sprints/s22/sprint-plans/build-plan.md), [Sprint 22 test plan](../sprints/s22/sprint-plans/test-plan.md)
-- **Completion evidence:** [T-172-T-176 completion records](../work/completed-tasks.md#t-172-sprint-21)
+- **Completion evidence:** [T-172-T-176 completion records](../work/completed-tasks.md#t-172-sprint-21), [Sprint 22 T-180](../work/completed-tasks.md#t-180-sprint-22), [T-179](../work/completed-tasks.md#t-179-sprint-22), [T-182](../work/completed-tasks.md#t-182-sprint-22)
 - **Code evidence:** [line-ending primitive](../../open-harnesses/scripts/book-paths.sh), [plan locking](../../open-harnesses/scripts/finalize-plan.sh), [guard runner](../../tools/run-guards.sh), [sensitivity check](../../tools/check-suite-sensitivity.sh)
-- **Test evidence:** [Sprint 21 test report](../sprints/s21/sprint-tests/test-report.md), [Sprint 21 E2E record](../sprints/s21/sprint-tests/e2e-tests.md), [sensitivity sweep](../sprints/s21/sprint-tests/sensitivity-sweep.md)
+- **Test evidence:** [Sprint 21 test report](../sprints/s21/sprint-tests/test-report.md), [Sprint 21 E2E record](../sprints/s21/sprint-tests/e2e-tests.md), [sensitivity sweep](../sprints/s21/sprint-tests/sensitivity-sweep.md), [Sprint 22 test report](../sprints/s22/sprint-tests/test-report.md)
 - **Documentation evidence:** [Are the suites themselves worth anything?](../../README.md#are-the-suites-themselves-worth-anything)
 
 ## Intent
@@ -115,11 +115,6 @@ no-literal criteria cover the shapes it cannot see.
   rather than a mechanical repair.
 
 ## Transition history
-- 2026-09-04: Sprint 22 clarifies baseline provenance and diagnostic acceptance
-  from T-179/T-180. Suite hashes alone omit subject/dependency changes; a clean
-  committed-tree identity is required alongside the hash. Existing PASS reports
-  must be regenerated under the new contract. Intent remains active; T-178 and
-  the unexplained macOS failure T-181 remain open.
 - 2026-09-03: created as `proposed` during Sprint 21 research, from four
   sprints of evidence — T-121/T-155 (the local abort), T-161 (unpaired negative
   assertions), T-169 (assertions against version literals), T-144 (a false
@@ -149,3 +144,8 @@ no-literal criteria cover the shapes it cannot see.
   rewriting CRLF Book files as LF on Windows. CI green on both legs for head
   `7661dac`, though the macOS leg failed on its first attempt with an
   unexplained nondeterminism recorded as T-181 rather than dismissed.
+- 2026-09-04: Sprint 22 clarifies baseline provenance and diagnostic acceptance
+  from T-179/T-180. Suite hashes alone omit subject/dependency changes;
+  qualifying baselines now execute in an archive of the committed tree.
+  Existing PASS reports must be regenerated under the new contract. Intent
+  remains active; T-178 and the unexplained macOS failure T-181 remain open.

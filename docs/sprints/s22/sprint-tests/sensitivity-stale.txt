@@ -1,0 +1,3 @@
+SUITE                    VERDICT        SUBJECT
+suite-sensitivity        unscorable     baseline-source-mismatch (use a current --committed report)
+check-suite-sensitivity: suites could not be scored: suite-sensitivity
