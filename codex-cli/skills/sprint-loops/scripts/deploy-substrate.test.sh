@@ -408,4 +408,145 @@ bash "$DS" --root "$NR" >/dev/null 2>&1 || die test_check_silent_without_remote 
 assert_check_ran_quietly test_check_silent_without_remote "$NR"
 pass test_check_silent_without_remote
 
+# ---------------------------------------------------------------------------
+# Sprint 20: CI generation as a convergence step.
+# ---------------------------------------------------------------------------
+ci_project() {  # <name> [file...] -> prints the project dir
+  local d="$TMP_ROOT/$1"; shift
+  mkdir -p "$d"
+  git init -q -b main "$d"
+  git -C "$d" config user.email t@t
+  git -C "$d" config user.name t
+  git -C "$d" remote add origin https://github.com/o/r.git
+  local f
+  for f in "$@"; do
+    mkdir -p "$d/$(dirname "$f")"
+    printf 'fixture\n' > "$d/$f"
+  done
+  printf '%s' "$d"
+}
+CI_REL=.github/workflows/sprint-loops-ci.yml
+
+# test_converge_generates_ci — the whole Sprint 0 surface, with no flags.
+CG=$(ci_project ci-generate Cargo.toml)
+bash "$DS" --root "$CG" >/dev/null 2>&1 || die test_converge_generates_ci 'convergence failed'
+[ -f "$CG/$CI_REL" ] || die test_converge_generates_ci 'no workflow generated'
+grep -q 'branches: \[main, dev\]' "$CG/$CI_REL" || die test_converge_generates_ci 'triggers do not name both branches'
+grep -q '^  rust:' "$CG/$CI_REL" || die test_converge_generates_ci 'no rust job for a Cargo.toml project'
+[ -f "$CG/.github/dependabot.yml" ] || die test_converge_generates_ci 'updater config missing'
+[ "$(bash "$RP" --root "$CG" provider)" = github ] || die test_converge_generates_ci 'provider not inferred'
+pass test_converge_generates_ci
+
+# test_converge_commits_generated_ci — a workflow that is not pushed never runs,
+# so the project's first checkpoint would be green because nothing ran. Every
+# other fixture here asserts the file exists; only this one asserts it is in the
+# corpus, which is the property that actually matters.
+git -C "$CG" ls-files --error-unmatch "$CI_REL" >/dev/null 2>&1 ||
+  die test_converge_commits_generated_ci 'the generated workflow was left untracked'
+git -C "$CG" ls-files --error-unmatch .github/dependabot.yml >/dev/null 2>&1 ||
+  die test_converge_commits_generated_ci 'the updater config was left untracked'
+pass test_converge_commits_generated_ci
+
+# test_converge_generates_ci_after_stamp — convergence raises the project to the
+# current contract in the same run, so the CI step has to run after the stamp.
+# Evaluating the version before it would mean CI first appears on the *second*
+# convergence: the run that upgrades a project would skip the upgrade's point.
+grep -qFx "substrate-version: $V" "$CG/docs/.sprint-loop-book" ||
+  die test_converge_generates_ci_after_stamp "marker is not at contract $V"
+pass test_converge_generates_ci_after_stamp
+
+# test_converge_ci_idempotent
+before_ci=$(snap "$CG")
+bash "$DS" --root "$CG" >/dev/null 2>&1 || die test_converge_ci_idempotent 'converged re-run failed'
+[ "$before_ci" = "$(snap "$CG")" ] || die test_converge_ci_idempotent 'converged re-run changed state'
+pass test_converge_ci_idempotent
+
+# test_converge_rolls_back_ci
+CR=$(ci_project ci-rollback Cargo.toml)
+if DEPLOY_SUBSTRATE_FAIL_AFTER=ci bash "$DS" --root "$CR" >/dev/null 2>&1; then
+  die test_converge_rolls_back_ci 'injected failure did not fail'
+fi
+[ ! -f "$CR/$CI_REL" ] || die test_converge_rolls_back_ci 'generated workflow survived rollback'
+pass test_converge_rolls_back_ci
+
+# test_check_reports_pending_ci
+CC=$(ci_project ci-check Cargo.toml)
+bash "$DS" --root "$CC" >/dev/null 2>&1 || die test_check_reports_pending_ci 'seed convergence failed'
+rm -rf "$CC/.github/workflows"
+check_before=$(snap "$CC")
+cc_out=$(bash "$DS" --root "$CC" --check 2>&1)
+case "$cc_out" in *"create $CI_REL"*) : ;; *) die test_check_reports_pending_ci "pending CI not reported: $cc_out" ;; esac
+[ "$check_before" = "$(snap "$CC")" ] || die test_check_reports_pending_ci '--check wrote something'
+pass test_check_reports_pending_ci
+
+# test_hand_written_ci_survives — the no-clobber boundary must hold under a full
+# convergence, not just a direct generator call, because that is how it is met.
+HW=$(ci_project ci-handwritten Cargo.toml .github/workflows/ci.yml)
+hw_before=$(cksum "$HW/.github/workflows/ci.yml")
+hw_listing=$(ls -A "$HW/.github/workflows")
+bash "$DS" --root "$HW" >/dev/null 2>&1 || die test_hand_written_ci_survives 'convergence failed'
+[ "$hw_before" = "$(cksum "$HW/.github/workflows/ci.yml")" ] ||
+  die test_hand_written_ci_survives 'the hand-written workflow was modified'
+[ "$hw_listing" = "$(ls -A "$HW/.github/workflows")" ] ||
+  die test_hand_written_ci_survives 'a second workflow was added beside the hand-written one'
+[ "$(bash "$RP" --root "$HW" provider)" = github ] ||
+  die test_hand_written_ci_survives 'the rest of convergence did not complete'
+pass test_hand_written_ci_survives
+
+# test_converge_local_only_gets_no_ci
+LOC="$TMP_ROOT/ci-local"; mkdir -p "$LOC"
+printf 'fixture\n' > "$LOC/Cargo.toml"
+bash "$DS" --root "$LOC" >/dev/null 2>&1 || die test_converge_local_only_gets_no_ci 'convergence failed'
+[ "$(bash "$RP" --root "$LOC" provider)" = local-only ] || die test_converge_local_only_gets_no_ci 'not a local-only fixture'
+[ ! -d "$LOC/.github/workflows" ] || die test_converge_local_only_gets_no_ci 'local-only generated CI'
+[ ! -f "$LOC/.gitlab-ci.yml" ] || die test_converge_local_only_gets_no_ci 'local-only generated GitLab CI'
+[ ! -f "$LOC/ci.sh" ] || die test_converge_local_only_gets_no_ci 'local-only generated ci.sh'
+pass test_converge_local_only_gets_no_ci
+
+# test_check_previews_ci_before_convergence — the preview has to describe what
+# convergence will do, and convergence raises the contract in the same run. An
+# earlier form gated the preview on the pre-stamp version, so the projects about
+# to receive a workflow were the exact ones never told about it.
+PV=$(ci_project ci-preview Cargo.toml)
+bash "$DS" --root "$PV" >/dev/null 2>&1 || die test_check_previews_ci_before_convergence 'seed convergence failed'
+printf 'schema-version: 2\nsubstrate-version: 3\n' > "$PV/docs/.sprint-loop-book"
+rm -rf "$PV/.github/workflows"
+pv_out=$(bash "$DS" --root "$PV" --check 2>&1)
+case "$pv_out" in *"create $CI_REL"*) : ;; *) die test_check_previews_ci_before_convergence "preview omits the workflow: $pv_out" ;; esac
+case "$pv_out" in *'stamp substrate-version'*) : ;; *) die test_check_previews_ci_before_convergence 'preview omits the stamp' ;; esac
+pass test_check_previews_ci_before_convergence
+
+# test_converge_upgrades_existing_project — the upgrade case, which no fixture
+# covered: an established repository with commits and no CI, converging to the
+# current contract, must gain the workflow.
+UP="$TMP_ROOT/ci-upgrade"; mkdir -p "$UP"
+git init -q -b main "$UP"; git -C "$UP" config user.email t@t; git -C "$UP" config user.name t
+git -C "$UP" remote add origin https://github.com/o/r.git
+printf 'fixture\n' > "$UP/Cargo.toml"; printf 'readme\n' > "$UP/README.md"
+git -C "$UP" add -A >/dev/null 2>&1; git -C "$UP" commit -qm 'existing project' >/dev/null 2>&1
+bash "$DS" --root "$UP" >/dev/null 2>&1 || die test_converge_upgrades_existing_project 'convergence failed'
+[ -f "$UP/$CI_REL" ] || die test_converge_upgrades_existing_project 'no workflow generated on upgrade'
+grep -q '^  rust:' "$UP/$CI_REL" || die test_converge_upgrades_existing_project 'no rust job on upgrade'
+# Convergence writes into an established repository and commits nothing — the
+# Book, the marker, the updater config and the workflow are all left staged for
+# the operator. Asserted so the uniformity is deliberate rather than assumed.
+for artifact in "$CI_REL" .github/dependabot.yml docs/.sprint-loop-book; do
+  if git -C "$UP" ls-files --error-unmatch "$artifact" >/dev/null 2>&1; then
+    die test_converge_upgrades_existing_project "convergence committed $artifact into an established repository"
+  fi
+done
+pass test_converge_upgrades_existing_project
+
+# test_converge_rollback_spares_project_root — for gitlab and generic the CI file
+# sits at the project root, so an unguarded rmdir cascade would target the root
+# and then its parent.
+RR="$TMP_ROOT/ci-rollback-root"; mkdir -p "$RR"
+printf 'fixture\n' > "$RR/Cargo.toml"
+if DEPLOY_SUBSTRATE_FAIL_AFTER=ci bash "$DS" --root "$RR" --provider generic --base main --work dev >/dev/null 2>&1; then
+  die test_converge_rollback_spares_project_root 'injected failure did not fail'
+fi
+[ -d "$RR" ] || die test_converge_rollback_spares_project_root 'rollback removed the project root'
+[ ! -f "$RR/ci.sh" ] || die test_converge_rollback_spares_project_root 'generated ci.sh survived rollback'
+pass test_converge_rollback_spares_project_root
+
 printf 'deploy-substrate selftest: all fixtures passed\n'

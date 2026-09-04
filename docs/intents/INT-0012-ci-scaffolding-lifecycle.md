@@ -2,12 +2,12 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0012
-- **State:** proposed
-- **Work evidence:** none
-- **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **State:** active
+- **Work evidence:** [T-164–T-167 build plan](../sprints/s20/sprint-plans/build-plan.md#execution-sequence), [Sprint 20 test plan](../sprints/s20/sprint-plans/test-plan.md)
+- **Completion evidence:** [T-164–T-167 completion records](../work/completed-tasks.md#t-164-sprint-20)
+- **Code evidence:** [language detection](../../open-harnesses/scripts/detect-languages.sh), [the per-host generator](../../open-harnesses/scripts/scaffold-ci.sh), [the convergence step](../../open-harnesses/scripts/deploy-substrate.sh)
+- **Test evidence:** [Sprint 20 test report](../sprints/s20/sprint-tests/test-report.md), [Sprint 20 E2E record](../sprints/s20/sprint-tests/e2e-tests.md)
+- **Documentation evidence:** [CI exists from Sprint 0](../../README.md#ci-exists-from-sprint-0), [Init phase contract](../../claude-code/skills/sprint-loop/phases/01-init-sprint.md)
 
 ## Intent
 Every Sprint Loops project should have working continuous integration from
@@ -20,11 +20,29 @@ rather than being a one-shot guess made on day one.
    `.github/workflows/`, GitLab CI as `.gitlab-ci.yml`, Gitea and Forgejo
    Actions under their own workflow directories, and for `generic` a portable
    runner script plus a documented manual step. `local-only` gets none, because
-   it genuinely has no host.
+   it genuinely has no host. Gitea and Forgejo Actions consume GitHub Actions
+   workflow syntax, so the four hosts are really **two formats** — Actions YAML
+   and GitLab CI — differing for three of them only by directory.
+
+   "Never clobbering" is **directory-level, not file-level**: if the host's
+   workflow directory already holds any workflow, generate nothing. A
+   file-level check would add a second workflow beside a project's hand-written
+   one, leaving two CI systems disagreeing about the same push.
 2. **Language and platform detection.** Which jobs are written follows from what
    the project contains — `Cargo.toml`, `go.mod`, `pyproject.toml`,
    `package.json`, shell scripts, and so on — and from the platforms the project
-   targets, not from a fixed template.
+   targets, not from a fixed template. Detection is manifest-driven and sorted,
+   because the canonical runner's determinism meta-check compares normalized
+   output across two runs.
+
+   A **fresh project has no canonical suite**, so generated jobs run
+   language-native commands and prefer a canonical runner only when one is
+   already present. Requiring one would make the first sprint of every new
+   project impossible.
+
+   Triggers are read from the remote profile's `base` and `work`, never
+   hardcoded: a workflow that triggers only on `base` never runs on the branch
+   sprints commit to, nor on the checkpoint itself.
 3. **Reconciliation over the project's life.** As intents introduce a new
    language or a new platform target, the missing jobs are added; as a language
    or target genuinely leaves the project, its jobs are removed. This is a
@@ -113,3 +131,27 @@ protecting the project.
   platform targets change. Split from
   [INT-0006](INT-0006-provider-reach-and-ci-truth.md), which keeps knowing and
   reaching the provider and refusing an unverified green.
+- 2026-09-03: revised during Sprint 20 Research — recorded that Gitea and
+  Forgejo share GitHub's workflow syntax so the four hosts are two formats;
+  that no-clobber must be directory-level or a generated workflow can sit beside
+  a hand-written one; that a fresh project has no canonical suite, so generated
+  jobs must be language-native and prefer a runner only when present; and that
+  triggers must come from the remote profile so CI actually runs on the work
+  branch and the checkpoint.
+- 2026-09-03: `proposed → planned` — Sprint 20 tasks T-164–T-167 cover
+  contract 4, language detection, the per-host generator, the convergence step,
+  and the operator contracts. Reconciliation and proposed removal (parts 3 and
+  4) are deliberately out of that sprint, so this intent will remain `active` at
+  its close. The acceptance criterion asking for an observable job failure is
+  met only for the `generic` provider, whose output is an executable script;
+  for the YAML hosts it needs INT-0006's CI truth check and a real hosted run.
+- 2026-09-03: `planned → active` — Build began with T-164, contract 4 and
+  manifest-driven language detection.
+- 2026-09-03: Sprint 20 delivered generation — T-164 through T-167 — and the
+  intent remains `active`. Parts 3 and 4, reconciling jobs as a project's
+  languages change and proposing rather than performing removals, are untouched.
+  The criterion asking for an observable job failure is met only for `generic`,
+  whose output is an executable script; for the four YAML hosts the sprint proves
+  the generated file carries the language's real commands, and closing that gap
+  needs INT-0006's CI truth check plus a real hosted run. CI green on both legs
+  for head `51fb955`.

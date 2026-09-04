@@ -35,3 +35,4 @@
 - [Sprint 17](sprints/s17/sprint-meta.md)
 - [Sprint 18](sprints/s18/sprint-meta.md)
 - [Sprint 19](sprints/s19/sprint-meta.md)
+- [Sprint 20](sprints/s20/sprint-meta.md)

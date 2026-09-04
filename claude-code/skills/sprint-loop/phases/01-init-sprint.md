@@ -25,6 +25,16 @@ Before routing or initializing anything, run the installed bundle's
   the profile. An existing profile is never rewritten:
   `scripts/deploy-substrate.sh --check` reports a recorded provider that
   disagrees with the current `origin` and leaves the repair to a person.
+
+  **Convergence also generates the host's CI configuration** from the languages
+  the project contains — `.github/workflows/sprint-loops-ci.yml` for `github`,
+  `.gitea/` and `.forgejo/workflows/` for those hosts, `.gitlab-ci.yml` for
+  `gitlab`, an executable `ci.sh` for `generic`, and nothing for `local-only`.
+  Without it a fresh project reaches its first checkpoint with no CI at all, so
+  that checkpoint is green because nothing ran. If the host's workflow directory
+  already holds anything, convergence generates nothing and leaves the existing
+  configuration alone. Generation is create-if-absent, so deleting a generated
+  file is permanent — that is how a project opts out.
 - `substrate-outdated:<book>-><bundle>` — the substrate is complete but predates
   this bundle's contract. Run the **same** helper: spin-up and upgrade are one
   idempotent command that creates only what is missing, stamps the contract

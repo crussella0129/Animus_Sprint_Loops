@@ -58,6 +58,10 @@ REQUIRED_SCRIPTS=(
   check-tracked.test.sh
   deploy-substrate.sh
   deploy-substrate.test.sh
+  detect-languages.sh
+  detect-languages.test.sh
+  scaffold-ci.sh
+  scaffold-ci.test.sh
   remote-adapter.sh
   remote-adapter.test.sh
   remote-profile.sh

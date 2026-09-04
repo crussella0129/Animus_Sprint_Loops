@@ -133,6 +133,15 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
     say_pending "initialize a git repository on $BASE"
     say_pending "create branch $WORK"
   fi
+  # Gated on the version this bundle implements, not on the project's current
+  # stamp. Convergence raises the project to that version in the same run, so
+  # gating the preview on the pre-stamp value would omit the workflow for
+  # exactly the projects that are about to receive one.
+  if [ "$BOOK_SUBSTRATE_CONTRACT_VERSION" -ge 4 ]; then
+    check_ci=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER" \
+      --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
+    [ -n "$check_ci" ] && say_pending "create $check_ci"
+  fi
   if [ ! -f "$BOOK_MARKER" ]; then
     say_pending "stamp substrate-version: $BOOK_SUBSTRATE_CONTRACT_VERSION"
   elif check_version=$(book_substrate_version 2>/dev/null); then
@@ -151,7 +160,7 @@ fi
 DEPLOY_ORIGINAL_HEAD=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 SWITCHED_BRANCH=0
 CREATED_BOOK=0; CREATED_PROFILE=0; CREATED_SPRINT=""; CREATED_GITDIR=0
-CREATED_BRANCHES=""; CREATED_UPDATER=""; COMMITTED=0
+CREATED_BRANCHES=""; CREATED_UPDATER=""; CREATED_CI=""; COMMITTED=0
 STAMPED=0; PRIOR_MARKER=""
 
 rollback() {
@@ -164,6 +173,18 @@ rollback() {
   if [ -n "$CREATED_UPDATER" ]; then
     rm -f "$CREATED_UPDATER"
     rmdir "$(dirname "$CREATED_UPDATER")" 2>/dev/null || true
+  fi
+  if [ -n "$CREATED_CI" ]; then
+    rm -f "$CREATED_CI"
+    # Only the Actions hosts nest two directories deep (.github/workflows/).
+    # For gitlab and generic the file sits at the project root, so an unguarded
+    # cascade would call rmdir on the root itself and then on its parent.
+    _ci_dir=$(dirname "$CREATED_CI")
+    if [ "$_ci_dir" != "$ROOT" ]; then
+      rmdir "$_ci_dir" 2>/dev/null || true
+      _ci_parent=$(dirname "$_ci_dir")
+      if [ "$_ci_parent" != "$ROOT" ]; then rmdir "$_ci_parent" 2>/dev/null || true; fi
+    fi
   fi
   [ -n "$CREATED_SPRINT" ] && rm -rf "$CREATED_SPRINT"
   [ "$CREATED_PROFILE" -eq 1 ] && rm -f "$PROFILE"
@@ -267,6 +288,7 @@ case "$PROVIDER" in
 esac
 maybe_fail updater
 
+
 # 2c. Stamp the substrate contract version.
 #
 # Ordering is load-bearing twice over. It runs BEFORE the final verification,
@@ -298,6 +320,29 @@ if [ -f "$BOOK_MARKER" ]; then
 fi
 maybe_fail stamp
 
+# 2d. CI configuration (create-if-absent, contract 4 and above).
+#
+# A fresh project otherwise reaches its first checkpoint with no CI at all, so
+# that checkpoint is green because nothing ran. Bound at a contract version
+# because writing a CI file into a project that has been running for months is
+# more intrusive than a gate: an existing project gets it only when it converges,
+# and --check previews it first.
+#
+# This step runs AFTER the stamp deliberately. Convergence raises the project
+# to the current contract in the same run, so evaluating the version before the
+# stamp would mean CI first appears on the *second* convergence — the run that
+# upgrades a project would silently skip the thing the upgrade is for.
+if [ "$BOOK_SUBSTRATE_CONTRACT_VERSION" -ge 4 ]; then
+  ci_before=$(bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER" \
+    --base "$BASE" --work "$WORK" --check 2>/dev/null | sed -n 's/^would create //p' | head -n 1)
+  if [ -n "$ci_before" ]; then
+    bash "$SCRIPT_DIR/scaffold-ci.sh" --root "$ROOT" --provider "$PROVIDER" \
+      --base "$BASE" --work "$WORK" >/dev/null || fail "generating the CI configuration failed"
+    [ -f "$ROOT/$ci_before" ] && CREATED_CI="$ROOT/$ci_before"
+  fi
+fi
+maybe_fail ci
+
 # 3. Git repo + branches.
 if ! git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   git -C "$ROOT" init -q -b "$BASE" || fail "git init failed"
@@ -306,6 +351,10 @@ fi
 if ! git -C "$ROOT" rev-parse -q --verify HEAD >/dev/null 2>&1; then
   git -C "$ROOT" add -A -- docs >/dev/null 2>&1 || true
   [ -n "$CREATED_UPDATER" ] && git -C "$ROOT" add -A -- "$CREATED_UPDATER" >/dev/null 2>&1 || true
+  # The generated CI configuration belongs in the initial commit for the same
+  # reason the updater config does: a workflow that is not pushed never runs,
+  # and the project's first checkpoint would be green because nothing ran.
+  [ -n "$CREATED_CI" ] && git -C "$ROOT" add -A -- "$CREATED_CI" >/dev/null 2>&1 || true
   git -C "$ROOT" -c user.email=sprint-loops@local -c user.name=sprint-loops \
     commit -q --allow-empty -m "sprint-0: substrate" || fail "initial commit failed"
 fi
