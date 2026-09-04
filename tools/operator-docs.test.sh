@@ -56,6 +56,10 @@ test_root_docs_do_not_duplicate_protocol() {
   # phrase it matched was split across a line break.
   require_text README.md 'check-suite-sensitivity.sh'
   require_text README.md 'floor, not a proof'
+  require_text README.md '--committed --out guards-report.ndjson'
+  require_text README.md 'working-tree'
+  require_text README.md 'unscorable'
+  require_text README.md 'normalized diff'
   require_text README.md 'Book schema v2'
   require_text README.md 'open-harnesses/particles/00-overview.md'
   require_text README.md 'open-harnesses/schemas/intent.md'

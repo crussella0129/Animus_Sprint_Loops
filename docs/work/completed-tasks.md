@@ -612,3 +612,31 @@
 - **Completed:** 2026-09-03T00:00:00Z
 - **Files modified:** `{open-harnesses,claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop}/scripts/{deploy-substrate,remote-adapter,book-routing,remote-profile}.test.sh`, `tools/run-guards.sh`
 - **Commit:** `b260b5c534b36619393dfda62f0d2ab2a720fa9e`
+
+## T-180 (sprint 22)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Retain captures until verdict, print failing stdout/stderr and both mismatch runs plus normalized diff; preserve concise passing output. Six Windows Git Bash fixtures pass; Linux ShellCheck 0.11.0 passes. Negative fixtures now assert nonzero exit.
+- **Completed:** 2026-09-04T21:44:47Z
+- **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`
+- **Commit:** `e2b5dca80e8d717932a44f728df3590dfcf70c7b`
+
+## T-179 (sprint 22)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Add --committed archive baselines with source-tree and suite-hash provenance; reject malformed, duplicate, stale, failing and nondeterministic evidence. Restore subjects after each mutation and score shared-subject suites independently. Validate actual mutated confirmations, fail closed on capture/hash/report-write errors, and reject unknown suites. Fourteen sensitivity fixtures pass on Windows and Linux; eleven runner fixtures pass on Windows; Linux ShellCheck passes all four changed scripts.
+- **Completed:** 2026-09-04T21:54:10Z
+- **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`, `tools/check-suite-sensitivity.sh`, `tools/check-suite-sensitivity.test.sh`
+- **Commit:** `e6ad69e0a7b24d499e47b68101d05779f3c5b899`
+
+## T-177 (sprint 22)
+- **Intent:** [INT-0007](../intents/INT-0007-integrity-sweep.md), [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Remove obsolete merge-policy wrappers and all runner registrations. Inventory fixture proves each canonical adapter suite occurs once. Canonical runner passes run-guards-test, adapter-semantics, and adapter-semantics-test (3/3); ShellCheck passes. The retained adapter fixture alone took 186 seconds, demonstrating the material cost of the removed duplicate.
+- **Completed:** 2026-09-04T21:59:11Z
+- **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`, `tools/check-merge-policy.sh` (removed), `tools/check-merge-policy.test.sh` (removed), `docs/intents/INT-0007-integrity-sweep.md`
+- **Commit:** `79bda965a8357306c93967cfd3a547b80f6d959c`
+
+## T-182 (sprint 22)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Document committed-archive baselines, source-tree freshness, explicit unscorable failures, restored mutations, and actionable guard diagnostics. Raise all four bundle-version helpers and Claude plugin manifest to 0.22.0. Canonical operator-docs, plugin-manifest, and bundle-sync checks pass (3/3); ShellCheck passes.
+- **Completed:** 2026-09-04T22:00:49Z
+- **Files modified:** `README.md`, `tools/operator-docs.test.sh`, `open-harnesses/scripts/bundle-version.sh`, `claude-code/skills/sprint-loop/scripts/bundle-version.sh`, `codex-cli/skills/sprint-loops/scripts/bundle-version.sh`, `antigravity-ide/skills/sprint-loop/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`
+- **Commit:** `04610edf1dfe98d601419b3c22088f3e36d44bb3`

@@ -16,6 +16,8 @@ TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/sprint-loop-sens.XXXXXX")
 trap 'rm -rf "$TMP_ROOT"' EXIT HUP INT TERM
 pass() { printf '  PASS  %s\n' "$1"; }
 die() { printf '  FAIL  %s: %s\n' "$1" "$2" >&2; exit 1; }
+RAN_MARKER="$TMP_ROOT/ran-marker"
+export RAN_MARKER
 
 # fixture <name> <suite-body> -> prints the repo path.
 # The planted subject prints a token; a coupled suite asserts on that token, an
@@ -23,6 +25,7 @@ die() { printf '  FAIL  %s: %s\n' "$1" "$2" >&2; exit 1; }
 fixture() {
   local d="$TMP_ROOT/$1"; shift
   mkdir -p "$d/tools" "$d/extras" "$d/scripts"
+  printf '/baseline.ndjson\n' > "$d/.gitignore"
   cp "$ROOT/tools/run-guards.sh" "$ROOT/tools/check-suite-sensitivity.sh" "$d/tools/"
   printf '#!/usr/bin/env bash\necho REAL-OUTPUT\n' > "$d/scripts/subject.sh"
   printf '%s\n' "scripts/subject.sh" > "$d/extras/probe.subject"
@@ -44,13 +47,19 @@ run_tool() {  # <repo> [extra-args...]
 }
 
 baseline() {  # <repo> <status>
-  printf '{"suite":"extra:probe.sh","script_hash":"x","status":"%s","evidence_hash":"y","duration_s":0,"ts":"2026-01-01T00:00:00Z"}\n' \
-    "$2" > "$1/baseline.ndjson"
+  local rc
+  (cd "$1" && RUN_GUARDS_ONLY_EXTRA=1 RUN_GUARDS_EXTRA_SUITES=extras \
+    bash tools/run-guards.sh --committed --out baseline.ndjson) >"$TMP_ROOT/baseline.log" 2>&1
+  rc=$?
+  if { [ "$2" = PASS ] && [ "$rc" -ne 0 ]; } || { [ "$2" = FAIL ] && [ "$rc" -ne 1 ]; }; then
+    die baseline "expected $2, got exit $rc: $(cat "$TMP_ROOT/baseline.log")"
+  fi
 }
 
 # test_sensitive_suite_passes_the_check — a suite that asserts its subject's
 # actual output goes red when the subject is neutered.
 GOOD=$(fixture good '#!/usr/bin/env bash
+touch "$RAN_MARKER"
 out=$(bash scripts/subject.sh)
 [ "$out" = REAL-OUTPUT ] || exit 1')
 baseline "$GOOD" PASS
@@ -82,11 +91,12 @@ export RAN_MARKER
 rm -f "$RAN_MARKER"
 FB=$(fixture failbase '#!/usr/bin/env bash
 touch "$RAN_MARKER"
-exit 0')
+exit 1')
 baseline "$FB" FAIL
+rm -f "$RAN_MARKER"
 out=$(run_tool "$FB"); rc=$?
 case "$out" in *baseline-not-pass*) : ;; *) die test_failing_baseline_is_not_scored "not skipped: $out" ;; esac
-[ "$rc" -eq 0 ] || die test_failing_baseline_is_not_scored "a skip was treated as a failure"
+[ "$rc" -ne 0 ] || die test_failing_baseline_is_not_scored "a failing baseline returned success"
 [ ! -e "$RAN_MARKER" ] ||
   die test_failing_baseline_is_not_scored "the suite ran despite a non-PASS baseline"
 pass test_failing_baseline_is_not_scored
@@ -110,7 +120,7 @@ out=$(bash scripts/subject.sh)
 baseline "$CL" PASS
 before=$(cd "$CL" && git status --porcelain --untracked-files=all)
 subject_before=$(cksum "$CL/scripts/subject.sh")
-run_tool "$CL" >/dev/null 2>&1
+run_tool "$CL" >/dev/null 2>&1 || die test_sensitivity_leaves_worktree_clean 'valid control did not complete'
 after=$(cd "$CL" && git status --porcelain --untracked-files=all)
 [ "$before" = "$after" ] || die test_sensitivity_leaves_worktree_clean "working tree changed: $after"
 [ "$subject_before" = "$(cksum "$CL/scripts/subject.sh")" ] ||
@@ -142,5 +152,159 @@ case "$out" in *harness-subject*) : ;; *) die test_harness_subject_is_skipped "n
 case "$out" in *INSENSITIVE*) die test_harness_subject_is_skipped "scored a harness-subject suite: $out" ;; esac
 [ "$rc" -eq 0 ] || die test_harness_subject_is_skipped "a harness-subject skip failed the run"
 pass test_harness_subject_is_skipped
+
+# Reuse a real passing baseline, altering one property at a time. A marker
+# outside the archived copies proves invalid evidence is rejected before runs.
+cp "$GOOD/baseline.ndjson" "$TMP_ROOT/valid.ndjson"
+expect_refusal() {  # repo test diagnostic [suite...]
+  local repo=$1 test=$2 diagnostic=$3 out rc
+  shift 3
+  rm -f "$RAN_MARKER"
+  out=$(run_tool "$repo" "$@"); rc=$?
+  [ "$rc" -ne 0 ] || die "$test" "invalid evidence returned success: $out"
+  case "$out" in *"$diagnostic"*) : ;; *) die "$test" "missing diagnostic $diagnostic: $out" ;; esac
+  [ ! -e "$RAN_MARKER" ] || die "$test" 'suite ran with invalid evidence'
+}
+for variant in absent malformed duplicate hash tree working nondeterministic; do
+  case "$variant" in
+    absent) : > "$GOOD/baseline.ndjson" ;;
+    malformed) printf 'not-json\n' > "$GOOD/baseline.ndjson" ;;
+    duplicate) cat "$TMP_ROOT/valid.ndjson" "$TMP_ROOT/valid.ndjson" > "$GOOD/baseline.ndjson" ;;
+    hash) sed 's/"script_hash":"[^"]*"/"script_hash":"0000000000000000000000000000000000000000000000000000000000000000"/' "$TMP_ROOT/valid.ndjson" > "$GOOD/baseline.ndjson" ;;
+    tree) sed 's/"source_tree":"[^"]*"/"source_tree":"0000000000000000000000000000000000000000"/' "$TMP_ROOT/valid.ndjson" > "$GOOD/baseline.ndjson" ;;
+    working) sed 's/"source_tree":"[^"]*"/"source_tree":"working-tree"/' "$TMP_ROOT/valid.ndjson" > "$GOOD/baseline.ndjson" ;;
+    nondeterministic) sed 's/}$/,"determinism":"mismatch"}/' "$TMP_ROOT/valid.ndjson" > "$GOOD/baseline.ndjson" ;;
+  esac
+  expect_refusal "$GOOD" "test_baseline_integrity_$variant" baseline-
+done
+cp "$TMP_ROOT/valid.ndjson" "$GOOD/baseline.ndjson"
+pass test_baseline_integrity
+
+expect_refusal "$GOOD" test_unknown_suite 'unknown suite' misspelled-suite
+pass test_unknown_suite
+
+# A changed subject invalidates the old report even though the suite hash has
+# not moved. Staged/local edits alone are excluded by --committed.
+printf '#!/usr/bin/env bash\necho CHANGED\n' > "$GOOD/scripts/subject.sh"
+git -C "$GOOD" add scripts/subject.sh
+baseline "$GOOD" PASS
+out=$(run_tool "$GOOD"); rc=$?
+[ "$rc" -eq 0 ] || die test_source_provenance "staged edits leaked into HEAD baseline: $out"
+git -C "$GOOD" commit -qm 'change subject' || die test_source_provenance 'commit failed'
+expect_refusal "$GOOD" test_source_provenance baseline-source-mismatch
+pass test_source_provenance
+
+# A working-tree PASS that relies on an untracked file cannot qualify. The
+# committed baseline actually runs without that file and correctly fails.
+UD=$(fixture untracked '#!/usr/bin/env bash
+touch "$RAN_MARKER"
+[ -f untracked-dependency ] || exit 1
+bash scripts/subject.sh >/dev/null')
+touch "$UD/untracked-dependency"
+(cd "$UD" && RUN_GUARDS_ONLY_EXTRA=1 RUN_GUARDS_EXTRA_SUITES=extras \
+  bash tools/run-guards.sh --out baseline.ndjson) >/dev/null 2>&1 || die test_untracked_dependency 'working control failed'
+expect_refusal "$UD" test_untracked_dependency baseline-source-mismatch
+baseline "$UD" FAIL
+expect_refusal "$UD" test_untracked_dependency baseline-not-pass
+pass test_untracked_dependency
+
+# A succeeds only with A's output; B checks A, but only B's exit status. B must
+# remain INSENSITIVE after A is tested, before A is tested, and by itself.
+MS=$(fixture multiple '#!/usr/bin/env bash
+[ "$(bash scripts/subject.sh)" = REAL-OUTPUT ] || exit 1')
+printf '#!/usr/bin/env bash\necho SECOND\n' > "$MS/scripts/second.sh"
+printf 'scripts/second.sh\n' > "$MS/extras/second.subject"
+cat > "$MS/extras/second.sh" <<'EOF'
+#!/usr/bin/env bash
+[ "$(bash scripts/subject.sh)" = REAL-OUTPUT ] || exit 1
+bash scripts/second.sh >/dev/null || exit 1
+EOF
+git -C "$MS" add -A && git -C "$MS" commit -qm second || die test_subject_restored_between_suites 'commit failed'
+baseline "$MS" PASS
+assert_pair_verdicts() {  # repo test
+  local repo=$1 test=$2 order out rc suite expected expected_rc
+  for order in 'extra:probe.sh extra:second.sh' 'extra:second.sh extra:probe.sh' 'extra:second.sh' 'extra:probe.sh'; do
+    # Intentional splitting of the fixed suite-name list.
+    # shellcheck disable=SC2086
+    out=$(run_tool "$repo" $order); rc=$?
+    expected_rc=1
+    [ "$order" != extra:probe.sh ] || expected_rc=0
+    [ "$rc" -eq "$expected_rc" ] || die "$test" "wrong exit for $order: $out"
+    for suite in $order; do
+      expected=sensitive
+      [ "$suite" != extra:second.sh ] || expected=INSENSITIVE
+      printf '%s\n' "$out" | awk -v s="$suite" -v v="$expected" '
+        $1 == s { count++; if ($2 != v) wrong=1 }
+        END { exit (count != 1 || wrong) }
+      ' || die "$test" "expected exactly one $expected verdict for $suite: $out"
+    done
+  done
+}
+assert_pair_verdicts "$MS" test_subject_restored_between_suites
+pass test_subject_restored_between_suites
+
+printf 'scripts/subject.sh\n' > "$MS/extras/second.subject"
+printf '#!/usr/bin/env bash\nbash scripts/subject.sh >/dev/null\n' > "$MS/extras/second.sh"
+git -C "$MS" add -A && git -C "$MS" commit -qm shared || die test_shared_subject_suites 'commit failed'
+baseline "$MS" PASS
+assert_pair_verdicts "$MS" test_shared_subject_suites
+pass test_shared_subject_suites
+
+# A committed harness that disappears only at mutation time must not be
+# mistaken for a sensitive suite, whether it exits zero or nonzero.
+for missing_rc in 0 2; do
+  MC=$(fixture "missing-$missing_rc" '#!/usr/bin/env bash
+[ "$(bash scripts/subject.sh)" = REAL-OUTPUT ] || exit 1')
+  awk -v rc="$missing_rc" 'NR == 2 { print "case \"${2:-}\" in */neutered.ndjson) exit " rc " ;; esac" } { print }' \
+    "$MC/tools/run-guards.sh" > "$MC/tools/runner.tmp"
+  mv "$MC/tools/runner.tmp" "$MC/tools/run-guards.sh"
+  git -C "$MC" add -A && git -C "$MC" commit -qm broken-harness || die test_missing_mutated_confirmation 'commit failed'
+  baseline "$MC" PASS
+  out=$(run_tool "$MC"); rc=$?
+  [ "$rc" -eq 1 ] || die test_missing_mutated_confirmation "no confirmation returned success: $out"
+  case "$out" in *'no valid mutated confirmation'*) : ;; *) die test_missing_mutated_confirmation "wrong failure: $out" ;; esac
+done
+pass test_missing_mutated_confirmation
+
+# A populated PASS confirmation paired with exit 1 is contradictory evidence,
+# not a sensitive result. Keep the record syntactically valid and hash-correct.
+CC=$(fixture contradictory '#!/usr/bin/env bash
+[ "$(bash scripts/subject.sh)" = REAL-OUTPUT ] || exit 1')
+cat > "$TMP_ROOT/contradictory-prefix" <<'EOF'
+case "${2:-}" in
+  */neutered.ndjson)
+    sed 's/"source_tree":"[^"]*"/"source_tree":"working-tree"/' "$CONTRADICTORY_BASELINE" > "$2"
+    exit 1
+    ;;
+esac
+EOF
+{ head -n 1 "$CC/tools/run-guards.sh"; cat "$TMP_ROOT/contradictory-prefix"; tail -n +2 "$CC/tools/run-guards.sh"; } > "$CC/tools/runner.tmp"
+mv "$CC/tools/runner.tmp" "$CC/tools/run-guards.sh"
+git -C "$CC" add -A && git -C "$CC" commit -qm contradictory || die test_contradictory_mutated_confirmation 'commit failed'
+baseline "$CC" PASS
+out=$(CONTRADICTORY_BASELINE="$CC/baseline.ndjson" run_tool "$CC"); rc=$?
+[ "$rc" -eq 1 ] || die test_contradictory_mutated_confirmation "contradiction returned success: $out"
+case "$out" in *'no valid mutated confirmation'*) : ;; *) die test_contradictory_mutated_confirmation "wrong diagnostic: $out" ;; esac
+if printf '%s\n' "$out" | grep -Eq '^extra:probe.sh +(sensitive|INSENSITIVE) '; then
+  die test_contradictory_mutated_confirmation "contradictory evidence was scored: $out"
+fi
+pass test_contradictory_mutated_confirmation
+
+# TMPDIR may have a trailing slash, .. component, or a symlink (macOS /var).
+# Containment compares physical paths on both sides, never a lexical spelling.
+TEMP_BASE="$TMP_ROOT/temp-roots"
+mkdir -p "$TEMP_BASE/physical/holder"
+for temp_spelling in "$TEMP_BASE/physical/" "$TEMP_BASE/physical/holder/.."; do
+  out=$(TMPDIR="$temp_spelling" run_tool "$CL"); rc=$?
+  [ "$rc" -eq 0 ] || die test_temp_root_spellings "valid TMPDIR rejected: $out"
+done
+pass test_temp_root_spellings
+if ln -s "$TEMP_BASE/physical" "$TEMP_BASE/alias" 2>/dev/null && [ -L "$TEMP_BASE/alias" ]; then
+  out=$(TMPDIR="$TEMP_BASE/alias" run_tool "$CL"); rc=$?
+  [ "$rc" -eq 0 ] || die test_symlinked_temp_root "symlinked TMPDIR rejected: $out"
+  pass test_symlinked_temp_root
+else
+  printf '  SKIP  test_symlinked_temp_root: host does not create directory symlinks\n'
+fi
 
 printf 'check-suite-sensitivity selftest: all fixtures passed\n'

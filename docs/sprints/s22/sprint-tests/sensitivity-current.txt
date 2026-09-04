@@ -1,0 +1,4 @@
+SUITE                    VERDICT        SUBJECT
+suite-sensitivity        sensitive      tools/check-suite-sensitivity.sh
+check-suite-sensitivity: 1 suites scored, all fail when their subject is neutered
+  (a floor, not a proof: this shows coupling, not that a subtly wrong answer would be caught)

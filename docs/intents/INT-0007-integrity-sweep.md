@@ -2,11 +2,11 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0007
-- **State:** proposed
-- **Work evidence:** none
-- **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
+- **State:** active
+- **Work evidence:** [Sprint 22 T-177](../sprints/s22/sprint-plans/build-plan.md#t-177-remove-duplicate-compatibility-suites)
+- **Completion evidence:** [T-177 completion record](../work/completed-tasks.md#t-177-sprint-22) (preparatory cleanup only)
+- **Code evidence:** [canonical suite inventory](../../tools/run-guards.sh)
+- **Test evidence:** [Sprint 22 test report](../sprints/s22/sprint-tests/test-report.md) (T-177 cleanup)
 - **Documentation evidence:** none
 
 ## Intent
@@ -84,3 +84,8 @@ would not be.
 - 2026-09-02: created as `proposed` — derived from operator feedback item 3.a,
   which observed stubs surviving compaction and agent handover between sprints,
   and vestigial structure accumulating with nothing looking for it.
+- 2026-09-04: `proposed` -> `planned` for Sprint 22 T-177, retiring the two
+  compatibility shims already identified in Sprint 21. This is preparatory
+  cleanup; the computed sweep and its acceptance criteria remain outstanding.
+- 2026-09-04: `planned` -> `active` as Sprint 22 T-177 removes the known
+  compatibility shims and duplicate canonical-runner registrations.
