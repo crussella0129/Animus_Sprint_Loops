@@ -301,6 +301,9 @@ bash tools/run-guards.sh --determinism
 ```
 
 Name suites to run only those, and use `--list-suites` to see the set.
+Failed suites print their captured stdout and stderr. A determinism mismatch
+prints both runs and a normalized diff, so a red local run or CI log includes
+the assertion that failed. Passing suites keep the compact summary.
 
 ### Are the suites themselves worth anything?
 
@@ -310,15 +313,29 @@ exits 0 and prints nothing, runs the suite inside a copy of `HEAD`, and requires
 it to fail.
 
 ```bash
-bash tools/run-guards.sh --out guards-report.ndjson
+# Commit the changes you intend to verify first.
+bash tools/run-guards.sh --committed --out guards-report.ndjson
 bash tools/check-suite-sensitivity.sh
 ```
 
-The guard report is the baseline: a suite that is already failing is skipped,
-because asking whether a failing suite is sensitive is not a meaningful
-question. Suites with no single subject — `selftest`, `operator-docs`,
+The guard report is the baseline. `--committed` runs from an archive of `HEAD`,
+excluding local edits and untracked files, and records its `source_tree` plus
+each suite's `script_hash`. Commit changes to the runner itself before using
+this mode. Ordinary runs still test local edits; their reports are marked
+`working-tree` and cannot serve as sensitivity baselines.
+
+Sensitivity requires a passing report for the current committed tree and suite.
+A missing, malformed, duplicate, stale, failing, or nondeterministic baseline
+is `unscorable` and returns nonzero. Regenerate the report after committing
+changes, including Book changes. Baselines from older runner versions must also
+be regenerated. A mutation that fails without a valid confirmation is likewise
+unscorable; it does not establish sensitivity. Each suite receives an independent
+verdict, with the previous subject restored before the next mutation.
+
+Suites with no single subject — `selftest`, `operator-docs`,
 `shellcheck`, and the bare checkers that are their own subject — are reported as
-`no-subject` rather than silently skipped.
+`no-subject`. The runner's own fixture suite is explicitly `harness-subject`:
+neutering the runner would also disable the mechanism that runs the fixture.
 
 **This is a floor, not a proof.** It shows that a suite is coupled to the script
 it tests. It does not show that the suite would catch a subtly wrong answer:

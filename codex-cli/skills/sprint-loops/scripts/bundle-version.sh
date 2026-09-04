@@ -9,4 +9,4 @@
 # plugin.json's "version" to equal this value; the cross-bundle parity guard
 # requires all four copies to be byte-identical.
 set -euo pipefail
-printf '%s\n' 0.21.0
+printf '%s\n' 0.22.0

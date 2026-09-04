@@ -633,3 +633,10 @@
 - **Completed:** 2026-09-04T21:59:11Z
 - **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`, `tools/check-merge-policy.sh` (removed), `tools/check-merge-policy.test.sh` (removed), `docs/intents/INT-0007-integrity-sweep.md`
 - **Commit:** `79bda965a8357306c93967cfd3a547b80f6d959c`
+
+## T-182 (sprint 22)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Document committed-archive baselines, source-tree freshness, explicit unscorable failures, restored mutations, and actionable guard diagnostics. Raise all four bundle-version helpers and Claude plugin manifest to 0.22.0. Canonical operator-docs, plugin-manifest, and bundle-sync checks pass (3/3); ShellCheck passes.
+- **Completed:** 2026-09-04T22:00:49Z
+- **Files modified:** `README.md`, `tools/operator-docs.test.sh`, `open-harnesses/scripts/bundle-version.sh`, `claude-code/skills/sprint-loop/scripts/bundle-version.sh`, `codex-cli/skills/sprint-loops/scripts/bundle-version.sh`, `antigravity-ide/skills/sprint-loop/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`
+- **Commit:** PENDING
