@@ -618,4 +618,4 @@
 - **Description:** Retain captures until verdict, print failing stdout/stderr and both mismatch runs plus normalized diff; preserve concise passing output. Six Windows Git Bash fixtures pass; Linux ShellCheck 0.11.0 passes. Negative fixtures now assert nonzero exit.
 - **Completed:** 2026-09-04T21:44:47Z
 - **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`
-- **Commit:** PENDING
+- **Commit:** `e2b5dca80e8d717932a44f728df3590dfcf70c7b`
