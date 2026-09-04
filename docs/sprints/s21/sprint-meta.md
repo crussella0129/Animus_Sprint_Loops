@@ -8,6 +8,6 @@
 - **Bundle version:** 0.20.0
 - **Exit status:** in-progress
 - **Token count:** (filled at Loop Phase if observable)
-- **Summary:** (one-line description of sprint goal, filled after Plan Phase)
-- **Intents:** (filled after Plan Phase)
+- **Summary:** Make the loop's own verification trustworthy: a suite that runs to completion on the operator's machine, and assertions that fail when the property does.
+- **Intents:** [INT-0013](../../intents/INT-0013-verification-integrity.md) (planned)
 - **Completion evidence:** (filled at Loop Phase)

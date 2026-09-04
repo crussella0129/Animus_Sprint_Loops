@@ -2,8 +2,8 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0013
-- **State:** proposed
-- **Work evidence:** none
+- **State:** planned
+- **Work evidence:** [T-172-T-176 build plan](../sprints/s21/sprint-plans/build-plan.md#execution-sequence), [Sprint 21 test plan](../sprints/s21/sprint-plans/test-plan.md)
 - **Completion evidence:** none
 - **Code evidence:** none
 - **Test evidence:** none
@@ -110,3 +110,11 @@ no-literal criteria cover the shapes it cannot see.
   assertions), T-169 (assertions against version literals), T-144 (a false
   determinism diagnostic in the runner itself), and Sprint 20's ultrareview
   finding that a fixture greped for a code path that `set -e` made dead.
+- 2026-09-03: `proposed` -> `planned` - accepted into Sprint 21 as T-172
+  through T-176. Planning added a finding research had not: the copy-and-
+  neuter harness was prototyped before the plan was written, and its control
+  run correctly refused to score three `tools/` suites that a scripts-only
+  copy had broken. Without that control the mechanism would have reported
+  them sensitive for the wrong reason - shipping the defect class it exists
+  to catch. The control was then replaced by the guard runner's own report,
+  which is cheaper and already proves each suite passes.
