@@ -140,6 +140,57 @@ book_require_v2_layout() {
   done
 }
 
+# One carriage return, and the only line-ending predicate in the corpus.
+#
+# Detecting CRLF looks trivial and is not, on the platform that has the
+# problem. On Windows/MSYS2 `awk` cannot observe a trailing CR at all, `grep -q`
+# reports no match on a file where `grep -c` counts two, and command
+# substitution strips a trailing CR along with the newline — so the obvious
+# `case "$(head -n1 "$f")" in *"$CR")` reports LF for every CRLF file. `read`
+# is the primitive that keeps the byte, which is why every caller must use this
+# helper rather than open-coding a neighbour's idiom. Measured evidence:
+# docs/sprints/s21/sprint-research/line-ending-probe.txt.
+#
+# BOOK_CR is a bash ANSI-C literal rather than a command substitution. An
+# earlier form built it with `$(printf ...)`, which is exactly the construct
+# this comment warns about: a trailing CR is stripped there, and during
+# development that produced an EMPTY BOOK_CR. That is the silent catastrophe,
+# because `case "$x" in *"")` matches every string - every file would read as
+# CRLF, finalize-plan.sh would give LF plans CRLF headers, and every fixture
+# asserting preservation would pass. The predicates below refuse to answer
+# rather than guess if it ever happens again.
+BOOK_CR=$'\r'
+BOOK_CR_DIAGNOSTIC='book-paths: BOOK_CR is not a single carriage return; line-ending detection is unsafe'
+
+book_cr_is_intact() {
+  [ "${#BOOK_CR}" -eq 1 ]
+}
+
+book_first_line_is_crlf() {
+  book_cr_is_intact || { printf '%s\n' "$BOOK_CR_DIAGNOSTIC" >&2; return 2; }
+  book_crlf_first=""
+  IFS= read -r book_crlf_first < "$1" 2>/dev/null || :
+  case "$book_crlf_first" in
+    *"$BOOK_CR") return 0 ;;
+  esac
+  return 1
+}
+
+# 0 if EVERY line ends in CR. The bug this guards against produces a *mixed*
+# file — an LF header prepended to a CRLF body — which a first-line check reads
+# as clean from one end and broken from the other.
+book_all_lines_are_crlf() {
+  book_cr_is_intact || { printf '%s\n' "$BOOK_CR_DIAGNOSTIC" >&2; return 2; }
+  [ -s "$1" ] || return 1
+  while IFS= read -r book_crlf_line || [ -n "$book_crlf_line" ]; do
+    case "$book_crlf_line" in
+      *"$BOOK_CR") ;;
+      *) return 1 ;;
+    esac
+  done < "$1"
+  return 0
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
   book_layout_state
 fi

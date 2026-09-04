@@ -190,13 +190,21 @@ case "$check_out" in *'no pending steps'*) : ;; *) die test_converge_check_is_re
 pass test_converge_check_is_readonly
 
 # test_converge_refuses_ahead_book — never converge backwards.
-printf 'schema-version: 2\nsubstrate-version: 99\n' > "$(marker_of "$U")"
+# One above the bundle, expressed as a relationship: a literal is true only
+# until the contract reaches it, which is how Sprint 20's raise broke a
+# Sprint 18 fixture (T-169).
+AHEAD=$((V + 1))
+printf 'schema-version: 2\nsubstrate-version: %s\n' "$AHEAD" > "$(marker_of "$U")"
 before_ahead=$(snap "$U")
 if bash "$DS" --root "$U" >/dev/null 2>"$U.ahead"; then
   die test_converge_refuses_ahead_book 'ahead Book accepted'
 fi
-grep -q '99' "$U.ahead" && grep -q "$V" "$U.ahead" ||
-  die test_converge_refuses_ahead_book "diagnostic names neither version: $(cat "$U.ahead")"
+# Anchored to the diagnostic's wording, not to two bare integers: with the
+# contract at 4 those are the single digits 5 and 4, which almost any message
+# satisfies. The literal 99 this replaced was accidentally strong; the
+# relationship must not buy correctness at the cost of the assertion.
+grep -q "version $AHEAD is ahead of this bundle's $V" "$U.ahead" ||
+  die test_converge_refuses_ahead_book "diagnostic does not name both versions: $(cat "$U.ahead")"
 [ "$before_ahead" = "$(snap "$U")" ] || die test_converge_refuses_ahead_book 'ahead refusal mutated the project'
 pass test_converge_refuses_ahead_book
 
@@ -509,7 +517,7 @@ pass test_converge_local_only_gets_no_ci
 # to receive a workflow were the exact ones never told about it.
 PV=$(ci_project ci-preview Cargo.toml)
 bash "$DS" --root "$PV" >/dev/null 2>&1 || die test_check_previews_ci_before_convergence 'seed convergence failed'
-printf 'schema-version: 2\nsubstrate-version: 3\n' > "$PV/docs/.sprint-loop-book"
+printf 'schema-version: 2\nsubstrate-version: %s\n' "$((V - 1))" > "$PV/docs/.sprint-loop-book"
 rm -rf "$PV/.github/workflows"
 pv_out=$(bash "$DS" --root "$PV" --check 2>&1)
 case "$pv_out" in *"create $CI_REL"*) : ;; *) die test_check_previews_ci_before_convergence "preview omits the workflow: $pv_out" ;; esac

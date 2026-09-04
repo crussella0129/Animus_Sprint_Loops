@@ -300,6 +300,32 @@ Run the canonical suite from the repository root:
 bash tools/run-guards.sh --determinism
 ```
 
+Name suites to run only those, and use `--list-suites` to see the set.
+
+### Are the suites themselves worth anything?
+
+A passing suite proves nothing if its assertions would pass anyway. This checks
+that they would not: it replaces each suite's subject script with a stub that
+exits 0 and prints nothing, runs the suite inside a copy of `HEAD`, and requires
+it to fail.
+
+```bash
+bash tools/run-guards.sh --out guards-report.ndjson
+bash tools/check-suite-sensitivity.sh
+```
+
+The guard report is the baseline: a suite that is already failing is skipped,
+because asking whether a failing suite is sensitive is not a meaningful
+question. Suites with no single subject — `selftest`, `operator-docs`,
+`shellcheck`, and the bare checkers that are their own subject — are reported as
+`no-subject` rather than silently skipped.
+
+**This is a floor, not a proof.** It shows that a suite is coupled to the script
+it tests. It does not show that the suite would catch a subtly wrong answer:
+Sprint 20 shipped a generated `pytest` tolerance that was dead code under
+`set -e`, and the fixture that missed it was still coupled to its generator, so
+this check would have passed it. Treat a clean run as the floor it is.
+
 ## License
 
 [MIT](LICENSE) © 2026 Charles Russella.

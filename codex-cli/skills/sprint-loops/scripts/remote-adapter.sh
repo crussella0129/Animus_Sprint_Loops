@@ -77,16 +77,19 @@ compose_title() {
 # close-sprint has committed, so an uncommitted write here would leave the Book
 # dirty for the next sprint's committed-evidence gate to trip on.
 record_checkpoint() {
-  local url=$1 tmp
+  local url=$1 tmp _crlf
   [ -n "$url" ] || return 0
   [ -s "$SPRINT_META" ] || return 0
   grep -qF -- '- **Checkpoint:**' "$SPRINT_META" && return 0
   tmp="$SPRINT_META.checkpoint.$$"
-  CHECKPOINT_URL=$url awk '
-    BEGIN { url=ENVIRON["CHECKPOINT_URL"] }
+  # awk cannot observe a trailing carriage return on every supported host, so
+  # the line-ending decision is made by the shared primitive and handed in.
+  # Detecting it inside awk silently rewrote CRLF Book files as LF.
+  if book_first_line_is_crlf "$SPRINT_META"; then _crlf=1; else _crlf=0; fi
+  CHECKPOINT_URL=$url awk -v crlf="$_crlf" '
+    BEGIN { url=ENVIRON["CHECKPOINT_URL"]; if (crlf) ORS="\r\n" }
     {
-      if (NR == 1 && sub(/\r$/, "", $0)) ORS="\r\n"
-      else sub(/\r$/, "", $0)
+      sub(/\r$/, "", $0)
       print
     }
     /^- \*\*Completion evidence:\*\*/ && !done {

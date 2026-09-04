@@ -66,14 +66,14 @@ restore_after_git_failure() {
 trap cleanup EXIT
 SPRINT_LOOP_ABORT_REASON=$REASON
 export SPRINT_LOOP_ABORT_REASON
-awk -v ts="$TS" '
-  BEGIN { reason=ENVIRON["SPRINT_LOOP_ABORT_REASON"] }
+# awk cannot observe a trailing carriage return on every supported host, so
+# the line-ending decision is made by the shared primitive and handed in.
+# Detecting it inside awk silently rewrote CRLF Book files as LF.
+if book_first_line_is_crlf "$META"; then _crlf=1; else _crlf=0; fi
+awk -v crlf="$_crlf" -v ts="$TS" '
+  BEGIN { reason=ENVIRON["SPRINT_LOOP_ABORT_REASON"]; if (crlf) ORS="\r\n" }
   {
-    if (NR == 1) {
-      if (sub(/\r$/, "", $0)) ORS="\r\n"
-    } else {
-      sub(/\r$/, "", $0)
-    }
+    sub(/\r$/, "", $0)
   }
   /^- \*\*Exit status:\*\*/ && !status_done {
     print "- **Exit status:** aborted"; status_done=1; next

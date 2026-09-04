@@ -132,5 +132,6 @@ printf 'x\n' > "$U/docs/sprints/s0/sprint-research/research-report.md"
 assert_phase "$U" plan test_routing_unchanged_for_unstamped_book_plan
 grep -q 'substrate-version' "$U/docs/.sprint-loop-book" &&
   die test_routing_unchanged_for_unstamped_book 'routing stamped the marker'
+pass test_routing_unchanged_for_unstamped_book
 
 echo 'book-routing selftest: all fixtures passed'

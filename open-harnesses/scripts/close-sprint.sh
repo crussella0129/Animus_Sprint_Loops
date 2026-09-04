@@ -118,14 +118,14 @@ restore_after_git_failure() {
 trap cleanup EXIT
 SPRINT_LOOP_CLOSE_EVIDENCE=$EVIDENCE
 export SPRINT_LOOP_CLOSE_EVIDENCE
-awk -v ts="$TS" -v status="$TARGET_STATUS" '
-  BEGIN { evidence=ENVIRON["SPRINT_LOOP_CLOSE_EVIDENCE"] }
+# awk cannot observe a trailing carriage return on every supported host, so
+# the line-ending decision is made by the shared primitive and handed in.
+# Detecting it inside awk silently rewrote CRLF Book files as LF.
+if book_first_line_is_crlf "$META"; then _crlf=1; else _crlf=0; fi
+awk -v crlf="$_crlf" -v ts="$TS" -v status="$TARGET_STATUS" '
+  BEGIN { evidence=ENVIRON["SPRINT_LOOP_CLOSE_EVIDENCE"]; if (crlf) ORS="\r\n" }
   {
-    if (NR == 1) {
-      if (sub(/\r$/, "", $0)) ORS="\r\n"
-    } else {
-      sub(/\r$/, "", $0)
-    }
+    sub(/\r$/, "", $0)
   }
   /^- \*\*End timestamp:\*\*/ && !end_done {
     print "- **End timestamp:** " ts; end_done=1; next

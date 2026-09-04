@@ -219,6 +219,58 @@ expect_failure 'research budget exceeded' run_script "$F" finalize-plan.sh
 unlocked "$F" || fail "six-source budget gate partially locked plans"
 pass
 
+# test_book_cr_is_one_byte / test_crlf_predicate_* — the line-ending primitive
+# itself, asserted before anything that depends on it. This host's awk cannot
+# observe a trailing carriage return, so the fixture that used to assert with
+# awk was blind in exactly the direction finalize-plan.sh was: both agreed a
+# CRLF file was LF, and the suite passed while the property failed.
+book_probe() {  # <fn> <file>
+  # No 2>/dev/null: a book-paths.sh that fails to source would otherwise be
+  # indistinguishable from "this file is not CRLF", and every negative fixture
+  # below would pass for the wrong reason.
+  ( cd "$SCRIPT_DIR" && . ./book-paths.sh && "$1" "$2" )
+}
+PROBE="$TMP_ROOT/crlf-probe"
+mkdir -p "$PROBE"
+printf 'a\r\nb\r\n' > "$PROBE/crlf.txt"
+printf 'a\nb\n'         > "$PROBE/lf.txt"
+: > "$PROBE/empty.txt"
+printf 'header\nbody\r\n' > "$PROBE/mixed.txt"
+
+# BOOK_CR being empty is the silent catastrophe: `case $x in *"$BOOK_CR")`
+# matches every string, so every file reads as CRLF and no assertion notices.
+book_probe book_cr_is_intact "$PROBE/crlf.txt" ||
+  fail "BOOK_CR is not one byte; every line-ending check would match everything"
+pass
+
+book_probe book_first_line_is_crlf "$PROBE/crlf.txt" ||
+  fail "predicate did not see a CRLF first line"
+pass
+
+if book_probe book_first_line_is_crlf "$PROBE/lf.txt"; then
+  fail "predicate reported an LF-only file as CRLF"
+fi
+pass
+
+if book_probe book_first_line_is_crlf "$PROBE/empty.txt"; then
+  fail "predicate reported an empty file as CRLF"
+fi
+pass
+
+# The defect produces a MIXED file - an LF header over a CRLF body - so a
+# whole-file check is the only one that can see it.
+if book_probe book_all_lines_are_crlf "$PROBE/mixed.txt"; then
+  fail "whole-file check accepted a mixed-ending file"
+fi
+book_probe book_all_lines_are_crlf "$PROBE/crlf.txt" ||
+  fail "whole-file check rejected a uniformly CRLF file"
+pass
+
+# Recorded, not asserted: awk's verdict is host-dependent, and the point of the
+# primitive is that the corpus no longer depends on it.
+printf 'runtime-helpers.test: note: awk reads the CRLF probe as %s\n'   "$(awk 'NR == 1 { print (substr($0, length($0), 1) == "\r") ? "CRLF" : "LF" }' "$PROBE/crlf.txt")"
+
+# test_finalize_preserves_uniform_crlf
 plan_fixture crlf_plans
 for plan_name in build-plan.md test-plan.md; do
   plan_path="$F/docs/sprints/s0/sprint-plans/$plan_name"
@@ -228,7 +280,7 @@ done
 run_script "$F" finalize-plan.sh >/dev/null
 for plan_name in build-plan.md test-plan.md; do
   plan_path="$F/docs/sprints/s0/sprint-plans/$plan_name"
-  awk 'substr($0, length($0), 1) != "\r" { exit 1 }' "$plan_path" ||
+  book_probe book_all_lines_are_crlf "$plan_path" ||
     fail "finalization did not preserve uniform CRLF in $plan_name"
 done
 crlf_build=$(git hash-object "$F/docs/sprints/s0/sprint-plans/build-plan.md")
@@ -238,6 +290,21 @@ run_script "$F" finalize-plan.sh >/dev/null
   fail "CRLF locked build plan was rewritten"
 [ "$crlf_test" = "$(git hash-object "$F/docs/sprints/s0/sprint-plans/test-plan.md")" ] ||
   fail "CRLF locked test plan was rewritten"
+pass
+
+# test_finalize_preserves_uniform_lf - the fix must not pass by calling
+# everything CRLF, which is precisely what an empty BOOK_CR would do.
+plan_fixture lf_plans
+run_script "$F" finalize-plan.sh >/dev/null
+for plan_name in build-plan.md test-plan.md; do
+  plan_path="$F/docs/sprints/s0/sprint-plans/$plan_name"
+  # Every line, not just the first: the defect this guards against is a MIXED
+  # file, and a first-line check is exactly the instrument that cannot see one.
+  # tr is used because it observes a CR on this host, where awk and grep do not.
+  if [ "$(LC_ALL=C tr -dc '\r' < "$plan_path" | wc -c)" -ne 0 ]; then
+    fail "finalization introduced a CR into an LF-only $plan_name"
+  fi
+done
 pass
 
 # A signal delivered after the first rename restores both original plans.
@@ -311,7 +378,7 @@ ref=$(awk '
   }
 ' "$F/docs/work/completed-tasks.md")
 [ -n "$ref" ] && git -C "$F" cat-file -e "$ref^{commit}" || fail "commit evidence is not resolvable"
-awk 'substr($0, length($0), 1) != "\r" { exit 1 }' "$F/docs/work/completed-tasks.md" ||
+book_probe book_all_lines_are_crlf "$F/docs/work/completed-tasks.md" ||
   fail "commit evidence did not preserve ledger CRLF"
 git -C "$F" diff --cached --name-only | grep -qFx unrelated-staged.txt ||
   fail "task commit consumed an unrelated staged file"
@@ -364,7 +431,7 @@ run_script "$F" abort-sprint.sh 'dependency\path unavailable' >/dev/null
 grep -qF -- '- **Exit status:** aborted' "$META" || fail "abort status missing"
 grep -qF '## Abort note (' "$META" || fail "abort note missing"
 grep -qF 'dependency\path unavailable' "$META" || fail "abort reason missing"
-awk 'substr($0, length($0), 1) != "\r" { exit 1 }' "$META" ||
+book_probe book_all_lines_are_crlf "$META" ||
   fail "abort did not preserve uniform CRLF"
 awk '{ sub(/\r$/, "") } /^- \*\*End timestamp:\*\* [0-9][0-9][0-9][0-9]-.*Z$/ { found=1 } END { exit !found }' "$META" ||
   fail "abort timestamp missing"
@@ -446,7 +513,7 @@ grep -qF -- '- **Exit status:** success' "$META" || fail "close status missing"
 grep -qF -- '- **Bundle version:**' "$META" &&
   fail "close invented a Bundle version field on a legacy record"
 grep -qF -- '- **Completion evidence:** tests: sprint-tests\test-report.md; commits: HEAD' "$META" || fail "completion evidence missing"
-awk 'substr($0, length($0), 1) != "\r" { exit 1 }' "$META" ||
+book_probe book_all_lines_are_crlf "$META" ||
   fail "close did not preserve uniform CRLF"
 awk '{ sub(/\r$/, "") } /^- \*\*End timestamp:\*\* [0-9][0-9][0-9][0-9]-.*Z$/ { found=1 } END { exit !found }' "$META" ||
   fail "close timestamp missing"

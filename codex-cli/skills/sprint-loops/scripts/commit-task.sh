@@ -68,13 +68,14 @@ HASH=$(git rev-parse HEAD)
 # merely mentions PENDING and later task entries remain untouched.
 TMP="$F.tmp.$$"
 trap 'rm -f "$TMP"' EXIT
-awk -v h="$HASH" '
+# awk cannot observe a trailing carriage return on every supported host, so
+# the line-ending decision is made by the shared primitive and handed in.
+# Detecting it inside awk silently rewrote CRLF Book files as LF.
+if book_first_line_is_crlf "$F"; then _crlf=1; else _crlf=0; fi
+awk -v crlf="$_crlf" -v h="$HASH" '
+  BEGIN { if (crlf) ORS="\r\n" }
   {
-    if (NR == 1) {
-      if (sub(/\r$/, "", $0)) ORS="\r\n"
-    } else {
-      sub(/\r$/, "", $0)
-    }
+    sub(/\r$/, "", $0)
   }
   !done && $0 == "- **Commit:** PENDING" {
     $0 = "- **Commit:** `" h "`"; done=1

@@ -105,13 +105,15 @@ grep -qF -- '- **Checkpoint:** https://example/pr/1' "$P1_META" ||
 pass test_checkpoint_recorded_once
 pass test_checkpoint_record_is_committed
 
-# A second open-pr neither opens a request nor changes the recorded field.
+# test_checkpoint_reopen_is_inert - a second open-pr neither opens a request
+# nor changes the recorded field. Its assertions used to fail under the name
+# of the previous fixture, which would send a reader to the wrong test.
 before_meta=$(git -C "$P1" hash-object "$P1_META")
 PATH="$STUB_BIN:$PATH" STUB_PR_EXISTS=1 bash "$RA" --root "$P1" open-pr >/dev/null 2>&1 ||
-  die test_checkpoint_recorded_once 'second open-pr errored'
-[ "$(grep -c 'pr create' "$STUBLOG")" = 1 ] || die test_checkpoint_recorded_once 'opened a second request'
+  die test_checkpoint_reopen_is_inert 'second open-pr errored'
+[ "$(grep -c 'pr create' "$STUBLOG")" = 1 ] || die test_checkpoint_reopen_is_inert 'opened a second request'
 [ "$before_meta" = "$(git -C "$P1" hash-object "$P1_META")" ] ||
-  die test_checkpoint_recorded_once 'second open-pr rewrote the record'
+  die test_checkpoint_reopen_is_inert 'second open-pr rewrote the record'
 pass test_checkpoint_reopen_is_inert
 
 # test_pr_refuses_existing_checkpoint
