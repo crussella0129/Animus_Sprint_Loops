@@ -4,7 +4,7 @@
 - **Intent ID:** INT-0013
 - **State:** active
 - **Work evidence:** [T-172-T-176 build plan](../sprints/s21/sprint-plans/build-plan.md#execution-sequence), [Sprint 21 test plan](../sprints/s21/sprint-plans/test-plan.md)
-- **Completion evidence:** none
+- **Completion evidence:** [T-172-T-176 completion records](../work/completed-tasks.md#t-172-sprint-21)
 - **Code evidence:** [line-ending primitive](../../open-harnesses/scripts/book-paths.sh), [plan locking](../../open-harnesses/scripts/finalize-plan.sh), [guard runner](../../tools/run-guards.sh), [sensitivity check](../../tools/check-suite-sensitivity.sh)
 - **Test evidence:** [Sprint 21 test report](../sprints/s21/sprint-tests/test-report.md), [Sprint 21 E2E record](../sprints/s21/sprint-tests/e2e-tests.md), [sensitivity sweep](../sprints/s21/sprint-tests/sensitivity-sweep.md)
 - **Documentation evidence:** [Are the suites themselves worth anything?](../../README.md#are-the-suites-themselves-worth-anything)
