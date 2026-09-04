@@ -625,4 +625,4 @@
 - **Description:** Add --committed archive baselines with source-tree and suite-hash provenance; reject malformed, duplicate, stale, failing and nondeterministic evidence. Restore subjects after each mutation and score shared-subject suites independently. Validate actual mutated confirmations, fail closed on capture/hash/report-write errors, and reject unknown suites. Fourteen sensitivity fixtures pass on Windows and Linux; eleven runner fixtures pass on Windows; Linux ShellCheck passes all four changed scripts.
 - **Completed:** 2026-09-04T21:54:10Z
 - **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`, `tools/check-suite-sensitivity.sh`, `tools/check-suite-sensitivity.test.sh`
-- **Commit:** PENDING
+- **Commit:** `e6ad69e0a7b24d499e47b68101d05779f3c5b899`
