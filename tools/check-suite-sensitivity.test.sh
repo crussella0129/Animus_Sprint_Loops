@@ -256,4 +256,21 @@ for missing_rc in 0 2; do
 done
 pass test_missing_mutated_confirmation
 
+# TMPDIR may have a trailing slash, .. component, or a symlink (macOS /var).
+# Containment compares physical paths on both sides, never a lexical spelling.
+TEMP_BASE="$TMP_ROOT/temp-roots"
+mkdir -p "$TEMP_BASE/physical/holder"
+for temp_spelling in "$TEMP_BASE/physical/" "$TEMP_BASE/physical/holder/.."; do
+  out=$(TMPDIR="$temp_spelling" run_tool "$CL"); rc=$?
+  [ "$rc" -eq 0 ] || die test_temp_root_spellings "valid TMPDIR rejected: $out"
+done
+pass test_temp_root_spellings
+if ln -s "$TEMP_BASE/physical" "$TEMP_BASE/alias" 2>/dev/null && [ -L "$TEMP_BASE/alias" ]; then
+  out=$(TMPDIR="$TEMP_BASE/alias" run_tool "$CL"); rc=$?
+  [ "$rc" -eq 0 ] || die test_symlinked_temp_root "symlinked TMPDIR rejected: $out"
+  pass test_symlinked_temp_root
+else
+  printf '  SKIP  test_symlinked_temp_root: host does not create directory symlinks\n'
+fi
+
 printf 'check-suite-sensitivity selftest: all fixtures passed\n'

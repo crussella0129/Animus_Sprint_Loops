@@ -21,6 +21,7 @@ SOURCE_TREE=$(git -C "$ROOT" rev-parse 'HEAD^{tree}') || fatal 'cannot resolve H
 TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/sprint-loop-sensitivity.XXXXXX") || fatal 'cannot allocate work directory'
 trap 'rm -rf "$TMP_ROOT"' EXIT
 trap 'exit 130' HUP INT TERM
+TMP_ROOT=$(cd "$TMP_ROOT" && pwd -P) || fatal 'cannot resolve physical work directory'
 PRISTINE="$TMP_ROOT/pristine"
 mkdir -p "$PRISTINE" || fatal 'cannot create archive directory'
 git -C "$ROOT" archive "$SOURCE_TREE" | tar -x -C "$PRISTINE" || fatal 'could not extract HEAD'
