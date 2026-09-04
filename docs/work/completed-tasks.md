@@ -598,3 +598,10 @@
 - **Completed:** 2026-09-03T00:00:00Z
 - **Files modified:** `tools/check-suite-sensitivity.sh` (new), `tools/check-suite-sensitivity.test.sh` (new), `tools/run-guards.sh`
 - **Commit:** `1921fcee24de2956d50a1495296e56cab4e05d71`
+
+## T-176 (sprint 21)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** README documents the sensitivity check, how to run it, why the guard report is its baseline, and - in its own paragraph - that it is a floor and not a proof: it shows a suite is coupled to the script it tests, not that the suite would catch a subtly wrong answer, and sprint 20's dead pytest tolerance would have passed it. operator-docs asserts both a discoverability token and the limit token, each chosen to sit on a single line because a sprint 20 assertion failed by matching a phrase split across a line break. Bundle raised to 0.21.0 across all four bundles with the plugin manifest in agreement. ORDERING DEVIATION: the locked plan sequences T-176 after T-175, and it is committed first. T-176 depends only on T-174, while T-175's third success clause requires a completed sensitivity sweep, and on this host the canonical runner needs far longer than expected - selftest alone took 528s under --determinism. Committing the finished task rather than holding it behind a running measurement.
+- **Completed:** 2026-09-03T00:00:00Z
+- **Files modified:** `README.md`, `tools/operator-docs.test.sh`, `{open-harnesses,claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop}/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`
+- **Commit:** PENDING

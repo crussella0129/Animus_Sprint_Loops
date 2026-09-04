@@ -93,6 +93,14 @@ for suite in $SUITES; do
     printf '%-24s %-14s %s\n' "$suite" "no-subject" "(is its own subject)"
     continue
   fi
+  # The harness runs each suite THROUGH run-guards.sh, so a suite whose subject
+  # is run-guards.sh itself cannot be scored here: neutering the subject also
+  # neuters the harness, every suite "passes", and the verdict would be a false
+  # INSENSITIVE. Naming that is the honest answer; guessing would not be.
+  if [ "$subject" = tools/run-guards.sh ]; then
+    printf '%-24s %-14s %s\n' "$suite" "skipped" "harness-subject (scored by its own fixtures)"
+    continue
+  fi
   status=$(baseline_status "$suite")
   if [ "$status" != PASS ]; then
     printf '%-24s %-14s %s\n' "$suite" "skipped" "baseline-not-pass ($status)"
