@@ -221,23 +221,33 @@ bash scripts/second.sh >/dev/null || exit 1
 EOF
 git -C "$MS" add -A && git -C "$MS" commit -qm second || die test_subject_restored_between_suites 'commit failed'
 baseline "$MS" PASS
-for order in 'extra:probe.sh extra:second.sh' 'extra:second.sh extra:probe.sh' 'extra:second.sh'; do
-  # Intentional splitting of the fixed suite-name list.
-  # shellcheck disable=SC2086
-  out=$(run_tool "$MS" $order); rc=$?
-  [ "$rc" -eq 1 ] || die test_subject_restored_between_suites "expected insensitive verdict: $out"
-  printf '%s\n' "$out" | grep -Eq '^extra:second.sh +INSENSITIVE ' ||
-    die test_subject_restored_between_suites "B inherited A mutation: $out"
-done
+assert_pair_verdicts() {  # repo test
+  local repo=$1 test=$2 order out rc suite expected expected_rc
+  for order in 'extra:probe.sh extra:second.sh' 'extra:second.sh extra:probe.sh' 'extra:second.sh' 'extra:probe.sh'; do
+    # Intentional splitting of the fixed suite-name list.
+    # shellcheck disable=SC2086
+    out=$(run_tool "$repo" $order); rc=$?
+    expected_rc=1
+    [ "$order" != extra:probe.sh ] || expected_rc=0
+    [ "$rc" -eq "$expected_rc" ] || die "$test" "wrong exit for $order: $out"
+    for suite in $order; do
+      expected=sensitive
+      [ "$suite" != extra:second.sh ] || expected=INSENSITIVE
+      printf '%s\n' "$out" | awk -v s="$suite" -v v="$expected" '
+        $1 == s { count++; if ($2 != v) wrong=1 }
+        END { exit (count != 1 || wrong) }
+      ' || die "$test" "expected exactly one $expected verdict for $suite: $out"
+    done
+  done
+}
+assert_pair_verdicts "$MS" test_subject_restored_between_suites
 pass test_subject_restored_between_suites
 
 printf 'scripts/subject.sh\n' > "$MS/extras/second.subject"
 printf '#!/usr/bin/env bash\nbash scripts/subject.sh >/dev/null\n' > "$MS/extras/second.sh"
 git -C "$MS" add -A && git -C "$MS" commit -qm shared || die test_shared_subject_suites 'commit failed'
 baseline "$MS" PASS
-out=$(run_tool "$MS"); rc=$?
-[ "$rc" -eq 1 ] || die test_shared_subject_suites "shared subject skipped: $out"
-printf '%s\n' "$out" | grep -Eq '^extra:second.sh +INSENSITIVE ' || die test_shared_subject_suites "second suite not scored: $out"
+assert_pair_verdicts "$MS" test_shared_subject_suites
 pass test_shared_subject_suites
 
 # A committed harness that disappears only at mutation time must not be
@@ -255,6 +265,30 @@ for missing_rc in 0 2; do
   case "$out" in *'no valid mutated confirmation'*) : ;; *) die test_missing_mutated_confirmation "wrong failure: $out" ;; esac
 done
 pass test_missing_mutated_confirmation
+
+# A populated PASS confirmation paired with exit 1 is contradictory evidence,
+# not a sensitive result. Keep the record syntactically valid and hash-correct.
+CC=$(fixture contradictory '#!/usr/bin/env bash
+[ "$(bash scripts/subject.sh)" = REAL-OUTPUT ] || exit 1')
+cat > "$TMP_ROOT/contradictory-prefix" <<'EOF'
+case "${2:-}" in
+  */neutered.ndjson)
+    sed 's/"source_tree":"[^"]*"/"source_tree":"working-tree"/' "$CONTRADICTORY_BASELINE" > "$2"
+    exit 1
+    ;;
+esac
+EOF
+{ head -n 1 "$CC/tools/run-guards.sh"; cat "$TMP_ROOT/contradictory-prefix"; tail -n +2 "$CC/tools/run-guards.sh"; } > "$CC/tools/runner.tmp"
+mv "$CC/tools/runner.tmp" "$CC/tools/run-guards.sh"
+git -C "$CC" add -A && git -C "$CC" commit -qm contradictory || die test_contradictory_mutated_confirmation 'commit failed'
+baseline "$CC" PASS
+out=$(CONTRADICTORY_BASELINE="$CC/baseline.ndjson" run_tool "$CC"); rc=$?
+[ "$rc" -eq 1 ] || die test_contradictory_mutated_confirmation "contradiction returned success: $out"
+case "$out" in *'no valid mutated confirmation'*) : ;; *) die test_contradictory_mutated_confirmation "wrong diagnostic: $out" ;; esac
+if printf '%s\n' "$out" | grep -Eq '^extra:probe.sh +(sensitive|INSENSITIVE) '; then
+  die test_contradictory_mutated_confirmation "contradictory evidence was scored: $out"
+fi
+pass test_contradictory_mutated_confirmation
 
 # TMPDIR may have a trailing slash, .. component, or a symlink (macOS /var).
 # Containment compares physical paths on both sides, never a lexical spelling.

@@ -90,6 +90,28 @@ pass test_passing_deterministic_suite_is_clean
 case "$out" in
   *steady*|*'--- end '*) die test_passing_deterministic_suite_is_clean 'passing output was not suppressed' ;;
 esac
+# Independently computed SHA-256 of the bytes "steady\n".
+grep -Fq '"evidence_hash":"90b9f641ab25d8829722011371d4adfd4646529bdf49b82e56cf11c2062fe6a2"' "$NDJSON" ||
+  die test_passing_deterministic_suite_is_clean 'evidence digest does not describe the actual output'
+
+NORMALIZED="$TMP_ROOT/normalized"; mkdir -p "$NORMALIZED"
+cat > "$NORMALIZED/probe.sh" <<'EOF'
+#!/usr/bin/env bash
+printf '%b' "$NORMALIZATION_SAMPLE"
+EOF
+# These differ in temp path, date and CR bytes, but normalize to exactly
+# "at <TMP> <TS>\n", whose independently computed digest is asserted below.
+for sample in \
+  'at /tmp/tmp.A12 2026-01-01T00:00:00Z\r\n' \
+  'at /private/var/folders/ab/T/tmp.fixture 2027-02-03T04:05:06Z\n' \
+  'at /var/folders/xy/T/tmp.other 2028-03-04T05:06:07Z\r\n'; do
+  out=$(NORMALIZATION_SAMPLE="$sample" run_with "$NORMALIZED" --determinism); rc=$?
+  [ "$rc" -eq 0 ] || die test_normalized_evidence_hash "normalization run failed: $out"
+  grep -Fq '"evidence_hash":"a68b2025ae088934429419bd02d4a140f9ac6d81c9f517168384c7110b5e3c64"' "$NDJSON" ||
+    die test_normalized_evidence_hash 'normalized bytes have the wrong digest'
+  grep -Fq '"determinism":"ok"' "$NDJSON" || die test_normalized_evidence_hash 'normalized evidence is unstable'
+done
+pass test_normalized_evidence_hash
 
 printf '#!/usr/bin/env bash\necho stdout-detail\necho stderr-detail >&2\nexit 7\n' > "$D/failing.sh"
 out=$(run_with "$D"); rc=$?
