@@ -1,0 +1,33 @@
+Line-ending visibility probe — Sprint 21 research (F1)
+
+host: MINGW64_NT-10.0-26200
+bash: GNU bash, version 5.3.9(1)-release (x86_64-pc-cygwin)
+awk : GNU Awk 5.4.0, API 4.1, PMA Avon 8-g1, (GNU MPFR 4.2.2, GNU MP 6.3.0)
+grep: grep (GNU grep) 3.0
+
+Input: a 6-byte CRLF file ->  a \r \n b \r \n
+
+Each primitive run repeatedly; the last column is what makes the
+result usable or not.
+
+primitive                    sees CR  repeated runs
+---------------------------- -------  -------------
+bash: IFS= read -r           YES       CR CR CR CR CR
+head -c | od                 YES       CR CR CR CR CR
+awk substr($0,length($0))    no        LF LF LF LF LF
+awk /\r$/                    no        LF LF LF LF LF
+case "$(head -n1 f)"         no        LF LF LF LF LF
+grep -q CR                   no        LF LF LF LF LF
+grep -c CR                   YES       CR CR CR CR CR
+
+NOTE: grep -q and grep -c contradict each other on the same file and
+the same pattern, reproducibly. -c counts 2 matches; -q reports none.
+grep is therefore not merely wrong here, it is self-inconsistent, and
+cannot be used for line-ending detection on this host.
+
+Writing is unaffected — awk emits real CRLF, so only READS are lossy:
+ a \r \n b \r \n
+
+Consequence in the current corpus (finalize-plan.sh:178,183 use the
+awk substr form, and the fixture asserts with it too):
+runtime-helpers.test: FAIL: finalization did not preserve uniform CRLF in build-plan.md
