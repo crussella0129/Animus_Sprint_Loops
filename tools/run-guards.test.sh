@@ -175,4 +175,15 @@ out=$(bash "$RG" --out 2>&1); rc=$?
 case "$out" in *'--out requires a path'*) : ;; *) die test_missing_output_argument "no usage diagnostic: $out" ;; esac
 pass test_missing_output_argument
 
+inventory=$(RUN_GUARDS_ONLY_EXTRA=0 RUN_GUARDS_EXTRA_SUITES='' bash "$RG" --list-suites) ||
+  die test_canonical_suite_inventory 'enumeration failed'
+for suite in adapter-semantics adapter-semantics-test; do
+  count=$(printf '%s\n' "$inventory" | grep -Fxc "$suite")
+  [ "$count" -eq 1 ] || die test_canonical_suite_inventory "$suite occurs $count times"
+done
+if printf '%s\n' "$inventory" | grep -q '^merge-policy'; then
+  die test_canonical_suite_inventory 'retired aliases still registered'
+fi
+pass test_canonical_suite_inventory
+
 printf 'run-guards selftest: all fixtures passed\n'

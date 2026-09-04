@@ -96,7 +96,7 @@ cd "$ROOT" || fatal 'cannot enter repository root'
 # RUN_GUARDS_ONLY_EXTRA=1 drops the real suite list and runs only the extras.
 # Without it a fixture for this runner would have to run all 19 real suites to
 # observe one console line, which is why the runner had no fixtures at all.
-SUITES=(selftest merge-policy merge-policy-test plugin-manifest plugin-manifest-test bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs remote-profile check-substrate check-tracked detect-languages scaffold-ci deploy-substrate remote-adapter sync-work-branch run-guards-test suite-sensitivity shellcheck)
+SUITES=(selftest plugin-manifest plugin-manifest-test bundle-sync bundle-sync-test adapter-semantics adapter-semantics-test operator-docs remote-profile check-substrate check-tracked detect-languages scaffold-ci deploy-substrate remote-adapter sync-work-branch run-guards-test suite-sensitivity shellcheck)
 if [ "${RUN_GUARDS_ONLY_EXTRA:-0}" = "1" ]; then
   SUITES=()
 fi
@@ -111,8 +111,6 @@ fi
 suite_cmd() {
   case "$1" in
     selftest)          bash claude-code/skills/sprint-loop/scripts/selftest.sh ;;
-    merge-policy)      bash tools/check-merge-policy.sh ;;
-    merge-policy-test) bash tools/check-merge-policy.test.sh ;;
     plugin-manifest)   bash tools/check-plugin-manifest.sh ;;
     plugin-manifest-test) bash tools/check-plugin-manifest.test.sh ;;
     bundle-sync)       bash tools/check-bundle-sync.sh ;;
@@ -143,8 +141,6 @@ suite_cmd() {
 suite_script_hash() {
   case "$1" in
     selftest)          cat claude-code/skills/sprint-loop/scripts/selftest.sh ;;
-    merge-policy)      cat tools/check-merge-policy.sh ;;
-    merge-policy-test) cat tools/check-merge-policy.test.sh ;;
     plugin-manifest)   cat tools/check-plugin-manifest.sh ;;
     plugin-manifest-test) cat tools/check-plugin-manifest.test.sh ;;
     bundle-sync)       cat tools/check-bundle-sync.sh ;;
@@ -174,17 +170,12 @@ suite_script_hash() {
 # suite_subject <suite> — the script a suite is a fixture FOR, or nothing.
 #
 # Printing nothing is a real answer, not a gap: `selftest`, `operator-docs` and
-# `shellcheck` have no single subject, and the bare checker suites (merge-policy,
+# `shellcheck` have no single subject, and the bare checker suites (
 # bundle-sync, plugin-manifest, adapter-semantics) ARE their subject — neutering
 # those would only prove that a script which does nothing reports nothing.
 # check-suite-sensitivity.sh consumes this so the suite list has one definition.
 suite_subject() {
   case "$1" in
-    # check-merge-policy{,.test}.sh are sprint-14 compatibility shims that exec
-    # the adapter-semantics pair, so this suite's real subject is the script it
-    # actually exercises. The first sensitivity sweep caught the wrong mapping:
-    # neutering the shim's target changed nothing the suite observes.
-    merge-policy-test)      echo tools/check-adapter-semantics.sh ;;
     plugin-manifest-test)   echo tools/check-plugin-manifest.sh ;;
     bundle-sync-test)       echo tools/check-bundle-sync.sh ;;
     adapter-semantics-test) echo tools/check-adapter-semantics.sh ;;

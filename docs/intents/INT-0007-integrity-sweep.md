@@ -2,7 +2,7 @@
 
 <!-- sprint-loop-intent-v2 -->
 - **Intent ID:** INT-0007
-- **State:** planned
+- **State:** active
 - **Work evidence:** [Sprint 22 T-177](../sprints/s22/sprint-plans/build-plan.md#t-177-remove-duplicate-compatibility-suites)
 - **Completion evidence:** none
 - **Code evidence:** none
@@ -81,6 +81,8 @@ would not be.
   INT-0004, or a project mid-sprint reroutes underneath itself.
 
 ## Transition history
+- 2026-09-04: `planned` -> `active` as Sprint 22 T-177 removes the known
+  compatibility shims and duplicate canonical-runner registrations.
 - 2026-09-02: created as `proposed` — derived from operator feedback item 3.a,
   which observed stubs surviving compaction and agent handover between sprints,
   and vestigial structure accumulating with nothing looking for it.
