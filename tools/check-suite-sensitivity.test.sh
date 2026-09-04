@@ -120,4 +120,20 @@ out=$( cd "$MB" && RUN_GUARDS_ONLY_EXTRA=1 RUN_GUARDS_EXTRA_SUITES=extras \
 case "$out" in *"no guard report"*) : ;; *) die test_missing_baseline_refuses "no diagnostic: $out" ;; esac
 pass test_missing_baseline_refuses
 
+# test_harness_subject_is_skipped - the tool runs each suite THROUGH
+# run-guards.sh, so a suite whose subject IS run-guards.sh cannot be scored:
+# neutering it neuters the harness and everything "passes", which would be
+# reported as a false INSENSITIVE. Verified here rather than only observed in
+# the real corpus, so a mapping change cannot silently reintroduce it.
+HS=$(fixture harness '#!/usr/bin/env bash
+exit 0')
+printf '%s\n' "tools/run-guards.sh" > "$HS/extras/probe.subject"
+git -C "$HS" add -A >/dev/null 2>&1; git -C "$HS" commit -qm harness >/dev/null 2>&1
+baseline "$HS" PASS
+out=$(run_tool "$HS"); rc=$?
+case "$out" in *harness-subject*) : ;; *) die test_harness_subject_is_skipped "not skipped: $out" ;; esac
+case "$out" in *INSENSITIVE*) die test_harness_subject_is_skipped "scored a harness-subject suite: $out" ;; esac
+[ "$rc" -eq 0 ] || die test_harness_subject_is_skipped "a harness-subject skip failed the run"
+pass test_harness_subject_is_skipped
+
 printf 'check-suite-sensitivity selftest: all fixtures passed\n'

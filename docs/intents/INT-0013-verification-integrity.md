@@ -5,9 +5,9 @@
 - **State:** active
 - **Work evidence:** [T-172-T-176 build plan](../sprints/s21/sprint-plans/build-plan.md#execution-sequence), [Sprint 21 test plan](../sprints/s21/sprint-plans/test-plan.md)
 - **Completion evidence:** none
-- **Code evidence:** none
-- **Test evidence:** none
-- **Documentation evidence:** none
+- **Code evidence:** [line-ending primitive](../../open-harnesses/scripts/book-paths.sh), [plan locking](../../open-harnesses/scripts/finalize-plan.sh), [guard runner](../../tools/run-guards.sh), [sensitivity check](../../tools/check-suite-sensitivity.sh)
+- **Test evidence:** [Sprint 21 test report](../sprints/s21/sprint-tests/test-report.md), [Sprint 21 E2E record](../sprints/s21/sprint-tests/e2e-tests.md), [sensitivity sweep](../sprints/s21/sprint-tests/sensitivity-sweep.md)
+- **Documentation evidence:** [Are the suites themselves worth anything?](../../README.md#are-the-suites-themselves-worth-anything)
 
 ## Intent
 The loop's gates are only as good as the evidence behind them, and for several
@@ -121,3 +121,16 @@ no-literal criteria cover the shapes it cannot see.
 - 2026-09-03: `planned` -> `active` - Build began with T-172, the line-ending
   primitive, because until the guard suite runs to completion on the operator's
   host the sprint cannot see the evidence its later tasks produce.
+- 2026-09-04: Sprint 21 delivered T-172 through T-176; the intent remains
+  `active`. Two criteria are met only in part. The no-version-literal rule was
+  verified by inspection and has no mechanical guard (T-178), so the defect it
+  names can recur exactly as it did in Sprint 20. The sensitivity check is a
+  floor by construction, as this chapter's Rationale already states, and its
+  first full sweep bears that out: the only thing it caught was a wrong subject
+  mapping in this sprint's own new code, while every suite it scored was
+  already coupled to its subject. The line-ending half is fully met - the local
+  runner is 21/21 green under `--determinism` for the first time since Sprint
+  18, and fixing it exposed four production scripts that had been silently
+  rewriting CRLF Book files as LF on Windows. CI green on both legs for head
+  `7661dac`, though the macOS leg failed on its first attempt with an
+  unexplained nondeterminism recorded as T-181 rather than dismissed.
