@@ -591,3 +591,10 @@
 - **Completed:** 2026-09-03T00:00:00Z
 - **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh` (new)
 - **Commit:** `ce5c28bb42fd348e1ebefa0363b599f653cc1541`
+
+## T-174 (sprint 21)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** tools/check-suite-sensitivity.sh replaces each suite's subject with a stub that exits 0 and prints nothing, runs the suite in a copy of HEAD, and requires it to fail; a suite that still passes is named and the tool exits non-zero. The suite list has one definition: run-guards.sh gained suite_subject(), --list-suites and --list-subjects, and the tool consumes them. Subjectless suites (selftest, operator-docs, shellcheck, and the four bare checkers that ARE their subject) are reported no-subject rather than silently skipped. The baseline comes from a guard report, not a per-suite control run, because one suite exceeds 120s and doubling the runner is what T-163 exists to avoid; a suite whose baseline is not PASS is skipped, since the sensitivity of a failing suite is not a meaningful question. The check is a floor and says so in the tool, the intent and the README: it proves coupling, not that a subtly wrong answer would be caught - sprint 20's dead pytest tolerance would have passed it. The tool's own fixture required proving it CATCHES a bad suite, not merely that it passes on good ones; the first attempt at that proof silently failed to build its mutant, and the corrected run fails with the exact diagnostic.
+- **Completed:** 2026-09-03T00:00:00Z
+- **Files modified:** `tools/check-suite-sensitivity.sh` (new), `tools/check-suite-sensitivity.test.sh` (new), `tools/run-guards.sh`
+- **Commit:** PENDING
