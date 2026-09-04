@@ -118,4 +118,61 @@ for token in second-run-error 'run 1 / exit 0' 'run 2 / exit 9'; do
 done
 pass test_second_run_failure
 
+# The evidence writer must fail closed even if the suite itself succeeds.
+BROKEN_BIN="$TMP_ROOT/broken-bin"; mkdir -p "$BROKEN_BIN"
+printf '#!/usr/bin/env bash\nexit 9\n' > "$BROKEN_BIN/sha256sum"
+chmod +x "$BROKEN_BIN/sha256sum"
+out=$(PATH="$BROKEN_BIN:$PATH" RUN_GUARDS_HASH_TOOL=sha256sum run_with "$P"); rc=$?
+[ "$rc" -ne 0 ] || die test_hash_failure 'failed hash backend returned success'
+case "$out" in *'cannot capture or hash evidence'*) : ;; *) die test_hash_failure "no hash diagnostic: $out" ;; esac
+if grep -q '"status":"PASS"' "$NDJSON"; then die test_hash_failure 'emitted PASS without a hash'; fi
+pass test_hash_failure
+
+RUNNER_RAN_MARKER="$TMP_ROOT/runner-ran"
+export RUNNER_RAN_MARKER
+printf '#!/usr/bin/env bash\ntouch "$RUNNER_RAN_MARKER"\necho steady\n' > "$P/good.sh"
+run_with "$P" >/dev/null || die test_capture_failure 'probe control failed'
+[ -f "$RUNNER_RAN_MARKER" ] || die test_capture_failure 'control marker is not observable'
+rm -f "$RUNNER_RAN_MARKER"
+printf '#!/usr/bin/env bash\nexit 9\n' > "$BROKEN_BIN/mktemp"
+chmod +x "$BROKEN_BIN/mktemp"
+out=$(PATH="$BROKEN_BIN:$PATH" run_with "$P"); rc=$?
+[ "$rc" -ne 0 ] || die test_capture_failure 'failed capture allocation returned success'
+case "$out" in *'cannot allocate capture directory'*) : ;; *) die test_capture_failure "no capture diagnostic: $out" ;; esac
+[ ! -e "$RUNNER_RAN_MARKER" ] || die test_capture_failure 'suite ran without capture storage'
+if grep -q '"status":"PASS"' "$NDJSON"; then die test_capture_failure 'emitted PASS without capture storage'; fi
+pass test_capture_failure
+
+WRITE_FAIL="$TMP_ROOT/write-fail"; mkdir -p "$WRITE_FAIL"
+RUNNER_REPORT_PATH=$NDJSON
+export RUNNER_REPORT_PATH
+cat > "$WRITE_FAIL/probe.sh" <<'EOF'
+#!/usr/bin/env bash
+rm -f "$RUNNER_REPORT_PATH" || exit 1
+mkdir "$RUNNER_REPORT_PATH" || exit 1
+echo 'suite completed, but report destination is now a directory'
+EOF
+out=$(run_with "$WRITE_FAIL"); rc=$?
+[ "$rc" -ne 0 ] || die test_report_write_failure 'failed append returned success'
+case "$out" in *'cannot append confirmation'*) : ;; *) die test_report_write_failure "no write diagnostic: $out" ;; esac
+[ -d "$NDJSON" ] || die test_report_write_failure 'fixture did not replace the report destination'
+rmdir "$NDJSON"
+pass test_report_write_failure
+
+run_with "$P" >/dev/null || die test_listing_modes 'control failed'
+before=$(cksum "$NDJSON")
+rm -f "$RUNNER_RAN_MARKER"
+for mode in --list-suites --list-subjects --list-hashes; do
+  out=$(run_with "$P" "$mode"); rc=$?
+  [ "$rc" -eq 0 ] || die test_listing_modes "$mode failed: $out"
+  [ ! -e "$RUNNER_RAN_MARKER" ] || die test_listing_modes "$mode ran suites"
+  [ "$before" = "$(cksum "$NDJSON")" ] || die test_listing_modes "$mode overwrote the report"
+done
+pass test_listing_modes
+
+out=$(bash "$RG" --out 2>&1); rc=$?
+[ "$rc" -eq 2 ] || die test_missing_output_argument 'missing --out value did not fail'
+case "$out" in *'--out requires a path'*) : ;; *) die test_missing_output_argument "no usage diagnostic: $out" ;; esac
+pass test_missing_output_argument
+
 printf 'run-guards selftest: all fixtures passed\n'

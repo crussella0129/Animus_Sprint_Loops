@@ -619,3 +619,10 @@
 - **Completed:** 2026-09-04T21:44:47Z
 - **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`
 - **Commit:** `e2b5dca80e8d717932a44f728df3590dfcf70c7b`
+
+## T-179 (sprint 22)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Add --committed archive baselines with source-tree and suite-hash provenance; reject malformed, duplicate, stale, failing and nondeterministic evidence. Restore subjects after each mutation and score shared-subject suites independently. Validate actual mutated confirmations, fail closed on capture/hash/report-write errors, and reject unknown suites. Fourteen sensitivity fixtures pass on Windows and Linux; eleven runner fixtures pass on Windows; Linux ShellCheck passes all four changed scripts.
+- **Completed:** 2026-09-04T21:54:10Z
+- **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`, `tools/check-suite-sensitivity.sh`, `tools/check-suite-sensitivity.test.sh`
+- **Commit:** PENDING

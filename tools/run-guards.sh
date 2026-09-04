@@ -6,18 +6,22 @@
 # Derived from the array-test confirmation model (github.com/crussella0129/
 # array-test, docs/ARCHITECTURE.md §2/§5/§6.1), sized to a bash guard suite:
 # each suite run is recorded as one ndjson confirmation
-#   {"suite","script_hash","status","evidence_hash","duration_s","ts",("determinism")}
+#   {"suite","script_hash","source_tree","status","evidence_hash","duration_s","ts",("determinism")}
 # where script_hash fingerprints the suite's own definition (its script file,
 # or the linted file set for shellcheck) and evidence_hash is the sha256 of
 # the suite's NORMALIZED output (temp paths, ISO timestamps, and CRs stripped,
 # so two identical runs in the same environment hash identically). No Merkle
 # root / memoization yet — see ROADMAP.md.
 #
-# Usage: run-guards.sh [--determinism] [--list-suites] [--list-subjects]
+# Usage: run-guards.sh [--committed] [--determinism] [--list-suites]
+#                      [--list-subjects] [--list-hashes]
 #                      [--out <path>] [suite...]
 #   suite...        run only the named suites (default: all)
 #   --list-suites   print the suite names and exit, running nothing
 #   --list-subjects print "<suite> <subject-script>" for suites that have one
+#   --list-hashes   print "<suite> <script-hash>" without running suites
+#   --committed     run from an archive of HEAD, excluding local/untracked files;
+#                   required when the report will be a sensitivity baseline
 #   --determinism   run each suite twice; normalized evidence hashes (and exit
 #                   codes) must match, else the suite is flagged nondeterministic
 #                   and the runner fails (array-test's determinism meta-check).
@@ -37,21 +41,57 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DETERMINISM=0
+COMMITTED=0
 LIST_MODE=none
 SELECTED=""
 OUT="./guards-report.ndjson"
+fatal() { printf 'run-guards: %s\n' "$*" >&2; exit 2; }
 while [ $# -gt 0 ]; do
   case "$1" in
+    --committed) COMMITTED=1; shift ;;
     --determinism) DETERMINISM=1; shift ;;
     --list-suites) LIST_MODE=suites; shift ;;
     --list-subjects) LIST_MODE=subjects; shift ;;
-    --out) OUT="$2"; shift 2 ;;
+    --list-hashes) LIST_MODE=hashes; shift ;;
+    --out) [ $# -ge 2 ] && [ -n "$2" ] || fatal '--out requires a path'; OUT="$2"; shift 2 ;;
     -*) echo "usage: $(basename "$0") [--determinism] [--list-suites] [--list-subjects] [--out <path>] [suite...]" >&2; exit 2 ;;
     *) SELECTED="$SELECTED $1"; shift ;;
   esac
 done
 
 EXTRA_DIR="${RUN_GUARDS_EXTRA_SUITES:-}"
+
+# Internal handoff from the archive wrapper. Do not leak provenance into child
+# runners used by fixtures: they must establish their own archived baseline.
+SOURCE_TREE=${RUN_GUARDS_ARCHIVE_TREE:-working-tree}
+unset RUN_GUARDS_ARCHIVE_TREE
+if [ "$COMMITTED" = 1 ]; then
+  [ "$LIST_MODE" = none ] || fatal '--committed cannot be combined with a listing mode'
+  case "$EXTRA_DIR" in
+    /*|[A-Za-z]:*|..|../*|*/../*|*/..)
+      fatal '--committed requires a relative extra-suite directory within the repository' ;;
+  esac
+  archive_tree=$(git -C "$ROOT" rev-parse 'HEAD^{tree}') || fatal 'cannot resolve committed source tree'
+  archive_dir=$(mktemp -d "${TMPDIR:-/tmp}/sprint-loop-archive.XXXXXX") || fatal 'cannot allocate archive directory'
+  trap 'rm -rf "$archive_dir"' EXIT
+  trap 'exit 130' HUP INT TERM
+  git -C "$ROOT" archive "$archive_tree" | tar -x -C "$archive_dir" || fatal 'cannot extract committed source'
+  cmp -s "$ROOT/tools/run-guards.sh" "$archive_dir/tools/run-guards.sh" ||
+    fatal 'commit changes to run-guards.sh before using --committed'
+  out_dir=$(cd "$(dirname "$OUT")" && pwd) || fatal 'output directory does not exist'
+  archive_args=(--out "$out_dir/$(basename "$OUT")")
+  [ "$DETERMINISM" = 0 ] || archive_args+=(--determinism)
+  for name in $SELECTED; do archive_args+=("$name"); done
+  (cd "$archive_dir" && RUN_GUARDS_ARCHIVE_TREE="$archive_tree" \
+    bash tools/run-guards.sh "${archive_args[@]}")
+  exit $?
+fi
+
+if [ "$LIST_MODE" = none ]; then
+  out_dir=$(cd "$(dirname "$OUT")" && pwd) || fatal 'output directory does not exist'
+  OUT="$out_dir/$(basename "$OUT")"
+fi
+cd "$ROOT" || fatal 'cannot enter repository root'
 
 # RUN_GUARDS_ONLY_EXTRA=1 drops the real suite list and runs only the extras.
 # Without it a fixture for this runner would have to run all 19 real suites to
@@ -63,6 +103,7 @@ fi
 if [ -n "$EXTRA_DIR" ]; then
   for f in "$EXTRA_DIR"/*.sh; do
     [ -f "$f" ] || continue
+    case "${f##*/}" in *[!a-zA-Z0-9_.-]*) fatal "invalid extra-suite name: ${f##*/}" ;; esac
     SUITES+=("extra:${f##*/}")
   done
 fi
@@ -179,6 +220,11 @@ hash_stdin() {
   esac
 }
 
+valid_hash() {
+  [ "${#1}" -eq 64 ] || return 1
+  case "$1" in *[!0-9a-f]*) return 1 ;; esac
+}
+
 # Normalize suite output so evidence hashes are stable across identical runs:
 # strip CRs, replace mktemp paths (Linux/git-bash /tmp/tmp.*; macOS
 # /var/folders/…, sometimes /private-prefixed) and ISO-8601 UTC timestamps
@@ -193,10 +239,12 @@ normalize() {
 
 # run_once <suite> <capture> — retain output until the verdict is known.
 run_once() {
-  local cap=$2 rc
+  local cap=$2 rc digest
+  : >"$cap" || return 125
   if (cd "$ROOT" && suite_cmd "$1") >"$cap" 2>&1; then rc=0; else rc=$?; fi
-  normalize <"$cap" >"$cap.normalized"
-  hash_stdin <"$cap.normalized"
+  normalize <"$cap" >"$cap.normalized" || return 125
+  digest=$(hash_stdin <"$cap.normalized") || return 125
+  printf '%s\n' "$digest"
   return "$rc"
 }
 
@@ -242,6 +290,14 @@ if [ "$LIST_MODE" = subjects ]; then
   done
   exit 0
 fi
+if [ "$LIST_MODE" = hashes ]; then
+  for name in "${SUITES[@]}"; do
+    script_hash=$(suite_script_hash "$name") || fatal "cannot hash suite $name"
+    valid_hash "$script_hash" || fatal "invalid script hash for $name"
+    printf '%s %s\n' "$name" "$script_hash"
+  done
+  exit 0
+fi
 
 # Fail fast if the confirmations file can't be written — a runner that can't
 # record its confirmations must not report success.
@@ -260,6 +316,7 @@ passed=0
 for name in "${SUITES[@]}"; do
   start=$(date +%s)
   h1=$(run_once "$name" "$CAPTURE_DIR/run1"); rc1=$?
+  valid_hash "$h1" || fatal "cannot capture or hash evidence for $name (exit $rc1)"
   status=PASS
   det=""
   # Separate from `det`, which is SET in both directions: it carries the "ok"
@@ -269,6 +326,7 @@ for name in "${SUITES[@]}"; do
   det_label=""
   if [ "$DETERMINISM" = "1" ]; then
     h2=$(run_once "$name" "$CAPTURE_DIR/run2"); rc2=$?
+    valid_hash "$h2" || fatal "cannot capture or hash evidence for $name run 2 (exit $rc2)"
     if [ "$h1" != "$h2" ] || [ "$rc1" != "$rc2" ]; then
       det=',"determinism":"mismatch"'
       det_label=" det-mismatch"
@@ -288,9 +346,11 @@ for name in "${SUITES[@]}"; do
   if [ "$rc1" -ne 0 ]; then status=FAIL; fail=1; fi
   dur=$(( $(date +%s) - start ))
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  script_hash=$(suite_script_hash "$name")
-  printf '{"suite":"%s","script_hash":"%s","status":"%s","evidence_hash":"%s","duration_s":%s,"ts":"%s"%s}\n' \
-    "$name" "$script_hash" "$status" "$h1" "$dur" "$ts" "$det" >> "$OUT"
+  script_hash=$(suite_script_hash "$name") || fatal "cannot hash suite $name"
+  valid_hash "$script_hash" || fatal "invalid script hash for $name"
+  printf '{"suite":"%s","script_hash":"%s","source_tree":"%s","status":"%s","evidence_hash":"%s","duration_s":%s,"ts":"%s"%s}\n' \
+    "$name" "$script_hash" "$SOURCE_TREE" "$status" "$h1" "$dur" "$ts" "$det" >> "$OUT" ||
+    fatal "cannot append confirmation for $name to $OUT"
   if [ "$status" = "PASS" ] && [ -z "$det_label" ]; then
     passed=$((passed+1))
     printf '  PASS  %-18s %ss  evidence=%s\n' "$name" "$dur" "${h1:0:12}"

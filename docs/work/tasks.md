@@ -1,6 +1,5 @@
 # Agent Tasks (Persistent Backlog)
 
-- [ ] T-179 (sprint 22) [intent: INT-0013]: bind sensitivity to committed baselines, isolate mutations, and fail closed on infrastructure errors — touches: tools/run-guards.sh, tools/run-guards.test.sh, tools/check-suite-sensitivity.sh, tools/check-suite-sensitivity.test.sh
 - [ ] T-177 (sprint 22) [intent: INT-0007]: retire duplicate merge-policy shims while preserving canonical adapter checks — touches: tools/run-guards.sh, tools/run-guards.test.sh, tools/check-merge-policy.sh, tools/check-merge-policy.test.sh
 - [ ] T-182 (sprint 22) [intent: INT-0013]: document committed baselines and failure diagnostics; identify bundle 0.22.0 — touches: README.md, tools/operator-docs.test.sh, bundle-version.sh copies, plugin.json
 - [ ] T-178 (backlog) [intent: INT-0013]: give the no-version-literal rule a mechanical guard and fixtures — sprint 21 locked it as an EARS clause whose only verification was a one-off inspection, so nothing stops a future fixture asserting against a version constant's current literal; that is the exact defect T-169 was filed for and it recurred inside a single sprint. The paired-negative-assertion half of the same criterion IS mechanically gated by check-suite-sensitivity, so only this half is open (sprint 21 test critique C-002) — touches: tools/, {4 bundles}/scripts/*.test.sh
