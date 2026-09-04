@@ -191,14 +191,19 @@ normalize() {
              -e 's|[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z|<TS>|g'
 }
 
-# run_once <suite> — prints the evidence hash; returns the suite's exit code.
+# run_once <suite> <capture> — retain output until the verdict is known.
 run_once() {
-  local cap rc
-  cap=$(mktemp)
+  local cap=$2 rc
   if (cd "$ROOT" && suite_cmd "$1") >"$cap" 2>&1; then rc=0; else rc=$?; fi
-  normalize <"$cap" | hash_stdin
-  rm -f "$cap"
+  normalize <"$cap" >"$cap.normalized"
+  hash_stdin <"$cap.normalized"
   return "$rc"
+}
+
+show_capture() {
+  printf '\n--- %s / run %s / exit %s ---\n' "$1" "$2" "$3" >&2
+  cat "$4" >&2
+  printf '\n--- end %s / run %s ---\n' "$1" "$2" >&2
 }
 
 # Naming suites restricts the run to them. check-suite-sensitivity.sh needs to
@@ -244,12 +249,17 @@ if ! : 2>/dev/null > "$OUT"; then
   echo "run-guards: cannot write confirmations to $OUT" >&2
   exit 2
 fi
+CAPTURE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/sprint-loop-capture.XXXXXX") || {
+  echo 'run-guards: cannot allocate capture directory' >&2; exit 2;
+}
+trap 'rm -rf "$CAPTURE_DIR"' EXIT
+trap 'exit 130' HUP INT TERM
 fail=0
 passed=0
 
 for name in "${SUITES[@]}"; do
   start=$(date +%s)
-  h1=$(run_once "$name"); rc1=$?
+  h1=$(run_once "$name" "$CAPTURE_DIR/run1"); rc1=$?
   status=PASS
   det=""
   # Separate from `det`, which is SET in both directions: it carries the "ok"
@@ -258,15 +268,22 @@ for name in "${SUITES[@]}"; do
   # field's presence.
   det_label=""
   if [ "$DETERMINISM" = "1" ]; then
-    h2=$(run_once "$name"); rc2=$?
+    h2=$(run_once "$name" "$CAPTURE_DIR/run2"); rc2=$?
     if [ "$h1" != "$h2" ] || [ "$rc1" != "$rc2" ]; then
       det=',"determinism":"mismatch"'
       det_label=" det-mismatch"
       fail=1
       echo "NONDETERMINISTIC: $name (run1 rc=$rc1 $h1 / run2 rc=$rc2 $h2)" >&2
+      show_capture "$name" 1 "$rc1" "$CAPTURE_DIR/run1"
+      show_capture "$name" 2 "$rc2" "$CAPTURE_DIR/run2"
+      printf '\n--- %s / normalized diff ---\n' "$name" >&2
+      diff -u -L run-1 -L run-2 "$CAPTURE_DIR/run1.normalized" "$CAPTURE_DIR/run2.normalized" >&2 || :
     else
       det=',"determinism":"ok"'
     fi
+  fi
+  if [ "$rc1" -ne 0 ] && [ -z "$det_label" ]; then
+    show_capture "$name" 1 "$rc1" "$CAPTURE_DIR/run1"
   fi
   if [ "$rc1" -ne 0 ]; then status=FAIL; fail=1; fi
   dur=$(( $(date +%s) - start ))

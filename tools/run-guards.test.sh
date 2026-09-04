@@ -35,6 +35,8 @@ run_with() {
 D="$TMP_ROOT/det-fail"; mkdir -p "$D"
 printf '#!/usr/bin/env bash\necho "same output every run"\nexit 1\n' > "$D/failing.sh"
 out=$(run_with "$D" --determinism)
+rc=$?
+[ "$rc" -ne 0 ] || die test_failing_deterministic_suite_not_labelled 'failure returned success'
 case "$out" in
   *"FAIL  extra:failing.sh"*) : ;;
   *) die test_failing_deterministic_suite_not_labelled "suite did not fail: $out" ;;
@@ -59,6 +61,8 @@ printf '%s\n' "\$n" > "\$c"
 echo "run number \$n"
 EOF
 out=$(run_with "$N" --determinism)
+rc=$?
+[ "$rc" -ne 0 ] || die test_nondeterministic_suite_is_labelled 'mismatch returned success'
 case "$out" in
   *det-mismatch*) : ;;
   *) die test_nondeterministic_suite_is_labelled "a real mismatch was not labelled: $out" ;;
@@ -82,5 +86,36 @@ case "$out" in
   *det-mismatch*) die test_passing_deterministic_suite_is_clean "clean run labelled a mismatch" ;;
 esac
 pass test_passing_deterministic_suite_is_clean
+
+case "$out" in
+  *steady*|*'--- end '*) die test_passing_deterministic_suite_is_clean 'passing output was not suppressed' ;;
+esac
+
+printf '#!/usr/bin/env bash\necho stdout-detail\necho stderr-detail >&2\nexit 7\n' > "$D/failing.sh"
+out=$(run_with "$D"); rc=$?
+[ "$rc" -ne 0 ] || die test_failure_diagnostics 'failure returned success'
+for token in stdout-detail stderr-detail 'extra:failing.sh / run 1 / exit 7'; do
+  case "$out" in *"$token"*) : ;; *) die test_failure_diagnostics "missing $token: $out" ;; esac
+done
+pass test_failure_diagnostics
+
+rm -f "$TMP_ROOT/counter"
+out=$(run_with "$N" --determinism); rc=$?
+[ "$rc" -ne 0 ] || die test_mismatch_diagnostics 'mismatch returned success'
+for token in 'run number 1' 'run number 2' 'normalized diff' '-run number 1' '+run number 2'; do
+  case "$out" in *"$token"*) : ;; *) die test_mismatch_diagnostics "missing $token: $out" ;; esac
+done
+pass test_mismatch_diagnostics
+
+cat >> "$N/flaky.sh" <<'EOF'
+[ "$n" -eq 1 ] || { echo second-run-error >&2; exit 9; }
+EOF
+rm -f "$TMP_ROOT/counter"
+out=$(run_with "$N" --determinism); rc=$?
+[ "$rc" -ne 0 ] || die test_second_run_failure 'second-run failure returned success'
+for token in second-run-error 'run 1 / exit 0' 'run 2 / exit 9'; do
+  case "$out" in *"$token"*) : ;; *) die test_second_run_failure "missing $token: $out" ;; esac
+done
+pass test_second_run_failure
 
 printf 'run-guards selftest: all fixtures passed\n'

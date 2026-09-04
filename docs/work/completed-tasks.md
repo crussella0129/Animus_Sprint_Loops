@@ -612,3 +612,10 @@
 - **Completed:** 2026-09-03T00:00:00Z
 - **Files modified:** `{open-harnesses,claude-code/skills/sprint-loop,codex-cli/skills/sprint-loops,antigravity-ide/skills/sprint-loop}/scripts/{deploy-substrate,remote-adapter,book-routing,remote-profile}.test.sh`, `tools/run-guards.sh`
 - **Commit:** `b260b5c534b36619393dfda62f0d2ab2a720fa9e`
+
+## T-180 (sprint 22)
+- **Intent:** [INT-0013](../intents/INT-0013-verification-integrity.md)
+- **Description:** Retain captures until verdict, print failing stdout/stderr and both mismatch runs plus normalized diff; preserve concise passing output. Six Windows Git Bash fixtures pass; Linux ShellCheck 0.11.0 passes. Negative fixtures now assert nonzero exit.
+- **Completed:** 2026-09-04T21:44:47Z
+- **Files modified:** `tools/run-guards.sh`, `tools/run-guards.test.sh`
+- **Commit:** PENDING
