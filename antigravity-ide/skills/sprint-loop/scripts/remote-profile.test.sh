@@ -104,13 +104,13 @@ write_profile "$B" 'provider: bitbucket
 base: main
 work: dev'
 if bash "$RP" --root "$B" >/dev/null 2>/dev/null; then
-  die test_profile_rejects_malformed 'unknown provider accepted after widening the enum'
+  die test_profile_enum_diagnostic_names_every_value 'unknown provider accepted after widening the enum'
 fi
 reject_out=$(bash "$RP" --root "$B" 2>&1 || true)
 for value in github gitlab gitea forgejo generic local-only; do
   case "$reject_out" in
     *"$value"*) : ;;
-    *) die test_profile_rejects_malformed "diagnostic omits $value: $reject_out" ;;
+    *) die test_profile_enum_diagnostic_names_every_value "diagnostic omits $value: $reject_out" ;;
   esac
 done
 pass test_profile_enum_diagnostic_names_every_value

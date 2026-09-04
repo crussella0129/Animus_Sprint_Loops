@@ -139,7 +139,11 @@ suite_script_hash() {
 # check-suite-sensitivity.sh consumes this so the suite list has one definition.
 suite_subject() {
   case "$1" in
-    merge-policy-test)      echo tools/check-merge-policy.sh ;;
+    # check-merge-policy{,.test}.sh are sprint-14 compatibility shims that exec
+    # the adapter-semantics pair, so this suite's real subject is the script it
+    # actually exercises. The first sensitivity sweep caught the wrong mapping:
+    # neutering the shim's target changed nothing the suite observes.
+    merge-policy-test)      echo tools/check-adapter-semantics.sh ;;
     plugin-manifest-test)   echo tools/check-plugin-manifest.sh ;;
     bundle-sync-test)       echo tools/check-bundle-sync.sh ;;
     adapter-semantics-test) echo tools/check-adapter-semantics.sh ;;
