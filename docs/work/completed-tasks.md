@@ -639,4 +639,4 @@
 - **Description:** Document committed-archive baselines, source-tree freshness, explicit unscorable failures, restored mutations, and actionable guard diagnostics. Raise all four bundle-version helpers and Claude plugin manifest to 0.22.0. Canonical operator-docs, plugin-manifest, and bundle-sync checks pass (3/3); ShellCheck passes.
 - **Completed:** 2026-09-04T22:00:49Z
 - **Files modified:** `README.md`, `tools/operator-docs.test.sh`, `open-harnesses/scripts/bundle-version.sh`, `claude-code/skills/sprint-loop/scripts/bundle-version.sh`, `codex-cli/skills/sprint-loops/scripts/bundle-version.sh`, `antigravity-ide/skills/sprint-loop/scripts/bundle-version.sh`, `claude-code/.claude-plugin/plugin.json`
-- **Commit:** PENDING
+- **Commit:** `04610edf1dfe98d601419b3c22088f3e36d44bb3`
