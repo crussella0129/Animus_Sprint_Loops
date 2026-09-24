@@ -1,4 +1,4 @@
-<img width="326" height="156" alt="ascii-art-text" src="https://github.com/user-attachments/assets/2611ff77-3a8c-4d55-b167-5765df154bd9" />
+<p align="center"> <img width="326" height="156" alt="ascii-art-text" src="https://github.com/user-attachments/assets/2611ff77-3a8c-4d55-b167-5765df154bd9" /> </p>
 
 
 # Animus Sprint Loops
